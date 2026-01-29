@@ -2,3 +2,10 @@ customer_one:
   organization: acme
   external_id: cust_001
   name: Customer One
+  monthly_subscription_revenue_in_cents: 0
+
+customer_with_subscription:
+  organization: acme
+  external_id: cust_sub_001
+  name: Subscription Customer
+  monthly_subscription_revenue_in_cents: 5000

@@ -1,62 +1,85 @@
 <div class="mb-4">
-  <%= link_to "&larr; All Customers".html_safe, customers_path, class: "text-blue-600 hover:underline text-sm" %>
+  <%= link_to "&larr; #{t('shared.back_to')}".html_safe, customers_path, class: "text-blue-600 hover:underline text-sm" %>
 </div>
 
-<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= @customer.name || @customer.external_id %></h1>
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-gray-900"><%= @customer.name || @customer.external_id %></h1>
+  <%= render "shared/period_selector", selected: @selected_period %>
+</div>
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
   <div class="bg-white rounded-lg shadow p-6">
-    <p class="text-sm text-gray-500">Revenue</p>
+    <p class="text-sm text-gray-500"><%= t("shared.revenue") %></p>
     <p class="text-2xl font-bold text-gray-900"><%= format_cents(@margin.revenue_in_cents) %></p>
   </div>
   <div class="bg-white rounded-lg shadow p-6">
-    <p class="text-sm text-gray-500">Cost</p>
+    <p class="text-sm text-gray-500"><%= t("shared.cost") %></p>
     <p class="text-2xl font-bold text-gray-900"><%= format_cents(@margin.cost_in_cents) %></p>
   </div>
   <div class="bg-white rounded-lg shadow p-6">
-    <p class="text-sm text-gray-500">Margin</p>
+    <p class="text-sm text-gray-500"><%= t("shared.margin") %></p>
     <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>"><%= format_cents(@margin.margin_in_cents) %></p>
   </div>
   <div class="bg-white rounded-lg shadow p-6">
-    <p class="text-sm text-gray-500">Margin %</p>
+    <p class="text-sm text-gray-500"><%= t("shared.margin_percent") %></p>
     <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>"><%= format_bps(@margin.margin_bps) %></p>
   </div>
 </div>
 
+<!-- Revenue Breakdown -->
+<% if @margin.subscription_revenue_in_cents > 0 || @margin.event_revenue_in_cents > 0 %>
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-3"><%= t("customers.show.revenue_breakdown") %></h2>
+    <div class="flex gap-8 text-sm">
+      <div>
+        <span class="text-gray-500"><%= t("customers.show.subscription_label") %></span>
+        <span class="font-medium"><%= format_cents(@margin.subscription_revenue_in_cents) %></span>
+        <% if @customer.monthly_subscription_revenue_in_cents > 0 %>
+          <span class="text-gray-400">(<%= t("customers.show.per_month", amount: format_cents(@customer.monthly_subscription_revenue_in_cents)) %>)</span>
+        <% end %>
+      </div>
+      <div>
+        <span class="text-gray-500"><%= t("customers.show.event_based") %></span>
+        <span class="font-medium"><%= format_cents(@margin.event_revenue_in_cents) %></span>
+      </div>
+    </div>
+  </div>
+<% end %>
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
   <!-- Revenue vs Cost Chart -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Revenue vs. Cost</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("customers.show.revenue_vs_cost") %></h2>
     <%= line_chart [
-      { name: "Revenue", data: @revenue_over_time },
-      { name: "Cost", data: @cost_over_time }
+      { name: t("shared.revenue"), data: @revenue_over_time },
+      { name: t("shared.cost"), data: @cost_over_time }
     ], prefix: "$" %>
   </div>
 
   <!-- Vendor Cost Breakdown -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Cost by Vendor</h2>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("customers.show.cost_by_vendor") %></h2>
     <% if @vendor_costs.any? %>
       <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
     <% else %>
-      <p class="text-gray-400 text-center py-8">No cost data yet.</p>
+      <p class="text-gray-400 text-center py-8"><%= t("customers.show.no_cost_data") %></p>
     <% end %>
   </div>
 </div>
 
 <!-- Event History -->
 <div class="bg-white rounded-lg shadow p-6">
-  <h2 class="text-lg font-semibold text-gray-900 mb-4">Event History</h2>
+  <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("customers.show.event_history") %></h2>
   <table class="w-full text-sm">
     <thead>
       <tr class="border-b text-left text-gray-500">
-        <th class="py-2 pr-4">Time</th>
-        <th class="py-2 pr-4">Event Type</th>
-        <th class="py-2 pr-4 text-right">Revenue</th>
-        <th class="py-2 pr-4 text-right">Cost</th>
-        <th class="py-2 pr-4 text-right">Margin</th>
-        <th class="py-2">Vendors</th>
+        <th class="py-2 pr-4"><%= t("shared.time") %></th>
+        <th class="py-2 pr-4"><%= t("shared.event_type") %></th>
+        <th class="py-2 pr-4 text-right"><%= t("shared.revenue") %></th>
+        <th class="py-2 pr-4 text-right"><%= t("shared.cost") %></th>
+        <th class="py-2 pr-4 text-right"><%= t("shared.margin") %></th>
+        <th class="py-2"><%= t("shared.vendors") %></th>
       </tr>
     </thead>
     <tbody>
@@ -76,7 +99,7 @@
       <% end %>
       <% if @events.empty? %>
         <tr>
-          <td colspan="6" class="py-8 text-center text-gray-400">No events for this customer yet.</td>
+          <td colspan="6" class="py-8 text-center text-gray-400"><%= t("customers.show.no_events") %></td>
         </tr>
       <% end %>
     </tbody>

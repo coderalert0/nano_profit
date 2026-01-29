@@ -31,4 +31,17 @@ class OrganizationTest < ActiveSupport::TestCase
     org = Organization.create!(name: "New Org")
     assert_equal 0, org.margin_alert_threshold_bps
   end
+
+  test "stripe_access_token is encrypted" do
+    org = organizations(:acme)
+    org.update!(stripe_access_token: "sk_test_secret_token")
+    org.reload
+    assert_equal "sk_test_secret_token", org.stripe_access_token
+  end
+
+  test "stripe fields default to nil" do
+    org = Organization.create!(name: "Fresh Org")
+    assert_nil org.stripe_user_id
+    assert_nil org.stripe_access_token
+  end
 end

@@ -25,3 +25,18 @@ pending_event:
   metadata: <%= {}.to_json %>
   occurred_at: <%= 30.minutes.ago.iso8601 %>
   status: pending
+
+subscription_customer_event:
+  organization: acme
+  customer: customer_with_subscription
+  unique_request_token: req_sub_001
+  customer_external_id: cust_sub_001
+  customer_name: Subscription Customer
+  event_type: ai_analysis
+  revenue_amount_in_cents: 0
+  total_cost_in_cents: 300
+  margin_in_cents: -300
+  vendor_costs_raw: <%= [{"vendor_name" => "openai", "amount_in_cents" => 300, "unit_count" => 10000, "unit_type" => "tokens"}].to_json %>
+  metadata: <%= {}.to_json %>
+  occurred_at: <%= 1.hour.ago.iso8601 %>
+  status: processed
