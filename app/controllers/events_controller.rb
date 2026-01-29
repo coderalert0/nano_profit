@@ -1,5 +1,5 @@
 class EventsController < ApplicationController
-  PER_PAGE = 50
+  PER_PAGE = 20
 
   def index
     @page = [ params[:page].to_i, 1 ].max
@@ -22,13 +22,17 @@ class EventsController < ApplicationController
     @vendors = CostEntry.where(usage_telemetry_event_id: Current.organization.usage_telemetry_events.processed.select(:id))
       .distinct.pluck(:vendor_name).sort
 
+    @total_count = events.count
+    @total_pages = (@total_count.to_f / PER_PAGE).ceil
+
     @events = events
       .recent
       .includes(:customer, :cost_entries)
       .offset((@page - 1) * PER_PAGE)
-      .limit(PER_PAGE + 1)
+      .limit(PER_PAGE)
 
-    @has_next_page = @events.size > PER_PAGE
-    @events = @events.first(PER_PAGE)
+    if request.headers["Turbo-Frame"] == "infinite-scroll-rows"
+      render partial: "rows", locals: { events: @events, page: @page, total_pages: @total_pages }, layout: false
+    end
   end
 end

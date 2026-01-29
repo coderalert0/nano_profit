@@ -34,11 +34,11 @@ export default class extends Controller {
     if (noEventsRow) noEventsRow.remove()
 
     const row = document.createElement("tr")
-    row.className = "border-b hover:bg-gray-50 bg-green-50"
+    row.className = "table-row bg-green-50"
     row.innerHTML = `
       <td class="py-2 pr-4 text-gray-500">${this.formatTime(data.occurred_at)}</td>
       <td class="py-2 pr-4">${this.escapeHtml(data.customer_name)}</td>
-      <td class="py-2 pr-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${this.escapeHtml(data.event_type)}</span></td>
+      <td class="py-2 pr-4"><span class="badge badge-blue">${this.escapeHtml(data.event_type)}</span></td>
       <td class="py-2 pr-4 text-right">${this.formatCents(data.revenue_in_cents)}</td>
       <td class="py-2 pr-4 text-right">${this.formatCents(data.cost_in_cents)}</td>
       <td class="py-2 text-right font-medium ${data.margin_in_cents >= 0 ? 'text-green-600' : 'text-red-600'}">${this.formatCents(data.margin_in_cents)}</td>
@@ -77,8 +77,14 @@ export default class extends Controller {
   formatTime(isoString) {
     if (!isoString) return "-"
     const d = new Date(isoString)
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-    return `${months[d.getMonth()]} ${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit"
+    }).format(d)
   }
 
   escapeHtml(text) {

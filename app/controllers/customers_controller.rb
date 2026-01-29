@@ -1,13 +1,24 @@
 class CustomersController < ApplicationController
+  PER_PAGE = 20
+
   def index
+    @page = [ params[:page].to_i, 1 ].max
     @period = parse_period(params[:period])
     @selected_period = params[:period] || "all"
-    @customer_margins = MarginCalculator.customer_margins(Current.organization, @period)
+    all_margins = MarginCalculator.customer_margins(Current.organization, @period)
       .sort_by { |cm| cm[:margin].margin_bps }
+    @total_count = all_margins.size
+    @total_pages = (@total_count.to_f / PER_PAGE).ceil
+    @customer_margins = all_margins.slice((@page - 1) * PER_PAGE, PER_PAGE) || []
+
+    if request.headers["Turbo-Frame"] == "infinite-scroll-rows"
+      render partial: "rows", locals: { customer_margins: @customer_margins, page: @page, total_pages: @total_pages }, layout: false
+    end
   end
 
   def show
     @customer = Current.organization.customers.find(params[:id])
+    @page = [ params[:page].to_i, 1 ].max
     @period = parse_period(params[:period])
     @selected_period = params[:period] || "all"
 
@@ -16,19 +27,28 @@ class CustomersController < ApplicationController
     events = @customer.usage_telemetry_events.processed
     events = events.where(occurred_at: @period) if @period
 
-    @events = events.recent.includes(:cost_entries).limit(50)
+    @total_event_count = events.count
+    @total_event_pages = (@total_event_count.to_f / PER_PAGE).ceil
+    @events = events.recent.includes(:cost_entries)
+      .offset((@page - 1) * PER_PAGE)
+      .limit(PER_PAGE)
+
     @vendor_costs = CostEntry
-      .where(usage_telemetry_event: events)
+      .where(usage_telemetry_event: @customer.usage_telemetry_events.processed.then { |e| @period ? e.where(occurred_at: @period) : e })
       .group(:vendor_name)
       .sum(:amount_in_cents)
-    @revenue_over_time = events
+    @revenue_over_time = (@period ? @customer.usage_telemetry_events.processed.where(occurred_at: @period) : @customer.usage_telemetry_events.processed)
       .group_by_day(:occurred_at)
       .sum(:revenue_amount_in_cents)
       .transform_values { |v| v / 100.0 }
-    @cost_over_time = events
+    @cost_over_time = (@period ? @customer.usage_telemetry_events.processed.where(occurred_at: @period) : @customer.usage_telemetry_events.processed)
       .group_by_day(:occurred_at)
       .sum(:total_cost_in_cents)
       .transform_values { |v| v / 100.0 }
+
+    if request.headers["Turbo-Frame"] == "infinite-scroll-rows"
+      render partial: "event_rows", locals: { events: @events, page: @page, total_pages: @total_event_pages }, layout: false
+    end
   end
 
   private

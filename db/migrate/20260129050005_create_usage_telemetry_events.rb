@@ -13,7 +13,7 @@ class CreateUsageTelemetryEvents < ActiveRecord::Migration[8.0]
       t.jsonb :vendor_costs_raw, default: []
       t.jsonb :metadata, default: {}
       t.datetime :occurred_at
-      t.string :status, null: false, default: "pending"
+      t.string :status, default: "pending", null: false
 
       t.timestamps
     end

@@ -1,0 +1,26 @@
+<% events.each do |event| %>
+  <tr class="table-row">
+    <td class="py-3 px-4 text-gray-500" data-sort-value="<%= event.occurred_at&.to_i %>"><%= format_time(event.occurred_at) %></td>
+    <td class="py-3 px-4">
+      <% if event.customer %>
+        <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer), class: "link" %>
+      <% else %>
+        <%= event.customer_external_id %>
+      <% end %>
+    </td>
+    <td class="py-3 px-4"><span class="badge badge-blue"><%= event.event_type %></span></td>
+    <td class="py-3 px-4 text-right"><%= format_cents(event.revenue_amount_in_cents) %></td>
+    <td class="py-3 px-4 text-right"><%= format_cents(event.total_cost_in_cents) %></td>
+    <td class="py-3 px-4 text-right font-medium <%= margin_color_class(event.margin_in_cents) %>"><%= format_cents(event.margin_in_cents) %></td>
+    <td class="py-3 px-4">
+      <% event.cost_entries.each do |ce| %>
+        <span class="badge badge-gray mr-1"><%= ce.vendor_name %></span>
+      <% end %>
+    </td>
+  </tr>
+<% end %>
+<% if page < total_pages %>
+  <tr data-infinite-scroll-target="sentinel" class="sentinel">
+    <td colspan="7" class="py-4 text-center text-sm text-gray-400">Loading more...</td>
+  </tr>
+<% end %>
