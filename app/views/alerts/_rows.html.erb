@@ -1,0 +1,37 @@
+<% alerts.each do |alert| %>
+  <tr class="table-row <%= 'bg-red-50' unless alert.acknowledged? %>">
+    <td class="py-3 px-4 text-gray-500" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at) %></td>
+    <td class="py-3 px-4">
+      <% if alert.alert_type == "negative_margin" %>
+        <span class="badge badge-red">Negative Margin</span>
+      <% else %>
+        <span class="badge badge-yellow">Below Threshold</span>
+      <% end %>
+    </td>
+    <td class="py-3 px-4">
+      <% if alert.customer %>
+        <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "link" %>
+      <% else %>
+        <span class="text-gray-400">-</span>
+      <% end %>
+    </td>
+    <td class="py-3 px-4"><%= alert.message %></td>
+    <td class="py-3 px-4">
+      <% if alert.acknowledged? %>
+        <span class="text-green-600 text-xs">Acknowledged</span>
+      <% else %>
+        <span class="text-red-600 text-xs font-medium">Active</span>
+      <% end %>
+    </td>
+    <td class="py-3 px-4">
+      <% unless alert.acknowledged? %>
+        <%= button_to "Acknowledge", acknowledge_alert_path(alert), method: :patch, class: "text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded cursor-pointer" %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>
+<% if page < total_pages %>
+  <tr data-infinite-scroll-target="sentinel" class="sentinel">
+    <td colspan="6" class="py-4 text-center text-sm text-gray-400">Loading more...</td>
+  </tr>
+<% end %>

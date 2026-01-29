@@ -1,5 +1,5 @@
 class EventsController < ApplicationController
-  PER_PAGE = 50
+  PER_PAGE = 20
 
   def index
     @page = [ params[:page].to_i, 1 ].max
@@ -30,5 +30,9 @@ class EventsController < ApplicationController
       .includes(:customer, :cost_entries)
       .offset((@page - 1) * PER_PAGE)
       .limit(PER_PAGE)
+
+    if request.headers["Turbo-Frame"] == "infinite-scroll-rows"
+      render partial: "rows", locals: { events: @events, page: @page, total_pages: @total_pages }, layout: false
+    end
   end
 end

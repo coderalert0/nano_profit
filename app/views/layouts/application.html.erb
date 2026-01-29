@@ -31,6 +31,8 @@
       .ts-wrapper.multi.input-active .ts-control, .ts-wrapper.multi.focus .ts-control { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
       .ts-wrapper.multi .ts-control > input { font-size: 0.875rem; }
       .ts-wrapper.multi .ts-control > input::placeholder { color: #9ca3af; font-size: 0.875rem; }
+      .ts-wrapper + .tomselected { border: none !important; }
+      .ts-wrapper .ts-control { border: 1px solid #d1d5db; }
     </style>
     <%= javascript_importmap_tags %>
     <%= action_cable_meta_tag %>

@@ -1,6 +1,6 @@
 <h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
-<div class="card overflow-hidden">
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= alerts_path %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
       <tr class="border-b text-left text-gray-500">
@@ -12,39 +12,8 @@
         <th class="py-3 px-4"></th>
       </tr>
     </thead>
-    <tbody>
-      <% @alerts.each do |alert| %>
-        <tr class="table-row <%= 'bg-red-50' unless alert.acknowledged? %>">
-          <td class="py-3 px-4 text-gray-500" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at) %></td>
-          <td class="py-3 px-4">
-            <% if alert.alert_type == "negative_margin" %>
-              <span class="badge badge-red">Negative Margin</span>
-            <% else %>
-              <span class="badge badge-yellow">Below Threshold</span>
-            <% end %>
-          </td>
-          <td class="py-3 px-4">
-            <% if alert.customer %>
-              <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "link" %>
-            <% else %>
-              <span class="text-gray-400">-</span>
-            <% end %>
-          </td>
-          <td class="py-3 px-4"><%= alert.message %></td>
-          <td class="py-3 px-4">
-            <% if alert.acknowledged? %>
-              <span class="text-green-600 text-xs">Acknowledged</span>
-            <% else %>
-              <span class="text-red-600 text-xs font-medium">Active</span>
-            <% end %>
-          </td>
-          <td class="py-3 px-4">
-            <% unless alert.acknowledged? %>
-              <%= button_to "Acknowledge", acknowledge_alert_path(alert), method: :patch, class: "text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded cursor-pointer" %>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
+    <tbody data-infinite-scroll-target="tbody">
+      <%= render "rows", alerts: @alerts, page: @page, total_pages: @total_pages %>
       <% if @alerts.empty? %>
         <tr>
           <td colspan="6" class="empty-state">No alerts. Your margins are looking good!</td>
@@ -53,19 +22,3 @@
     </tbody>
   </table>
 </div>
-
-<% if @total_pages > 1 %>
-  <div class="flex justify-between items-center mt-4">
-    <div>
-      <% if @page > 1 %>
-        <%= link_to "Previous", alerts_path(page: @page - 1), class: "link text-sm" %>
-      <% end %>
-    </div>
-    <span class="text-sm text-gray-500">Page <%= @page %> of <%= @total_pages %></span>
-    <div>
-      <% if @page < @total_pages %>
-        <%= link_to "Next", alerts_path(page: @page + 1), class: "link text-sm" %>
-      <% end %>
-    </div>
-  </div>
-<% end %>
