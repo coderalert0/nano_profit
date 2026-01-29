@@ -1,9 +1,11 @@
 <div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-bold text-gray-900"><%= t("customers.index.title") %> <span class="text-gray-400 font-normal text-lg">(<%= @customer_margins.size %>)</span></h1>
+  <h1 class="text-2xl font-bold text-gray-900"><%= t("customers.index.title") %> <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
   <%= render "shared/period_selector", selected: @selected_period %>
 </div>
 
-<div class="card overflow-hidden">
+<% period_params = @selected_period == "all" ? {} : { period: @selected_period } %>
+
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= customers_path(**period_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
       <tr class="border-b text-left text-gray-500">
@@ -16,20 +18,8 @@
         <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin_percent") %></th>
       </tr>
     </thead>
-    <tbody>
-      <% @customer_margins.each do |cm| %>
-        <tr class="table-row">
-          <td class="py-3 px-4 font-medium">
-            <%= link_to cm[:customer_name] || cm[:customer_external_id], customer_path(cm[:customer_id]), class: "link" %>
-          </td>
-          <td class="py-3 px-4 text-gray-500"><%= cm[:customer_external_id] %></td>
-          <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].subscription_revenue_in_cents) %></td>
-          <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].revenue_in_cents) %></td>
-          <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].cost_in_cents) %></td>
-          <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_cents(cm[:margin].margin_in_cents) %></td>
-          <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_bps(cm[:margin].margin_bps) %></td>
-        </tr>
-      <% end %>
+    <tbody data-infinite-scroll-target="tbody">
+      <%= render "rows", customer_margins: @customer_margins, page: @page, total_pages: @total_pages %>
       <% if @customer_margins.empty? %>
         <tr>
           <td colspan="7" class="empty-state"><%= t("customers.index.no_data") %></td>
