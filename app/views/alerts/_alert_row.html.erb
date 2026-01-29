@@ -1,6 +1,6 @@
 <tr id="<%= dom_id(alert) %>" class="table-row">
   <td class="py-3 px-4 text-gray-500" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at) %></td>
-  <td class="py-3 px-4">
+  <td class="py-3 px-4 whitespace-nowrap">
     <% if alert.alert_type == "negative_margin" %>
       <span class="badge badge-red">Negative Margin</span>
     <% else %>
@@ -20,13 +20,13 @@
       <p class="text-xs text-gray-500 italic mt-1"><%= alert.notes %></p>
     <% end %>
   </td>
-  <td class="py-3 px-4">
+  <td class="py-3 px-4 whitespace-nowrap">
     <% if alert.acknowledged? %>
       <span class="text-green-600 text-xs">Acknowledged</span>
       <% if alert.acknowledged_by %>
         <span class="block text-xs text-gray-400"><%= alert.acknowledged_by.email_address %></span>
       <% end %>
-      <span class="block text-xs text-gray-400"><%= format_time(alert.acknowledged_at) %></span>
+      <span class="block text-xs text-gray-400"><%= format_time(alert.acknowledged_at, millis: false) %></span>
     <% else %>
       <span class="text-red-600 text-xs font-medium">Active</span>
     <% end %>

@@ -48,8 +48,8 @@ class ProcessUsageTelemetryJob < ApplicationJob
     org = event.organization
     threshold_bps = org.margin_alert_threshold_bps
 
-    margin_cents = event.margin_in_cents.to_i
-    revenue_cents = event.revenue_amount_in_cents.to_i
+    margin_cents = event.margin_in_cents.to_d
+    revenue_cents = event.revenue_amount_in_cents.to_d
 
     if margin_cents.negative?
       MarginAlert.create!(
@@ -59,7 +59,7 @@ class ProcessUsageTelemetryJob < ApplicationJob
         message: "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{margin_cents} cents"
       )
     elsif threshold_bps > 0 && revenue_cents > 0
-      margin_bps = (margin_cents * 10_000) / revenue_cents
+      margin_bps = ((margin_cents * 10_000) / revenue_cents).to_i
       if margin_bps < threshold_bps
         MarginAlert.create!(
           organization: org,

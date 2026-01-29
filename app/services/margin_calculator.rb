@@ -18,7 +18,7 @@ class MarginCalculator
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? (total_margin * 10_000) / total_revenue : 0,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
       subscription_revenue_in_cents: sub_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
@@ -44,7 +44,7 @@ class MarginCalculator
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? (total_margin * 10_000) / total_revenue : 0,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
       subscription_revenue_in_cents: sub_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
@@ -87,7 +87,7 @@ class MarginCalculator
             revenue_in_cents: total_revenue,
             cost_in_cents: cost,
             margin_in_cents: total_margin,
-            margin_bps: total_revenue > 0 ? (total_margin * 10_000) / total_revenue : 0,
+            margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
             subscription_revenue_in_cents: sub_revenue,
             event_revenue_in_cents: event_revenue
           )
@@ -101,13 +101,13 @@ class MarginCalculator
       Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
       Arel.sql("COALESCE(SUM(margin_in_cents), 0)")
     )
-    revenue, cost, margin = totals.map(&:to_i)
+    revenue, cost, margin = totals.map(&:to_d)
 
     MarginResult.new(
       revenue_in_cents: revenue,
       cost_in_cents: cost,
       margin_in_cents: margin,
-      margin_bps: revenue > 0 ? (margin * 10_000) / revenue : 0,
+      margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
       subscription_revenue_in_cents: 0,
       event_revenue_in_cents: revenue
     )
