@@ -1,4 +1,4 @@
-<h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts</h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
 <div class="card overflow-hidden">
   <table class="w-full text-sm" data-controller="sortable-table">
@@ -61,7 +61,7 @@
         <%= link_to "Previous", alerts_path(page: @page - 1), class: "link text-sm" %>
       <% end %>
     </div>
-    <span class="text-sm text-gray-500">Page <%= @page %> of <%= @total_pages %> (<%= @total_count %> alerts)</span>
+    <span class="text-sm text-gray-500">Page <%= @page %> of <%= @total_pages %></span>
     <div>
       <% if @page < @total_pages %>
         <%= link_to "Next", alerts_path(page: @page + 1), class: "link text-sm" %>

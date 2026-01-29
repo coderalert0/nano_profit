@@ -2,7 +2,7 @@
   <%= link_to "&larr; #{t('dashboard.show.title')}".html_safe, root_path, class: "link text-sm" %>
 </div>
 
-<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("events.index.title") %></h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("events.index.title") %> <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
 <!-- Filters -->
 <div class="card p-4 mb-6">
@@ -92,7 +92,7 @@
         <%= link_to t("events.index.previous"), events_path(**filter_params, page: @page - 1), class: "link text-sm" %>
       <% end %>
     </div>
-    <span class="text-sm text-gray-500"><%= t("events.index.page_info", page: @page, total_pages: @total_pages, total_count: @total_count) %></span>
+    <span class="text-sm text-gray-500"><%= t("events.index.page_info", page: @page, total_pages: @total_pages) %></span>
     <div>
       <% if @page < @total_pages %>
         <%= link_to t("events.index.next"), events_path(**filter_params, page: @page + 1), class: "link text-sm" %>

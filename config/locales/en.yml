@@ -39,7 +39,7 @@ en:
       no_events: "No events yet."
       previous: "Previous"
       next: "Next"
-      page_info: "Page %{page} of %{total_pages} (%{total_count} events)"
+      page_info: "Page %{page} of %{total_pages}"
       all_event_types: "All Event Types"
       all_customers: "All Customers"
       all_vendors: "All Vendors"
