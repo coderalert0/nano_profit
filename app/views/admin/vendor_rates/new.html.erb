@@ -1,0 +1,9 @@
+<div class="mb-4">
+  <%= link_to "&larr; Vendor Rates".html_safe, admin_vendor_rates_path, class: "link text-sm" %>
+</div>
+
+<h1 class="text-2xl font-bold text-gray-900 mb-6">New Vendor Rate</h1>
+
+<div class="card p-6">
+  <%= render "form", vendor_rate: @vendor_rate, url: admin_vendor_rates_path %>
+</div>
