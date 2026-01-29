@@ -27,7 +27,17 @@
       </select>
     </div>
 
-    <% if @selected_event_type.present? || @selected_customer_id.present? %>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.vendors") %></label>
+      <select name="vendor" class="border border-gray-300 rounded px-3 py-2 text-sm" onchange="this.form.requestSubmit()">
+        <option value=""><%= t("events.index.all_vendors") %></option>
+        <% @vendors.each do |v| %>
+          <option value="<%= v %>" <%= "selected" if @selected_vendor == v %>><%= v %></option>
+        <% end %>
+      </select>
+    </div>
+
+    <% if @selected_event_type.present? || @selected_customer_id.present? || @selected_vendor.present? %>
       <%= link_to t("events.index.clear_filters"), events_path, class: "text-sm text-gray-500 hover:underline" %>
     <% end %>
   <% end %>
@@ -77,7 +87,7 @@
   </table>
 </div>
 
-<% filter_params = { event_type: @selected_event_type, customer_id: @selected_customer_id }.compact_blank %>
+<% filter_params = { event_type: @selected_event_type, customer_id: @selected_customer_id, vendor: @selected_vendor }.compact_blank %>
 <% if @has_next_page || @page > 1 %>
   <div class="flex justify-between items-center mt-4">
     <div>

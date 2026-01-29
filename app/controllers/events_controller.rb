@@ -14,12 +14,19 @@ class EventsController < ApplicationController
       events = events.where(customer_id: params[:customer_id])
     end
 
+    if params[:vendor].present?
+      events = events.joins(:cost_entries).where(cost_entries: { vendor_name: params[:vendor] }).distinct
+    end
+
     @event_types = Current.organization.usage_telemetry_events.processed
       .distinct.pluck(:event_type).sort
     @customers = Current.organization.customers.order(:name)
+    @vendors = CostEntry.where(usage_telemetry_event_id: Current.organization.usage_telemetry_events.processed.select(:id))
+      .distinct.pluck(:vendor_name).sort
 
     @selected_event_type = params[:event_type]
     @selected_customer_id = params[:customer_id]
+    @selected_vendor = params[:vendor]
 
     @events = events
       .recent
