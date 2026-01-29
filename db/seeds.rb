@@ -108,27 +108,27 @@ puts "Created #{event_count} events"
 
 # Alerts
 alert_count = 0
-UsageTelemetryEvent.where("margin_in_cents < 0").limit(15).each do |event|
-  MarginAlert.find_or_create_by!(
-    organization: org,
-    customer: event.customer,
-    alert_type: "negative_margin",
-    message: "Event #{event.event_type} for #{event.customer_name || event.customer_external_id} had negative margin: #{event.margin_in_cents} cents"
-  ) do |a|
-    a.acknowledged_at = [ nil, nil, Time.current ].sample
-  end
-  alert_count += 1
-end
+500.times do |i|
+  customer = customers.sample
+  alert_type = %w[negative_margin below_threshold].sample
+  event = customer.usage_telemetry_events.processed.sample
 
-UsageTelemetryEvent.where("margin_in_cents > 0 AND margin_in_cents < revenue_amount_in_cents * 0.1").limit(10).each do |event|
-  MarginAlert.find_or_create_by!(
-    organization: org,
-    customer: event.customer,
-    alert_type: "below_threshold",
-    message: "Event #{event.event_type} for #{event.customer_name || event.customer_external_id} margin below threshold: #{event.margin_in_cents} cents on #{event.revenue_amount_in_cents} cents revenue"
-  ) do |a|
-    a.acknowledged_at = [ nil, nil, nil, Time.current ].sample
+  message = if alert_type == "negative_margin"
+    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} had negative margin: #{rand(-5000..-1)} cents"
+  else
+    margin = rand(1..200)
+    revenue = rand(500..5000)
+    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} margin below threshold: #{margin} cents on #{revenue} cents revenue"
   end
+
+  MarginAlert.create!(
+    organization: org,
+    customer: customer,
+    alert_type: alert_type,
+    message: message,
+    acknowledged_at: [ nil, nil, nil, Time.current - rand(90).days ].sample,
+    created_at: rand(90).days.ago + rand(86400).seconds
+  )
   alert_count += 1
 end
 

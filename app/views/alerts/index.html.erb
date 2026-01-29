@@ -53,3 +53,19 @@
     </tbody>
   </table>
 </div>
+
+<% if @total_pages > 1 %>
+  <div class="flex justify-between items-center mt-4">
+    <div>
+      <% if @page > 1 %>
+        <%= link_to "Previous", alerts_path(page: @page - 1), class: "link text-sm" %>
+      <% end %>
+    </div>
+    <span class="text-sm text-gray-500">Page <%= @page %> of <%= @total_pages %> (<%= @total_count %> alerts)</span>
+    <div>
+      <% if @page < @total_pages %>
+        <%= link_to "Next", alerts_path(page: @page + 1), class: "link text-sm" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

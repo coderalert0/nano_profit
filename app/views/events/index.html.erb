@@ -85,16 +85,16 @@
 </div>
 
 <% filter_params = { event_type: @selected_event_types, customer_id: @selected_customer_ids, vendor: @selected_vendors }.compact_blank %>
-<% if @has_next_page || @page > 1 %>
+<% if @total_pages > 1 %>
   <div class="flex justify-between items-center mt-4">
     <div>
       <% if @page > 1 %>
         <%= link_to t("events.index.previous"), events_path(**filter_params, page: @page - 1), class: "link text-sm" %>
       <% end %>
     </div>
-    <span class="text-sm text-gray-500"><%= t("events.index.page", number: @page) %></span>
+    <span class="text-sm text-gray-500"><%= t("events.index.page_info", page: @page, total_pages: @total_pages, total_count: @total_count) %></span>
     <div>
-      <% if @has_next_page %>
+      <% if @page < @total_pages %>
         <%= link_to t("events.index.next"), events_path(**filter_params, page: @page + 1), class: "link text-sm" %>
       <% end %>
     </div>
