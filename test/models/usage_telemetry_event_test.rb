@@ -7,7 +7,7 @@ class UsageTelemetryEventTest < ActiveSupport::TestCase
     assert_includes event.errors[:unique_request_token], "can't be blank"
   end
 
-  test "unique_request_token must be unique" do
+  test "unique_request_token enforced unique by DB constraint" do
     existing = usage_telemetry_events(:processed_event)
     dup = UsageTelemetryEvent.new(
       organization: existing.organization,
@@ -16,8 +16,7 @@ class UsageTelemetryEventTest < ActiveSupport::TestCase
       event_type: "test",
       revenue_amount_in_cents: 100
     )
-    assert_not dup.valid?
-    assert_includes dup.errors[:unique_request_token], "has already been taken"
+    assert_raises(ActiveRecord::RecordNotUnique) { dup.save(validate: false) }
   end
 
   test "scopes work correctly" do

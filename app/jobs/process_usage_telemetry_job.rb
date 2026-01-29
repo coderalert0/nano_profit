@@ -6,13 +6,22 @@ class ProcessUsageTelemetryJob < ApplicationJob
     return if event.status == "processed"
 
     ActiveRecord::Base.transaction do
-      customer = find_or_create_customer(event)
+      organization = Organization.lock.find(event.organization_id)
+
+      customer = organization.customers.create_or_find_by!(
+        external_id: event.customer_external_id
+      ) do |c|
+        c.name = event.customer_name
+      end
+
+      raise ActiveRecord::Rollback if customer.organization_id != organization.id
+
       event.update!(customer: customer)
 
       create_cost_entries(event)
 
-      total_cost = event.cost_entries.sum(:amount_in_cents)
-      margin = event.revenue_amount_in_cents - total_cost
+      total_cost = event.cost_entries.sum(:amount_in_cents).to_i
+      margin = event.revenue_amount_in_cents.to_i - total_cost
 
       event.update!(
         total_cost_in_cents: total_cost,
@@ -21,22 +30,19 @@ class ProcessUsageTelemetryJob < ApplicationJob
       )
     end
 
-    check_margin_alerts(event.reload)
+    event.reload
+    return unless event.status == "processed"
+
+    check_margin_alerts(event)
     broadcast_update(event)
+  rescue ActiveRecord::RecordNotFound
+    # Event was deleted between enqueue and perform; nothing to do
   rescue => e
-    event&.update(status: "failed") if event&.persisted?
+    event&.update_column(:status, "failed") if event&.persisted?
     raise
   end
 
   private
-
-  def find_or_create_customer(event)
-    event.organization.customers.find_or_create_by!(
-      external_id: event.customer_external_id
-    ) do |customer|
-      customer.name = event.customer_name
-    end
-  end
 
   def create_cost_entries(event)
     return if event.vendor_costs_raw.blank?
@@ -44,8 +50,8 @@ class ProcessUsageTelemetryJob < ApplicationJob
     event.vendor_costs_raw.each do |vc|
       event.cost_entries.create!(
         vendor_name: vc["vendor_name"],
-        amount_in_cents: vc["amount_in_cents"],
-        unit_count: vc["unit_count"],
+        amount_in_cents: Integer(vc["amount_in_cents"]),
+        unit_count: BigDecimal(vc["unit_count"].to_s),
         unit_type: vc["unit_type"]
       )
     end
@@ -55,15 +61,18 @@ class ProcessUsageTelemetryJob < ApplicationJob
     org = event.organization
     threshold_bps = org.margin_alert_threshold_bps
 
-    if event.margin_in_cents.negative?
+    margin_cents = event.margin_in_cents.to_i
+    revenue_cents = event.revenue_amount_in_cents.to_i
+
+    if margin_cents.negative?
       MarginAlert.create!(
         organization: org,
         customer: event.customer,
         alert_type: "negative_margin",
-        message: "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{event.margin_in_cents} cents"
+        message: "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{margin_cents} cents"
       )
-    elsif threshold_bps > 0 && event.revenue_amount_in_cents > 0
-      margin_bps = (event.margin_in_cents * 10_000) / event.revenue_amount_in_cents
+    elsif threshold_bps > 0 && revenue_cents > 0
+      margin_bps = (margin_cents * 10_000) / revenue_cents
       if margin_bps < threshold_bps
         MarginAlert.create!(
           organization: org,
