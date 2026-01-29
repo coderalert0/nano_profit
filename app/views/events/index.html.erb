@@ -9,7 +9,7 @@
   <%= form_with url: events_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.event_type") %></label>
-      <select name="event_type" class="border border-gray-300 rounded px-3 py-2 text-sm" onchange="this.form.requestSubmit()">
+      <select name="event_type" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <option value=""><%= t("events.index.all_event_types") %></option>
         <% @event_types.each do |et| %>
           <option value="<%= et %>" <%= "selected" if @selected_event_type == et %>><%= et %></option>
@@ -19,7 +19,7 @@
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.customer") %></label>
-      <select name="customer_id" class="border border-gray-300 rounded px-3 py-2 text-sm" onchange="this.form.requestSubmit()">
+      <select name="customer_id" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <option value=""><%= t("events.index.all_customers") %></option>
         <% @customers.each do |c| %>
           <option value="<%= c.id %>" <%= "selected" if @selected_customer_id == c.id.to_s %>><%= c.name || c.external_id %></option>
@@ -29,7 +29,7 @@
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.vendors") %></label>
-      <select name="vendor" class="border border-gray-300 rounded px-3 py-2 text-sm" onchange="this.form.requestSubmit()">
+      <select name="vendor" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <option value=""><%= t("events.index.all_vendors") %></option>
         <% @vendors.each do |v| %>
           <option value="<%= v %>" <%= "selected" if @selected_vendor == v %>><%= v %></option>

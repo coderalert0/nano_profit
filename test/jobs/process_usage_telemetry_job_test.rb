@@ -24,7 +24,7 @@ class ProcessUsageTelemetryJobTest < ActiveSupport::TestCase
       customer_name: "Brand New Customer",
       event_type: "ai_analysis",
       revenue_amount_in_cents: 2000,
-      vendor_costs_raw: [{ "vendor_name" => "openai", "amount_in_cents" => 800, "unit_count" => 5000, "unit_type" => "tokens" }],
+      vendor_costs_raw: [ { "vendor_name" => "openai", "amount_in_cents" => 800, "unit_count" => 5000, "unit_type" => "tokens" } ],
       occurred_at: Time.current
     )
 
@@ -54,7 +54,7 @@ class ProcessUsageTelemetryJobTest < ActiveSupport::TestCase
       customer_name: "Customer One",
       event_type: "expensive_op",
       revenue_amount_in_cents: 100,
-      vendor_costs_raw: [{ "vendor_name" => "openai", "amount_in_cents" => 500, "unit_count" => 10000, "unit_type" => "tokens" }],
+      vendor_costs_raw: [ { "vendor_name" => "openai", "amount_in_cents" => 500, "unit_count" => 10000, "unit_type" => "tokens" } ],
       occurred_at: Time.current
     )
 
@@ -76,7 +76,7 @@ class ProcessUsageTelemetryJobTest < ActiveSupport::TestCase
       customer_name: "Customer One",
       event_type: "ai_analysis",
       revenue_amount_in_cents: 1000,
-      vendor_costs_raw: [{ "vendor_name" => "openai", "amount_in_cents" => 600, "unit_count" => 5000, "unit_type" => "tokens" }],
+      vendor_costs_raw: [ { "vendor_name" => "openai", "amount_in_cents" => 600, "unit_count" => 5000, "unit_type" => "tokens" } ],
       occurred_at: Time.current
     )
 

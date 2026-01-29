@@ -19,7 +19,7 @@ module Stripe
       starting_after = nil
 
       loop do
-        params = { status: "active", limit: 100, expand: ["data.customer"] }
+        params = { status: "active", limit: 100, expand: [ "data.customer" ] }
         params[:starting_after] = starting_after if starting_after
 
         response = ::Stripe::Subscription.list(
@@ -92,7 +92,7 @@ module Stripe
 
       # Zero out revenue for customers whose subscriptions are no longer active
       @organization.customers
-        .where.not(stripe_customer_id: [nil, ""])
+        .where.not(stripe_customer_id: [ nil, "" ])
         .where.not(stripe_customer_id: synced_stripe_ids.to_a)
         .update_all(monthly_subscription_revenue_in_cents: 0)
     end
