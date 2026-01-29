@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_050010) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_204402) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,6 +35,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_050010) do
     t.bigint "monthly_subscription_revenue_in_cents", default: 0, null: false
     t.string "stripe_customer_id"
     t.index ["organization_id", "external_id"], name: "index_customers_on_organization_id_and_external_id", unique: true
+    t.index ["organization_id", "stripe_customer_id"], name: "idx_customers_unique_org_stripe_id", unique: true, where: "(stripe_customer_id IS NOT NULL)"
     t.index ["organization_id"], name: "index_customers_on_organization_id"
   end
 
