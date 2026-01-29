@@ -1,0 +1,55 @@
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts</h1>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr class="border-b text-left text-gray-500">
+        <th class="py-3 px-4">Time</th>
+        <th class="py-3 px-4">Type</th>
+        <th class="py-3 px-4">Customer</th>
+        <th class="py-3 px-4">Message</th>
+        <th class="py-3 px-4">Status</th>
+        <th class="py-3 px-4"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @alerts.each do |alert| %>
+        <tr class="border-b hover:bg-gray-50 <%= 'bg-red-50' unless alert.acknowledged? %>">
+          <td class="py-3 px-4 text-gray-500"><%= alert.created_at.strftime("%b %d %H:%M") %></td>
+          <td class="py-3 px-4">
+            <% if alert.alert_type == "negative_margin" %>
+              <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Negative Margin</span>
+            <% else %>
+              <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Below Threshold</span>
+            <% end %>
+          </td>
+          <td class="py-3 px-4">
+            <% if alert.customer %>
+              <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "text-blue-600 hover:underline" %>
+            <% else %>
+              <span class="text-gray-400">-</span>
+            <% end %>
+          </td>
+          <td class="py-3 px-4"><%= alert.message %></td>
+          <td class="py-3 px-4">
+            <% if alert.acknowledged? %>
+              <span class="text-green-600 text-xs">Acknowledged</span>
+            <% else %>
+              <span class="text-red-600 text-xs font-medium">Active</span>
+            <% end %>
+          </td>
+          <td class="py-3 px-4">
+            <% unless alert.acknowledged? %>
+              <%= button_to "Acknowledge", acknowledge_alert_path(alert), method: :patch, class: "text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded cursor-pointer" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @alerts.empty? %>
+        <tr>
+          <td colspan="6" class="py-8 text-center text-gray-400">No alerts. Your margins are looking good!</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

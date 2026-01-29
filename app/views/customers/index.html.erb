@@ -1,0 +1,35 @@
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Customers</h1>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr class="border-b text-left text-gray-500">
+        <th class="py-3 px-4">Customer</th>
+        <th class="py-3 px-4">External ID</th>
+        <th class="py-3 px-4 text-right">Revenue</th>
+        <th class="py-3 px-4 text-right">Cost</th>
+        <th class="py-3 px-4 text-right">Margin</th>
+        <th class="py-3 px-4 text-right">Margin %</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @customer_margins.each do |cm| %>
+        <tr class="border-b hover:bg-gray-50 <%= margin_bg_class(cm[:margin].margin_in_cents) %>">
+          <td class="py-3 px-4 font-medium">
+            <%= link_to cm[:customer_name] || cm[:customer_external_id], customer_path(cm[:customer_id]), class: "text-blue-600 hover:underline" %>
+          </td>
+          <td class="py-3 px-4 text-gray-500"><%= cm[:customer_external_id] %></td>
+          <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].revenue_in_cents) %></td>
+          <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].cost_in_cents) %></td>
+          <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_cents(cm[:margin].margin_in_cents) %></td>
+          <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_bps(cm[:margin].margin_bps) %></td>
+        </tr>
+      <% end %>
+      <% if @customer_margins.empty? %>
+        <tr>
+          <td colspan="6" class="py-8 text-center text-gray-400">No customer data yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

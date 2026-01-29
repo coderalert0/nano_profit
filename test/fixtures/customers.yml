@@ -1,0 +1,4 @@
+customer_one:
+  organization: acme
+  external_id: cust_001
+  name: Customer One

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "NanoProfit" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= action_cable_meta_tag %>
+  </head>
+
+  <body class="bg-gray-50 min-h-screen">
+    <% if authenticated? %>
+      <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex items-center space-x-8">
+              <%= link_to "NanoProfit", root_path, class: "text-xl font-bold text-blue-600" %>
+              <%= link_to "Dashboard", dashboard_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'dashboard'}" %>
+              <%= link_to "Customers", customers_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'customers'}" %>
+              <%= link_to "Alerts", alerts_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'alerts'}" %>
+              <%= link_to "Settings", settings_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'settings'}" %>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-500"><%= Current.organization&.name %></span>
+              <%= button_to "Sign out", session_path, method: :delete, class: "text-sm text-gray-500 hover:text-gray-700 cursor-pointer" %>
+            </div>
+          </div>
+        </div>
+      </nav>
+    <% end %>
+
+    <% if notice = flash[:notice] %>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <p class="py-2 px-3 bg-green-50 text-green-600 font-medium rounded-lg inline-block"><%= notice %></p>
+      </div>
+    <% end %>
+    <% if alert = flash[:alert] %>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <p class="py-2 px-3 bg-red-50 text-red-500 font-medium rounded-lg inline-block"><%= alert %></p>
+      </div>
+    <% end %>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <%= yield %>
+    </main>
+  </body>
+</html>

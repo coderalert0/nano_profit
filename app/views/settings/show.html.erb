@@ -1,0 +1,54 @@
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+
+<div class="space-y-8">
+  <!-- API Key Section -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">API Key</h2>
+    <p class="text-sm text-gray-500 mb-4">Use this key in the <code class="bg-gray-100 px-1 rounded">Authorization: Bearer &lt;key&gt;</code> header when sending telemetry events.</p>
+
+    <div class="flex items-center gap-4">
+      <code class="bg-gray-100 px-4 py-2 rounded text-sm font-mono flex-1 break-all"><%= @organization.api_key %></code>
+      <%= button_to "Regenerate", regenerate_api_key_settings_path, method: :post, class: "bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded text-sm font-medium cursor-pointer", data: { turbo_confirm: "Are you sure? This will invalidate your current API key." } %>
+    </div>
+  </div>
+
+  <!-- Margin Alert Threshold -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Margin Alert Threshold</h2>
+    <p class="text-sm text-gray-500 mb-4">Receive alerts when event margin falls below this threshold. Set in basis points (100 bps = 1%).</p>
+
+    <%= form_with model: @organization, url: settings_path, method: :patch, class: "flex items-end gap-4" do |form| %>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Threshold (basis points)</label>
+        <%= form.number_field :margin_alert_threshold_bps, min: 0, max: 10000, step: 100, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 w-48" %>
+        <p class="text-xs text-gray-400 mt-1">Current: <%= format_bps(@organization.margin_alert_threshold_bps) %></p>
+      </div>
+      <%= form.submit "Update", class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer" %>
+    <% end %>
+  </div>
+
+  <!-- API Usage Example -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">API Usage</h2>
+    <p class="text-sm text-gray-500 mb-4">Send telemetry events to <code class="bg-gray-100 px-1 rounded">POST /api/v1/telemetry_events</code></p>
+
+    <pre class="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto"><code>curl -X POST <%= request.base_url %>/api/v1/telemetry_events \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <%= @organization.api_key %>" \
+  -d '{
+  "telemetry_event": {
+    "unique_request_token": "req_abc123",
+    "customer_external_id": "cust_123",
+    "customer_name": "Acme Corp",
+    "event_type": "ai_analysis",
+    "revenue_amount_in_cents": 1000,
+    "vendor_costs": [
+      { "vendor_name": "openai", "amount_in_cents": 450, "unit_count": 15000, "unit_type": "tokens" },
+      { "vendor_name": "aws", "amount_in_cents": 50, "unit_count": 1, "unit_type": "api_calls" }
+    ],
+    "metadata": { "model": "gpt-4" },
+    "occurred_at": "<%= Time.current.iso8601 %>"
+  }
+}'</code></pre>
+  </div>
+</div>
