@@ -35,7 +35,10 @@
     </div>
 
     <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
-      <%= link_to t("events.index.clear_filters"), events_path, class: "text-sm text-gray-500 hover:underline" %>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">&nbsp;</label>
+        <%= link_to t("events.index.clear_filters"), events_path, class: "inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+      </div>
     <% end %>
   <% end %>
 </div>
