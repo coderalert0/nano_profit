@@ -93,6 +93,26 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     assert_equal 0, customer.monthly_subscription_revenue_in_cents
   end
 
+  test "sync handles multi-month interval correctly" do
+    customer = customers(:customer_one)
+    customer.update!(stripe_customer_id: "cus_quarterly")
+
+    mock_subscription = build_mock_subscription(
+      id: "sub_quarterly",
+      customer_id: "cus_quarterly",
+      amount: 9000,
+      interval: "month",
+      interval_count: 3
+    )
+
+    service = Stripe::SubscriptionSyncService.new(@org)
+    service.define_singleton_method(:fetch_active_subscriptions) { [ mock_subscription ] }
+    service.sync
+
+    customer.reload
+    assert_equal 3000, customer.monthly_subscription_revenue_in_cents
+  end
+
   test "sync does nothing without stripe_access_token" do
     @org.update!(stripe_access_token: nil)
 
@@ -103,11 +123,11 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
 
   private
 
-  def build_mock_subscription(id:, customer_id:, amount:, interval:, customer_name: nil)
+  def build_mock_subscription(id:, customer_id:, amount:, interval:, interval_count: 1, customer_name: nil)
     price = ::OpenStruct.new(
       unit_amount: amount,
       active: true,
-      recurring: ::OpenStruct.new(interval: interval, interval_count: 1)
+      recurring: ::OpenStruct.new(interval: interval, interval_count: interval_count)
     )
 
     item = ::OpenStruct.new(price: price)

@@ -10,8 +10,8 @@ class ProcessUsageTelemetryJobTest < ActiveSupport::TestCase
     event.reload
     assert_equal "processed", event.status
     assert_not_nil event.customer_id
-    assert_equal 200, event.total_cost_in_cents
-    assert_equal 300, event.margin_in_cents
+    assert_equal BigDecimal("200"), event.total_cost_in_cents
+    assert_equal BigDecimal("300"), event.margin_in_cents
     assert_equal 1, event.cost_entries.count
     assert_equal "twilio", event.cost_entries.first.vendor_name
   end
