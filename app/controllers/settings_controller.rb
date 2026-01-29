@@ -6,7 +6,7 @@ class SettingsController < ApplicationController
   def update
     @organization = Current.organization
     if @organization.update(organization_params)
-      redirect_to settings_path, notice: "Settings updated."
+      redirect_to settings_path, notice: t("controllers.settings.updated")
     else
       render :show, status: :unprocessable_entity
     end
@@ -14,7 +14,7 @@ class SettingsController < ApplicationController
 
   def regenerate_api_key
     Current.organization.regenerate_api_key!
-    redirect_to settings_path, notice: "API key regenerated."
+    redirect_to settings_path, notice: t("controllers.settings.api_key_regenerated")
   end
 
   private

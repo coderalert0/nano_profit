@@ -1,31 +1,86 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
 en:
-  hello: "Hello world"
+  shared:
+    back_to: "All Customers"
+    edit: "Edit"
+    save: "Save"
+    cancel: "Cancel"
+    update: "Update"
+    revenue: "Revenue"
+    cost: "Cost"
+    margin: "Margin"
+    margin_percent: "Margin %"
+    time: "Time"
+    event_type: "Event Type"
+    vendors: "Vendors"
+    customer: "Customer"
+    external_id: "External ID"
+    subscription: "Subscription"
+    regenerate: "Regenerate"
+    no_data: "No data yet."
+    period:
+      all: "All Time"
+      7d: "Last 7 Days"
+      30d: "Last 30 Days"
+      90d: "Last 90 Days"
+  dashboard:
+    show:
+      title: "Dashboard"
+      total_revenue: "Total Revenue"
+      total_cost: "Total Cost"
+      subscription_label: "Subscription: %{subscription} / Event: %{event}"
+      revenue_vs_cost_over_time: "Revenue vs. Cost Over Time"
+      cost_by_vendor: "Cost by Vendor"
+      recent_events: "Recent Events"
+      unacknowledged_alerts:
+        one: "%{count} unacknowledged alert"
+        other: "%{count} unacknowledged alerts"
+      no_events: "No events yet. Send telemetry data via the API to get started."
+  customers:
+    index:
+      title: "Customers"
+      no_data: "No customer data yet."
+    show:
+      revenue_breakdown: "Revenue Breakdown"
+      subscription_label: "Subscription:"
+      per_month: "%{amount}/mo"
+      event_based: "Event-based:"
+      revenue_vs_cost: "Revenue vs. Cost"
+      cost_by_vendor: "Cost by Vendor"
+      no_cost_data: "No cost data yet."
+      event_history: "Event History"
+      no_events: "No events for this customer yet."
+    edit:
+      title: "Edit %{name}"
+      subscription_revenue_label: "Monthly Subscription Revenue (cents)"
+      subscription_revenue_hint: "Enter the amount in cents. e.g. 5000 = $50.00/mo"
+  settings:
+    show:
+      title: "Settings"
+      api_key: "API Key"
+      api_key_description: "Use this key in the <code class=\"bg-gray-100 px-1 rounded\">Authorization: Bearer &lt;key&gt;</code> header when sending telemetry events."
+      regenerate_confirm: "Are you sure? This will invalidate your current API key."
+      margin_alert_threshold: "Margin Alert Threshold"
+      margin_alert_description: "Receive alerts when event margin falls below this threshold. Set in basis points (100 bps = 1%)."
+      threshold_label: "Threshold (basis points)"
+      threshold_current: "Current: %{value}"
+      api_usage: "API Usage"
+      api_usage_description: "Send telemetry events to <code class=\"bg-gray-100 px-1 rounded\">POST /api/v1/telemetry_events</code>"
+      stripe_connect: "Stripe Connect"
+      stripe_connect_description: "Connect your Stripe account to automatically sync subscription revenue from your customers."
+      connect_stripe: "Connect Stripe"
+      stripe_connected: "Connected"
+      stripe_account_id: "Stripe Account: %{id}"
+      sync_subscriptions: "Sync Subscriptions"
+      disconnect: "Disconnect"
+      disconnect_confirm: "Are you sure? This will stop syncing subscription revenue."
+  controllers:
+    customers:
+      updated: "Customer updated successfully."
+    settings:
+      updated: "Settings updated."
+      api_key_regenerated: "API key regenerated."
+    stripe:
+      connected: "Stripe account connected successfully."
+      disconnected: "Stripe account disconnected."
+      sync_complete: "Subscriptions synced successfully."
+      error: "Failed to connect Stripe account. Please try again."

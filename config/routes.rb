@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   root "dashboard#show"
 
   resource :dashboard, only: :show, controller: "dashboard"
-  resources :customers, only: %i[ index show ]
+  resources :customers, only: %i[ index show edit update ]
   resources :alerts, only: %i[ index ] do
     member do
       patch :acknowledge
@@ -21,6 +21,11 @@ Rails.application.routes.draw do
   resource :settings, only: %i[ show update ] do
     post :regenerate_api_key, on: :member
   end
+
+  get "stripe/connect", to: "stripe#connect", as: :stripe_connect
+  get "stripe/callback", to: "stripe#callback", as: :stripe_callback
+  post "stripe/sync", to: "stripe#sync", as: :stripe_sync
+  delete "stripe/disconnect", to: "stripe#disconnect", as: :stripe_disconnect
 
   get "up" => "rails/health#show", as: :rails_health_check
 end

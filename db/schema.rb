@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_053203) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_152858) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_053203) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "monthly_subscription_revenue_in_cents", default: 0, null: false
+    t.string "stripe_customer_id"
     t.index ["organization_id", "external_id"], name: "index_customers_on_organization_id_and_external_id", unique: true
     t.index ["organization_id"], name: "index_customers_on_organization_id"
   end
@@ -55,6 +57,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_053203) do
     t.integer "margin_alert_threshold_bps", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_user_id"
+    t.string "stripe_access_token"
     t.index ["api_key"], name: "index_organizations_on_api_key", unique: true
   end
 

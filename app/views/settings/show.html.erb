@@ -1,36 +1,61 @@
-<h1 class="text-2xl font-bold text-gray-900 mb-6">Settings</h1>
+<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("settings.show.title") %></h1>
 
 <div class="space-y-8">
   <!-- API Key Section -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">API Key</h2>
-    <p class="text-sm text-gray-500 mb-4">Use this key in the <code class="bg-gray-100 px-1 rounded">Authorization: Bearer &lt;key&gt;</code> header when sending telemetry events.</p>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("settings.show.api_key") %></h2>
+    <p class="text-sm text-gray-500 mb-4"><%= t("settings.show.api_key_description").html_safe %></p>
 
     <div class="flex items-center gap-4">
       <code class="bg-gray-100 px-4 py-2 rounded text-sm font-mono flex-1 break-all"><%= @organization.api_key %></code>
-      <%= button_to "Regenerate", regenerate_api_key_settings_path, method: :post, class: "bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded text-sm font-medium cursor-pointer", data: { turbo_confirm: "Are you sure? This will invalidate your current API key." } %>
+      <%= button_to t("shared.regenerate"), regenerate_api_key_settings_path, method: :post, class: "bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded text-sm font-medium cursor-pointer", data: { turbo_confirm: t("settings.show.regenerate_confirm") } %>
     </div>
   </div>
 
   <!-- Margin Alert Threshold -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Margin Alert Threshold</h2>
-    <p class="text-sm text-gray-500 mb-4">Receive alerts when event margin falls below this threshold. Set in basis points (100 bps = 1%).</p>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("settings.show.margin_alert_threshold") %></h2>
+    <p class="text-sm text-gray-500 mb-4"><%= t("settings.show.margin_alert_description") %></p>
 
     <%= form_with model: @organization, url: settings_path, method: :patch, class: "flex items-end gap-4" do |form| %>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Threshold (basis points)</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1"><%= t("settings.show.threshold_label") %></label>
         <%= form.number_field :margin_alert_threshold_bps, min: 0, max: 10000, step: 100, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 w-48" %>
-        <p class="text-xs text-gray-400 mt-1">Current: <%= format_bps(@organization.margin_alert_threshold_bps) %></p>
+        <p class="text-xs text-gray-400 mt-1"><%= t("settings.show.threshold_current", value: format_bps(@organization.margin_alert_threshold_bps)) %></p>
       </div>
-      <%= form.submit "Update", class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer" %>
+      <%= form.submit t("shared.update"), class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer" %>
+    <% end %>
+  </div>
+
+  <!-- Stripe Connect Section -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("settings.show.stripe_connect") %></h2>
+    <p class="text-sm text-gray-500 mb-4"><%= t("settings.show.stripe_connect_description") %></p>
+
+    <% if @organization.stripe_user_id.present? %>
+      <div class="flex items-center gap-4">
+        <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+          <%= t("settings.show.stripe_connected") %>
+        </span>
+        <span class="text-sm text-gray-500"><%= t("settings.show.stripe_account_id", id: @organization.stripe_user_id) %></span>
+      </div>
+      <div class="flex items-center gap-4 mt-4">
+        <%= button_to t("settings.show.sync_subscriptions"), stripe_sync_path, method: :post, class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer" %>
+        <%= button_to t("settings.show.disconnect"), stripe_disconnect_path, method: :delete, class: "bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded text-sm font-medium cursor-pointer", data: { turbo_confirm: t("settings.show.disconnect_confirm") } %>
+      </div>
+    <% else %>
+      <%= link_to stripe_connect_path, class: "inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-medium" do %>
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/></svg>
+        <%= t("settings.show.connect_stripe") %>
+      <% end %>
     <% end %>
   </div>
 
   <!-- API Usage Example -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">API Usage</h2>
-    <p class="text-sm text-gray-500 mb-4">Send telemetry events to <code class="bg-gray-100 px-1 rounded">POST /api/v1/telemetry_events</code></p>
+    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("settings.show.api_usage") %></h2>
+    <p class="text-sm text-gray-500 mb-4"><%= t("settings.show.api_usage_description").html_safe %></p>
 
     <pre class="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto"><code>curl -X POST <%= request.base_url %>/api/v1/telemetry_events \
   -H "Content-Type: application/json" \
