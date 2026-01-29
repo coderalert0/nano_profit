@@ -1,6 +1,8 @@
 class CustomersController < ApplicationController
   def index
-    @customer_margins = MarginCalculator.customer_margins(Current.organization)
+    @period = parse_period(params[:period])
+    @selected_period = params[:period] || "all"
+    @customer_margins = MarginCalculator.customer_margins(Current.organization, @period)
       .sort_by { |cm| cm[:margin].margin_bps }
   end
 
@@ -29,25 +31,7 @@ class CustomersController < ApplicationController
       .transform_values { |v| v / 100.0 }
   end
 
-  def edit
-    @customer = Current.organization.customers.find(params[:id])
-  end
-
-  def update
-    @customer = Current.organization.customers.find(params[:id])
-
-    if @customer.update(customer_params)
-      redirect_to @customer, notice: t("controllers.customers.updated")
-    else
-      render :edit, status: :unprocessable_entity
-    end
-  end
-
   private
-
-  def customer_params
-    params.require(:customer).permit(:monthly_subscription_revenue_in_cents)
-  end
 
   def parse_period(period_param)
     case period_param

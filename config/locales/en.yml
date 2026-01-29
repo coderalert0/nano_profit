@@ -1,9 +1,6 @@
 en:
   shared:
     back_to: "All Customers"
-    edit: "Edit"
-    save: "Save"
-    cancel: "Cancel"
     update: "Update"
     revenue: "Revenue"
     cost: "Cost"
@@ -49,10 +46,6 @@ en:
       no_cost_data: "No cost data yet."
       event_history: "Event History"
       no_events: "No events for this customer yet."
-    edit:
-      title: "Edit %{name}"
-      subscription_revenue_label: "Monthly Subscription Revenue (cents)"
-      subscription_revenue_hint: "Enter the amount in cents. e.g. 5000 = $50.00/mo"
   settings:
     show:
       title: "Settings"
@@ -74,8 +67,6 @@ en:
       disconnect: "Disconnect"
       disconnect_confirm: "Are you sure? This will stop syncing subscription revenue."
   controllers:
-    customers:
-      updated: "Customer updated successfully."
     settings:
       updated: "Settings updated."
       api_key_regenerated: "API key regenerated."

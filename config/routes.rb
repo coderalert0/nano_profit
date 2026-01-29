@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   root "dashboard#show"
 
   resource :dashboard, only: :show, controller: "dashboard"
-  resources :customers, only: %i[ index show edit update ]
+  resources :customers, only: %i[ index show ]
   resources :alerts, only: %i[ index ] do
     member do
       patch :acknowledge
