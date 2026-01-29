@@ -7,6 +7,9 @@ export default class extends Controller {
     this.select = new TomSelect(this.element, {
       create: false,
       allowEmptyOption: true,
+      render: {
+        no_results: () => '<div class="no-results">No results found</div>'
+      },
       onChange: () => {
         this.element.closest("form")?.requestSubmit()
       }

@@ -11,9 +11,20 @@
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+    <style>
+      .ts-wrapper { min-width: 160px; }
+      .ts-wrapper.single .ts-control { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.4rem 2rem 0.4rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; background-color: #fff; box-shadow: none; cursor: pointer; }
+      .ts-wrapper.single .ts-control::after { border-color: #9ca3af transparent transparent; border-width: 5px 5px 0; right: 10px; }
+      .ts-wrapper.single.input-active .ts-control { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+      .ts-control > input { font-size: 0.875rem; }
+      .ts-dropdown { border: 1px solid #e5e7eb; border-radius: 0.375rem; margin-top: 2px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); font-size: 0.875rem; }
+      .ts-dropdown .option { padding: 0.4rem 0.75rem; }
+      .ts-dropdown .option.active { background-color: #eff6ff; color: #1e40af; }
+      .ts-dropdown .option:hover { background-color: #f9fafb; }
+      .ts-dropdown .no-results { padding: 0.4rem 0.75rem; color: #9ca3af; font-size: 0.875rem; }
+    </style>
     <%= javascript_importmap_tags %>
     <%= action_cable_meta_tag %>
   </head>
