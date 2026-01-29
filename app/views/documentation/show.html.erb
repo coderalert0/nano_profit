@@ -17,12 +17,58 @@
     "event_type": "ai_analysis",
     "revenue_amount_in_cents": 1000,
     "vendor_costs": [
-      { "vendor_name": "openai", "amount_in_cents": 450, "unit_count": 15000, "unit_type": "tokens" },
+      { "vendor_name": "openai", "model_name": "gpt-4o", "input_tokens": 12000, "output_tokens": 3000, "unit_count": 15000, "unit_type": "tokens" },
       { "vendor_name": "aws", "amount_in_cents": 50, "unit_count": 1, "unit_type": "api_calls" }
     ],
-    "metadata": { "model": "gpt-4" },
+    "metadata": {},
     "occurred_at": "<%= Time.current.iso8601 %>"
   }
 }'</code></pre>
+    <p class="text-sm text-gray-500 mt-3"><strong>Note:</strong> <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">amount_in_cents</code> is optional when <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">model_name</code> and token counts (<code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">input_tokens</code>, <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">output_tokens</code>) are provided. Cost is calculated automatically from configured vendor rates.</p>
+  </div>
+
+  <!-- Linking Stripe to Usage Tracking -->
+  <div class="card p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Linking Stripe to Usage Tracking</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      By passing your <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">customer_external_id</code> into Stripe's
+      <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">client_reference_id</code> or
+      <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">metadata</code>, our SubscriptionSyncService can automatically
+      match Stripe payments to the correct customer in your dashboard. This ensures that subscription revenue
+      is attributed to the same customer as your usage telemetry events, enabling accurate margin calculations.
+    </p>
+
+    <h3 class="text-sm font-semibold text-gray-800 mb-2">Stripe Checkout Session</h3>
+    <p class="text-sm text-gray-500 mb-2">Pass the ID as <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">client_reference_id</code> when creating a Checkout Session:</p>
+    <pre class="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto mb-6"><code>curl https://api.stripe.com/v1/checkout/sessions \
+  -u "sk_live_YOUR_KEY:" \
+  -d "mode=subscription" \
+  -d "line_items[0][price]=price_ABC123" \
+  -d "line_items[0][quantity]=1" \
+  --data-urlencode "client_reference_id=CUST_12345" \
+  -d "success_url=https://example.com/success" \
+  -d "cancel_url=https://example.com/cancel"</code></pre>
+
+    <h3 class="text-sm font-semibold text-gray-800 mb-2">Stripe Customer Creation</h3>
+    <p class="text-sm text-gray-500 mb-2">Alternatively, store the ID in the customer's metadata when creating a Stripe Customer:</p>
+    <pre class="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto mb-6"><code>curl https://api.stripe.com/v1/customers \
+  -u "sk_live_YOUR_KEY:" \
+  -d "name=Acme Corp" \
+  -d "email=billing@acme.com" \
+  -d "metadata[external_id]=CUST_12345"</code></pre>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div class="flex items-start gap-2">
+        <span class="text-amber-600 font-bold text-sm mt-0.5">!</span>
+        <div>
+          <p class="text-sm font-semibold text-amber-800">Developer Note</p>
+          <p class="text-sm text-amber-700 mt-1">
+            The ID you pass to Stripe (<code class="bg-amber-100 px-1.5 py-0.5 rounded text-xs font-mono">CUST_12345</code>) must exactly match the
+            <code class="bg-amber-100 px-1.5 py-0.5 rounded text-xs font-mono">customer_external_id</code> you send in your usage telemetry events.
+            If these values don't match, NanoProfit cannot link subscription revenue to usage costs, and margin calculations will be inaccurate.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

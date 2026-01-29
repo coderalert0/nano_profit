@@ -18,10 +18,10 @@ class ProcessUsageTelemetryJob < ApplicationJob
 
       event.update!(customer: customer)
 
-      create_cost_entries(event)
+      Telemetry::Processor.new(event).call
 
-      total_cost = event.cost_entries.sum(:amount_in_cents).to_i
-      margin = event.revenue_amount_in_cents.to_i - total_cost
+      total_cost = event.cost_entries.sum(:amount_in_cents)
+      margin = event.revenue_amount_in_cents - total_cost
 
       event.update!(
         total_cost_in_cents: total_cost,
@@ -43,19 +43,6 @@ class ProcessUsageTelemetryJob < ApplicationJob
   end
 
   private
-
-  def create_cost_entries(event)
-    return if event.vendor_costs_raw.blank?
-
-    event.vendor_costs_raw.each do |vc|
-      event.cost_entries.create!(
-        vendor_name: vc["vendor_name"],
-        amount_in_cents: Integer(vc["amount_in_cents"]),
-        unit_count: BigDecimal(vc["unit_count"].to_s),
-        unit_type: vc["unit_type"]
-      )
-    end
-  end
 
   def check_margin_alerts(event)
     org = event.organization

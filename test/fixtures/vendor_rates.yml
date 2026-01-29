@@ -1,0 +1,35 @@
+openai_gpt4_global:
+  vendor_name: openai
+  ai_model_name: gpt-4
+  input_rate_per_1k: 3.0000
+  output_rate_per_1k: 6.0000
+  unit_type: tokens
+  active: true
+  organization:
+
+openai_gpt4_acme:
+  vendor_name: openai
+  ai_model_name: gpt-4
+  input_rate_per_1k: 2.5000
+  output_rate_per_1k: 5.0000
+  unit_type: tokens
+  active: true
+  organization: acme
+
+anthropic_claude_global:
+  vendor_name: anthropic
+  ai_model_name: claude-3
+  input_rate_per_1k: 1.5000
+  output_rate_per_1k: 7.5000
+  unit_type: tokens
+  active: true
+  organization:
+
+inactive_rate:
+  vendor_name: openai
+  ai_model_name: gpt-3.5
+  input_rate_per_1k: 0.0500
+  output_rate_per_1k: 0.1500
+  unit_type: tokens
+  active: false
+  organization:

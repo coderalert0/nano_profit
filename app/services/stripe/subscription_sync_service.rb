@@ -55,8 +55,8 @@ module Stripe
 
       case price.recurring&.interval
       when "month"
-        price.unit_amount * (price.recurring.interval_count || 1).to_i.then { |count| price.unit_amount / count }
-        price.unit_amount
+        count = (price.recurring.interval_count || 1).to_i
+        price.unit_amount / count
       when "year"
         price.unit_amount / 12
       when "week"

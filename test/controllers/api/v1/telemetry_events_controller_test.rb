@@ -68,6 +68,33 @@ class Api::V1::TelemetryEventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal existing.id, json["id"]
   end
 
+  test "persists model_name and token counts in vendor_costs_raw" do
+    payload = {
+      telemetry_event: {
+        unique_request_token: "req_rate_#{SecureRandom.hex(8)}",
+        customer_external_id: "cust_123",
+        customer_name: "Acme Corp",
+        event_type: "ai_analysis",
+        revenue_amount_in_cents: 1000,
+        vendor_costs: [
+          { vendor_name: "openai", model_name: "gpt-4o", amount_in_cents: 999, input_tokens: 2000, output_tokens: 500, unit_count: 2500, unit_type: "tokens" }
+        ],
+        occurred_at: Time.current.iso8601
+      }
+    }
+
+    assert_enqueued_with(job: ProcessUsageTelemetryJob) do
+      post api_v1_telemetry_events_url, params: payload.to_json, headers: @headers
+    end
+
+    assert_response :accepted
+    event = UsageTelemetryEvent.find(JSON.parse(response.body)["id"])
+    vc = event.vendor_costs_raw.first
+    assert_equal "gpt-4o", vc["model_name"]
+    assert_equal 2000, vc["input_tokens"]
+    assert_equal 500, vc["output_tokens"]
+  end
+
   test "returns 422 for missing required fields" do
     payload = {
       telemetry_event: {

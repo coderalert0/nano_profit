@@ -2,3 +2,8 @@ admin_session:
   user: admin
   ip_address: 127.0.0.1
   user_agent: TestAgent
+
+regular_session:
+  user: regular_user
+  ip_address: 127.0.0.1
+  user_agent: TestAgent

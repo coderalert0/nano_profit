@@ -9,6 +9,10 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :admin do
+    resources :vendor_rates
+  end
+
   root "dashboard#show"
 
   resource :dashboard, only: :show, controller: "dashboard"
