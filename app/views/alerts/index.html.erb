@@ -1,6 +1,35 @@
 <h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
-<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= alerts_path %>" data-infinite-scroll-page-value="1">
+<!-- Filters -->
+<div class="card p-4 mb-6">
+  <%= form_with url: alerts_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+      <select name="status" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <option value="">All Statuses</option>
+        <option value="active" <%= "selected" if @status_filter == "active" %>>Active</option>
+        <option value="acknowledged" <%= "selected" if @status_filter == "acknowledged" %>>Acknowledged</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+      <select name="type" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <option value="">All Types</option>
+        <option value="negative_margin" <%= "selected" if @type_filter == "negative_margin" %>>Negative Margin</option>
+        <option value="below_threshold" <%= "selected" if @type_filter == "below_threshold" %>>Below Threshold</option>
+      </select>
+    </div>
+
+    <% if @status_filter.present? || @type_filter.present? %>
+      <%= link_to "Clear filters", alerts_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+    <% end %>
+  <% end %>
+</div>
+
+<% filter_params = { status: @status_filter, type: @type_filter }.compact_blank %>
+
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= alerts_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
       <tr class="border-b text-left text-gray-500">

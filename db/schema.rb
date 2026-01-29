@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_204402) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -47,6 +47,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_204402) do
     t.datetime "acknowledged_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "notes"
+    t.bigint "acknowledged_by_id"
+    t.index ["acknowledged_by_id"], name: "index_margin_alerts_on_acknowledged_by_id"
     t.index ["customer_id"], name: "index_margin_alerts_on_customer_id"
     t.index ["organization_id", "acknowledged_at"], name: "index_margin_alerts_on_organization_id_and_acknowledged_at"
     t.index ["organization_id"], name: "index_margin_alerts_on_organization_id"
@@ -124,6 +127,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_204402) do
   add_foreign_key "customers", "organizations"
   add_foreign_key "margin_alerts", "customers"
   add_foreign_key "margin_alerts", "organizations"
+  add_foreign_key "margin_alerts", "users", column: "acknowledged_by_id"
   add_foreign_key "sessions", "users"
   add_foreign_key "usage_telemetry_events", "customers"
   add_foreign_key "usage_telemetry_events", "organizations"

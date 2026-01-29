@@ -14,7 +14,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
       revenue_amount_in_cents: 1000,
       vendor_costs_raw: [ {
         "vendor_name" => "openai",
-        "model_name" => "gpt-4",
+        "ai_model_name" => "gpt-4",
         "amount_in_cents" => 999,
         "input_tokens" => 1000,
         "output_tokens" => 500,
@@ -33,7 +33,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
     # cost = (1000 * 2.5 / 1000) + (500 * 5.0 / 1000) = 2.5 + 2.5 = 5.0
     assert_equal BigDecimal("5.0"), entry.amount_in_cents
     assert_equal "vendor_rate", entry.metadata["rate_source"]
-    assert_equal "gpt-4", entry.metadata["model_name"]
+    assert_equal "gpt-4", entry.metadata["ai_model_name"]
   end
 
   test "falls back to raw amount when no rate found" do
@@ -60,7 +60,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
     assert_equal "raw_fallback", entry.metadata["rate_source"]
   end
 
-  test "falls back to raw when model_name is missing" do
+  test "falls back to raw when ai_model_name is missing" do
     event = @org.usage_telemetry_events.create!(
       unique_request_token: "req_no_model_#{SecureRandom.hex(4)}",
       customer_external_id: "cust_001",
@@ -82,7 +82,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
     assert_equal "raw_fallback", entries.first.metadata["rate_source"]
   end
 
-  test "reads model_name from event metadata when not in vendor entry" do
+  test "reads ai_model_name from event metadata when not in vendor entry" do
     event = @org.usage_telemetry_events.create!(
       unique_request_token: "req_meta_model_#{SecureRandom.hex(4)}",
       customer_external_id: "cust_001",
@@ -97,7 +97,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
         "unit_count" => 3000,
         "unit_type" => "tokens"
       } ],
-      metadata: { "model_name" => "gpt-4" },
+      metadata: { "ai_model_name" => "gpt-4" },
       occurred_at: Time.current
     )
 
@@ -121,7 +121,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
       vendor_costs_raw: [
         {
           "vendor_name" => "openai",
-          "model_name" => "gpt-4",
+          "ai_model_name" => "gpt-4",
           "amount_in_cents" => 999,
           "input_tokens" => 1000,
           "output_tokens" => 500,
@@ -192,7 +192,7 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
       revenue_amount_in_cents: 1000,
       vendor_costs_raw: [ {
         "vendor_name" => "anthropic",
-        "model_name" => "claude-3",
+        "ai_model_name" => "claude-3",
         "amount_in_cents" => 999,
         "input_tokens" => 1000,
         "output_tokens" => 500,

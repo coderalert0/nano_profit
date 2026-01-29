@@ -11,3 +11,5 @@ acknowledged_alert:
   alert_type: negative_margin
   message: "Negative margin detected"
   acknowledged_at: <%= 1.day.ago.iso8601 %>
+  acknowledged_by: admin
+  notes: "Reviewed and resolved"

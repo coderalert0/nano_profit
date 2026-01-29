@@ -1,6 +1,7 @@
 class MarginAlert < ApplicationRecord
   belongs_to :organization
   belongs_to :customer, optional: true
+  belongs_to :acknowledged_by, class_name: "User", optional: true
 
   validates :alert_type, presence: true, inclusion: { in: %w[negative_margin below_threshold] }
   validates :message, presence: true
@@ -12,7 +13,7 @@ class MarginAlert < ApplicationRecord
     acknowledged_at.present?
   end
 
-  def acknowledge!
-    update!(acknowledged_at: Time.current)
+  def acknowledge!(user:, notes: nil)
+    update!(acknowledged_at: Time.current, acknowledged_by: user, notes: notes.presence)
   end
 end
