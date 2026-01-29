@@ -47,6 +47,27 @@ class Admin::MarginAlertsControllerTest < ActionDispatch::IntegrationTest
     assert_nil @alert.notes
   end
 
+  # --- Acknowledge All ---
+
+  test "admin can acknowledge all active alerts" do
+    assert margin_alerts(:active_alert).acknowledged_at.nil?
+
+    patch acknowledge_all_admin_margin_alerts_url, headers: auth_headers(@admin_session)
+
+    assert_redirected_to alerts_path
+    assert_equal "All alerts acknowledged.", flash[:notice]
+    assert_not_nil margin_alerts(:active_alert).reload.acknowledged_at
+    assert_equal users(:admin), margin_alerts(:active_alert).acknowledged_by
+  end
+
+  test "non-admin cannot acknowledge all" do
+    patch acknowledge_all_admin_margin_alerts_url, headers: auth_headers(@regular_session)
+    assert_redirected_to root_path
+    assert_nil margin_alerts(:active_alert).reload.acknowledged_at
+  end
+
+  # --- Turbo Stream ---
+
   test "turbo_stream response replaces alert row" do
     patch acknowledge_admin_margin_alert_url(@alert),
       params: { notes: "All good" },

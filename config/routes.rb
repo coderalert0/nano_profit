@@ -15,6 +15,9 @@ Rails.application.routes.draw do
       member do
         patch :acknowledge
       end
+      collection do
+        patch :acknowledge_all
+      end
     end
   end
 

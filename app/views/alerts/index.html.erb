@@ -2,29 +2,35 @@
 
 <!-- Filters -->
 <div class="card p-4 mb-6">
-  <%= form_with url: alerts_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
-      <select name="status" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value="">All Statuses</option>
-        <option value="active" <%= "selected" if @status_filter == "active" %>>Active</option>
-        <option value="acknowledged" <%= "selected" if @status_filter == "acknowledged" %>>Acknowledged</option>
-      </select>
-    </div>
+  <div class="flex flex-wrap items-end gap-4">
+    <%= form_with url: alerts_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+        <select name="status" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
+          <option value="">All Statuses</option>
+          <option value="active" <%= "selected" if @status_filter == "active" %>>Active</option>
+          <option value="acknowledged" <%= "selected" if @status_filter == "acknowledged" %>>Acknowledged</option>
+        </select>
+      </div>
 
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
-      <select name="type" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value="">All Types</option>
-        <option value="negative_margin" <%= "selected" if @type_filter == "negative_margin" %>>Negative Margin</option>
-        <option value="below_threshold" <%= "selected" if @type_filter == "below_threshold" %>>Below Threshold</option>
-      </select>
-    </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Type</label>
+        <select name="type" onchange="this.form.requestSubmit()" class="border border-gray-300 rounded px-3 py-2 text-sm">
+          <option value="">All Types</option>
+          <option value="negative_margin" <%= "selected" if @type_filter == "negative_margin" %>>Negative Margin</option>
+          <option value="below_threshold" <%= "selected" if @type_filter == "below_threshold" %>>Below Threshold</option>
+        </select>
+      </div>
 
-    <% if @status_filter.present? || @type_filter.present? %>
-      <%= link_to "Clear filters", alerts_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+      <% if @status_filter.present? || @type_filter.present? %>
+        <%= link_to "Clear filters", alerts_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+      <% end %>
     <% end %>
-  <% end %>
+
+    <div class="ml-auto">
+      <%= button_to "Acknowledge All", acknowledge_all_admin_margin_alerts_path, method: :patch, class: "text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded cursor-pointer", data: { turbo_confirm: "Acknowledge all active alerts?" } %>
+    </div>
+  </div>
 </div>
 
 <% filter_params = { status: @status_filter, type: @type_filter }.compact_blank %>
