@@ -4,9 +4,13 @@ export default class extends Controller {
   connect() {
     if (typeof TomSelect === "undefined") return
 
+    const isMultiple = this.element.hasAttribute("multiple")
+
     this.select = new TomSelect(this.element, {
       create: false,
-      allowEmptyOption: true,
+      allowEmptyOption: !isMultiple,
+      plugins: isMultiple ? [ "remove_button" ] : [],
+      placeholder: this.element.dataset.placeholder || "Search...",
       render: {
         no_results: () => '<div class="no-results">No results found</div>'
       },

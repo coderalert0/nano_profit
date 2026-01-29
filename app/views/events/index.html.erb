@@ -9,35 +9,32 @@
   <%= form_with url: events_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.event_type") %></label>
-      <select name="event_type" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value=""><%= t("events.index.all_event_types") %></option>
+      <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_event_types") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <% @event_types.each do |et| %>
-          <option value="<%= et %>" <%= "selected" if @selected_event_type == et %>><%= et %></option>
+          <option value="<%= et %>" <%= "selected" if @selected_event_types.include?(et) %>><%= et %></option>
         <% end %>
       </select>
     </div>
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.customer") %></label>
-      <select name="customer_id" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value=""><%= t("events.index.all_customers") %></option>
+      <select name="customer_id[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_customers") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <% @customers.each do |c| %>
-          <option value="<%= c.id %>" <%= "selected" if @selected_customer_id == c.id.to_s %>><%= c.name || c.external_id %></option>
+          <option value="<%= c.id %>" <%= "selected" if @selected_customer_ids.include?(c.id.to_s) %>><%= c.name || c.external_id %></option>
         <% end %>
       </select>
     </div>
 
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.vendors") %></label>
-      <select name="vendor" data-controller="searchable-select" class="border border-gray-300 rounded px-3 py-2 text-sm">
-        <option value=""><%= t("events.index.all_vendors") %></option>
+      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_vendors") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
         <% @vendors.each do |v| %>
-          <option value="<%= v %>" <%= "selected" if @selected_vendor == v %>><%= v %></option>
+          <option value="<%= v %>" <%= "selected" if @selected_vendors.include?(v) %>><%= v %></option>
         <% end %>
       </select>
     </div>
 
-    <% if @selected_event_type.present? || @selected_customer_id.present? || @selected_vendor.present? %>
+    <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
       <%= link_to t("events.index.clear_filters"), events_path, class: "text-sm text-gray-500 hover:underline" %>
     <% end %>
   <% end %>
@@ -87,7 +84,7 @@
   </table>
 </div>
 
-<% filter_params = { event_type: @selected_event_type, customer_id: @selected_customer_id, vendor: @selected_vendor }.compact_blank %>
+<% filter_params = { event_type: @selected_event_types, customer_id: @selected_customer_ids, vendor: @selected_vendors }.compact_blank %>
 <% if @has_next_page || @page > 1 %>
   <div class="flex justify-between items-center mt-4">
     <div>

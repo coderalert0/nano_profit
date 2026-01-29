@@ -6,16 +6,14 @@ class EventsController < ApplicationController
 
     events = Current.organization.usage_telemetry_events.processed
 
-    if params[:event_type].present?
-      events = events.where(event_type: params[:event_type])
-    end
+    @selected_event_types = Array(params[:event_type]).reject(&:blank?)
+    @selected_customer_ids = Array(params[:customer_id]).reject(&:blank?)
+    @selected_vendors = Array(params[:vendor]).reject(&:blank?)
 
-    if params[:customer_id].present?
-      events = events.where(customer_id: params[:customer_id])
-    end
-
-    if params[:vendor].present?
-      events = events.joins(:cost_entries).where(cost_entries: { vendor_name: params[:vendor] }).distinct
+    events = events.where(event_type: @selected_event_types) if @selected_event_types.any?
+    events = events.where(customer_id: @selected_customer_ids) if @selected_customer_ids.any?
+    if @selected_vendors.any?
+      events = events.joins(:cost_entries).where(cost_entries: { vendor_name: @selected_vendors }).distinct
     end
 
     @event_types = Current.organization.usage_telemetry_events.processed
@@ -23,10 +21,6 @@ class EventsController < ApplicationController
     @customers = Current.organization.customers.order(:name)
     @vendors = CostEntry.where(usage_telemetry_event_id: Current.organization.usage_telemetry_events.processed.select(:id))
       .distinct.pluck(:vendor_name).sort
-
-    @selected_event_type = params[:event_type]
-    @selected_customer_id = params[:customer_id]
-    @selected_vendor = params[:vendor]
 
     @events = events
       .recent
