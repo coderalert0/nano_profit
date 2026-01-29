@@ -1,0 +1,34 @@
+class EventsController < ApplicationController
+  PER_PAGE = 50
+
+  def index
+    @page = [ params[:page].to_i, 1 ].max
+
+    events = Current.organization.usage_telemetry_events.processed
+
+    @selected_event_types = Array(params[:event_type]).reject(&:blank?)
+    @selected_customer_ids = Array(params[:customer_id]).reject(&:blank?)
+    @selected_vendors = Array(params[:vendor]).reject(&:blank?)
+
+    events = events.where(event_type: @selected_event_types) if @selected_event_types.any?
+    events = events.where(customer_id: @selected_customer_ids) if @selected_customer_ids.any?
+    if @selected_vendors.any?
+      events = events.joins(:cost_entries).where(cost_entries: { vendor_name: @selected_vendors }).distinct
+    end
+
+    @event_types = Current.organization.usage_telemetry_events.processed
+      .distinct.pluck(:event_type).sort
+    @customers = Current.organization.customers.order(:name)
+    @vendors = CostEntry.where(usage_telemetry_event_id: Current.organization.usage_telemetry_events.processed.select(:id))
+      .distinct.pluck(:vendor_name).sort
+
+    @events = events
+      .recent
+      .includes(:customer, :cost_entries)
+      .offset((@page - 1) * PER_PAGE)
+      .limit(PER_PAGE + 1)
+
+    @has_next_page = @events.size > PER_PAGE
+    @events = @events.first(PER_PAGE)
+  end
+end

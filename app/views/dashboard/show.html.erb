@@ -48,11 +48,14 @@
   <div class="bg-white rounded-lg shadow p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold text-gray-900"><%= t("dashboard.show.recent_events") %></h2>
-      <% if @unacknowledged_alerts_count > 0 %>
-        <%= link_to alerts_path, class: "text-sm text-red-600 font-medium" do %>
-          <%= t("dashboard.show.unacknowledged_alerts", count: @unacknowledged_alerts_count) %>
+      <div class="flex items-center gap-4">
+        <% if @unacknowledged_alerts_count > 0 %>
+          <%= link_to alerts_path, class: "text-sm text-red-600 font-medium" do %>
+            <%= t("dashboard.show.unacknowledged_alerts", count: @unacknowledged_alerts_count) %>
+          <% end %>
         <% end %>
-      <% end %>
+        <%= link_to t("dashboard.show.view_all_events"), events_path, class: "text-sm text-blue-600 hover:underline" %>
+      </div>
     </div>
 
     <div id="event-feed">

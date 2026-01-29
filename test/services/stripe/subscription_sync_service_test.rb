@@ -16,7 +16,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
       interval: "month"
     )
 
-    mock_list = ::OpenStruct.new(data: [mock_subscription], has_more: false)
+    mock_list = ::OpenStruct.new(data: [ mock_subscription ], has_more: false)
     mock_stripe_customer = ::OpenStruct.new(
       id: "cus_new_customer",
       name: "New Stripe Customer",
@@ -24,7 +24,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     )
 
     service = Stripe::SubscriptionSyncService.new(@org)
-    service.define_singleton_method(:fetch_active_subscriptions) { [mock_subscription] }
+    service.define_singleton_method(:fetch_active_subscriptions) { [ mock_subscription ] }
 
     original_retrieve = ::Stripe::Customer.method(:retrieve)
     ::Stripe::Customer.define_singleton_method(:retrieve) { |*_args| mock_stripe_customer }
@@ -53,7 +53,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     )
 
     service = Stripe::SubscriptionSyncService.new(@org)
-    service.define_singleton_method(:fetch_active_subscriptions) { [mock_subscription] }
+    service.define_singleton_method(:fetch_active_subscriptions) { [ mock_subscription ] }
     service.sync
 
     customer.reload
@@ -72,7 +72,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     )
 
     service = Stripe::SubscriptionSyncService.new(@org)
-    service.define_singleton_method(:fetch_active_subscriptions) { [mock_subscription] }
+    service.define_singleton_method(:fetch_active_subscriptions) { [ mock_subscription ] }
     service.sync
 
     customer.reload
@@ -115,7 +115,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     ::OpenStruct.new(
       id: id,
       customer: ::OpenStruct.new(id: customer_id, name: customer_name),
-      items: ::OpenStruct.new(data: [item])
+      items: ::OpenStruct.new(data: [ item ])
     )
   end
 end
