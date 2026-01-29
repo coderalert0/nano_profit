@@ -32,6 +32,14 @@ en:
         one: "%{count} unacknowledged alert"
         other: "%{count} unacknowledged alerts"
       no_events: "No events yet. Send telemetry data via the API to get started."
+      view_all_events: "View all"
+  events:
+    index:
+      title: "Events"
+      no_events: "No events yet."
+      previous: "Previous"
+      next: "Next"
+      page: "Page %{number}"
   customers:
     index:
       title: "Customers"

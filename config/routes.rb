@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
   resource :dashboard, only: :show, controller: "dashboard"
   resources :customers, only: %i[ index show ]
+  resources :events, only: :index
   resources :alerts, only: %i[ index ] do
     member do
       patch :acknowledge
