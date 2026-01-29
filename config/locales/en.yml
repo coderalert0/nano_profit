@@ -40,6 +40,9 @@ en:
       previous: "Previous"
       next: "Next"
       page: "Page %{number}"
+      all_event_types: "All Event Types"
+      all_customers: "All Customers"
+      clear_filters: "Clear filters"
   customers:
     index:
       title: "Customers"
