@@ -37,13 +37,21 @@ module Telemetry
           unit_type: vc["unit_type"] || rate.unit_type,
           metadata: { "rate_source" => "vendor_rate", "model_name" => model_name }
         )
-      else
+      elsif vc["amount_in_cents"].present?
         @event.cost_entries.create!(
           vendor_name: vendor_name,
           amount_in_cents: BigDecimal(vc["amount_in_cents"].to_s),
           unit_count: BigDecimal(vc["unit_count"].to_s),
           unit_type: vc["unit_type"],
           metadata: { "rate_source" => "raw_fallback" }
+        )
+      else
+        @event.cost_entries.create!(
+          vendor_name: vendor_name,
+          amount_in_cents: BigDecimal("0"),
+          unit_count: BigDecimal(vc["unit_count"].to_s),
+          unit_type: vc["unit_type"],
+          metadata: { "rate_source" => "no_rate_or_amount" }
         )
       end
     end

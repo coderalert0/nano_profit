@@ -17,13 +17,14 @@
     "event_type": "ai_analysis",
     "revenue_amount_in_cents": 1000,
     "vendor_costs": [
-      { "vendor_name": "openai", "model_name": "gpt-4o", "amount_in_cents": 450, "input_tokens": 12000, "output_tokens": 3000, "unit_count": 15000, "unit_type": "tokens" },
+      { "vendor_name": "openai", "model_name": "gpt-4o", "input_tokens": 12000, "output_tokens": 3000, "unit_count": 15000, "unit_type": "tokens" },
       { "vendor_name": "aws", "amount_in_cents": 50, "unit_count": 1, "unit_type": "api_calls" }
     ],
     "metadata": {},
     "occurred_at": "<%= Time.current.iso8601 %>"
   }
 }'</code></pre>
+    <p class="text-sm text-gray-500 mt-3"><strong>Note:</strong> <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">amount_in_cents</code> is optional when <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">model_name</code> and token counts (<code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">input_tokens</code>, <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">output_tokens</code>) are provided. Cost is calculated automatically from configured vendor rates.</p>
   </div>
 
   <!-- Linking Stripe to Usage Tracking -->

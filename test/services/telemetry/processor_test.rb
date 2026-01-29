@@ -160,6 +160,29 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
     assert_equal [], entries
   end
 
+  test "records zero cost tagged no_rate_or_amount when no rate and no amount_in_cents" do
+    event = @org.usage_telemetry_events.create!(
+      unique_request_token: "req_no_rate_no_amt_#{SecureRandom.hex(4)}",
+      customer_external_id: "cust_001",
+      customer_name: "Customer One",
+      event_type: "send_campaign",
+      revenue_amount_in_cents: 500,
+      vendor_costs_raw: [ {
+        "vendor_name" => "twilio",
+        "unit_count" => 10,
+        "unit_type" => "messages"
+      } ],
+      occurred_at: Time.current
+    )
+
+    entries = Telemetry::Processor.new(event).call
+
+    assert_equal 1, entries.size
+    entry = entries.first
+    assert_equal BigDecimal("0"), entry.amount_in_cents
+    assert_equal "no_rate_or_amount", entry.metadata["rate_source"]
+  end
+
   test "uses global rate when no org-specific rate exists" do
     event = @org.usage_telemetry_events.create!(
       unique_request_token: "req_global_rate_#{SecureRandom.hex(4)}",
