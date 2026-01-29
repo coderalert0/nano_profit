@@ -1,11 +1,39 @@
 require "test_helper"
 
 class MarginAlertTest < ActiveSupport::TestCase
-  test "acknowledge! sets acknowledged_at" do
+  test "acknowledge! sets acknowledged_at, acknowledged_by, and notes" do
     alert = margin_alerts(:active_alert)
+    user = users(:admin)
     assert_nil alert.acknowledged_at
-    alert.acknowledge!
-    assert_not_nil alert.reload.acknowledged_at
+
+    alert.acknowledge!(user: user, notes: "Fixed the margin issue")
+
+    alert.reload
+    assert_not_nil alert.acknowledged_at
+    assert_equal user, alert.acknowledged_by
+    assert_equal "Fixed the margin issue", alert.notes
+  end
+
+  test "acknowledge! without notes stores nil" do
+    alert = margin_alerts(:active_alert)
+    user = users(:admin)
+
+    alert.acknowledge!(user: user)
+
+    alert.reload
+    assert_not_nil alert.acknowledged_at
+    assert_equal user, alert.acknowledged_by
+    assert_nil alert.notes
+  end
+
+  test "acknowledge! with blank notes stores nil" do
+    alert = margin_alerts(:active_alert)
+    user = users(:admin)
+
+    alert.acknowledge!(user: user, notes: "   ")
+
+    alert.reload
+    assert_nil alert.notes
   end
 
   test "acknowledged? returns correct value" do

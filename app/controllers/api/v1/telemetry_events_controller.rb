@@ -36,7 +36,7 @@ module Api
           :revenue_amount_in_cents,
           :occurred_at,
           metadata: {},
-          vendor_costs: [ :vendor_name, :amount_in_cents, :unit_count, :unit_type, :model_name, :input_tokens, :output_tokens ]
+          vendor_costs: [ :vendor_name, :amount_in_cents, :unit_count, :unit_type, :ai_model_name, :input_tokens, :output_tokens ]
         )
       end
     end

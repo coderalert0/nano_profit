@@ -11,6 +11,14 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :vendor_rates
+    resources :margin_alerts, only: [] do
+      member do
+        patch :acknowledge
+      end
+      collection do
+        patch :acknowledge_all
+      end
+    end
   end
 
   root "dashboard#show"
@@ -18,11 +26,7 @@ Rails.application.routes.draw do
   resource :dashboard, only: :show, controller: "dashboard"
   resources :customers, only: %i[ index show ]
   resources :events, only: :index
-  resources :alerts, only: %i[ index ] do
-    member do
-      patch :acknowledge
-    end
-  end
+  resources :alerts, only: %i[ index ]
   resource :settings, only: %i[ show update ] do
     post :regenerate_api_key, on: :member
   end

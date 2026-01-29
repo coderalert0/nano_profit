@@ -3,7 +3,13 @@ class AlertsController < ApplicationController
 
   def index
     @page = [ params[:page].to_i, 1 ].max
+    @status_filter = params[:status].presence
+    @type_filter = params[:type].presence
+
     alerts = Current.organization.margin_alerts.recent.includes(:customer)
+    alerts = alerts.unacknowledged if @status_filter == "active"
+    alerts = alerts.where.not(acknowledged_at: nil) if @status_filter == "acknowledged"
+    alerts = alerts.where(alert_type: @type_filter) if @type_filter.present?
     @total_count = alerts.count
     @total_pages = (@total_count.to_f / PER_PAGE).ceil
     @alerts = alerts.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
@@ -13,9 +19,4 @@ class AlertsController < ApplicationController
     end
   end
 
-  def acknowledge
-    alert = Current.organization.margin_alerts.find(params[:id])
-    alert.acknowledge!
-    redirect_to alerts_path, notice: "Alert acknowledged."
-  end
 end

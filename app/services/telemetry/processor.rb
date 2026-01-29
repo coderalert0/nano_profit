@@ -16,7 +16,7 @@ module Telemetry
 
     def create_cost_entry(vc)
       vendor_name = vc["vendor_name"]
-      model_name = vc["model_name"] || @event.metadata&.dig("model_name")
+      model_name = vc["ai_model_name"] || @event.metadata&.dig("ai_model_name")
       input_tokens = BigDecimal(vc.fetch("input_tokens", 0).to_s)
       output_tokens = BigDecimal(vc.fetch("output_tokens", 0).to_s)
 
@@ -35,7 +35,7 @@ module Telemetry
           amount_in_cents: amount,
           unit_count: BigDecimal(vc["unit_count"].to_s),
           unit_type: vc["unit_type"] || rate.unit_type,
-          metadata: { "rate_source" => "vendor_rate", "model_name" => model_name }
+          metadata: { "rate_source" => "vendor_rate", "ai_model_name" => model_name }
         )
       elsif vc["amount_in_cents"].present?
         @event.cost_entries.create!(

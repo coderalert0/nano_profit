@@ -62,7 +62,7 @@ global_rates = [
   # Anthropic — https://docs.anthropic.com/en/docs/about-claude/models
   { vendor_name: "anthropic", ai_model_name: "claude-3-5-sonnet-latest",  input_rate_per_1k: 0.0030, output_rate_per_1k: 0.0150 },
   { vendor_name: "anthropic", ai_model_name: "claude-3-haiku-20240307",   input_rate_per_1k: 0.00025, output_rate_per_1k: 0.00125 },
-  { vendor_name: "anthropic", ai_model_name: "claude-3-opus-latest",      input_rate_per_1k: 0.0150, output_rate_per_1k: 0.0750 },
+  { vendor_name: "anthropic", ai_model_name: "claude-3-opus-latest",      input_rate_per_1k: 0.0150, output_rate_per_1k: 0.0750 }
 ]
 
 vendor_rate_count = 0
