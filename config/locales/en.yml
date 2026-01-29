@@ -58,6 +58,11 @@ en:
       no_cost_data: "No cost data yet."
       event_history: "Event History"
       no_events: "No events for this customer yet."
+  documentation:
+    show:
+      title: "Documentation"
+      api_usage: "API Usage"
+      api_usage_description: "Send telemetry events to <code class=\"bg-gray-100 px-1 rounded\">POST /api/v1/telemetry_events</code>"
   settings:
     show:
       title: "Settings"

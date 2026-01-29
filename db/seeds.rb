@@ -1,9 +1,136 @@
 # This file should ensure the existence of records required to run the application in every environment (production,
 # development, test). The code here should be idempotent so that it can be executed at any point in every environment.
 # The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+
+puts "Seeding..."
+
+# Organization
+org = Organization.find_or_create_by!(name: "Demo Corp") do |o|
+  o.margin_alert_threshold_bps = 1000 # 10%
+end
+
+# User
+User.find_or_create_by!(email_address: "demo@example.com") do |u|
+  u.password = "password"
+  u.organization = org
+end
+
+# Customers
+company_names = [
+  "Acme Corp", "Globex Industries", "Initech Solutions", "Umbrella Labs", "Stark Technologies",
+  "Wayne Enterprises", "Oscorp Systems", "Cyberdyne Analytics", "Tyrell Corp", "Soylent AI",
+  "Massive Dynamic", "Weyland-Yutani", "Aperture Science", "Black Mesa Research", "Vault-Tec",
+  "Abstergo Industries", "Hanso Foundation", "Dharma Initiative", "Veidt Enterprises", "LexCorp",
+  "Wonka Industries", "Gekko & Co", "Nakatomi Trading", "Rekall Inc", "Omni Consumer Products",
+  "Cyberdyne Systems", "InGen Biotech", "Soylent Corp", "Ellingson Mineral", "Encom International",
+  "Spacely Sprockets", "Cogswell Cogs", "Dunder Mifflin", "Pied Piper", "Hooli",
+  "Raviga Capital", "Bachmanity", "Piedmont Tech", "Nucleus AI", "Bream-Hall",
+  "Sterling Cooper", "Bluth Company", "Prestige Worldwide", "Vandelay Industries", "Kramerica",
+  "Planet Express", "MomCorp", "Buy n Large", "Monsters Inc", "Axiom Micro",
+  "Nova Analytics", "Zenith Data", "Apex Cloud", "Summit AI", "Frontier Labs",
+  "Pinnacle Systems", "Crestview Tech", "Meridian Software", "Horizon Digital", "Catalyst AI",
+  "Quantum Logic", "Nebula Computing", "Radiant Solutions", "Prism Analytics", "Echo Systems",
+  "Vertex AI", "Orbital Data", "Flux Computing", "Synapse Tech", "Beacon Analytics",
+  "Stratos Cloud", "Ember AI", "Pulsar Systems", "Drift Analytics", "Vantage Data",
+  "Cipher Labs", "Helix Computing", "Mosaic AI", "Forge Analytics", "Lattice Systems",
+  "Ridge Computing", "Aether AI", "Cobalt Analytics", "Onyx Systems", "Jade Computing",
+  "Opal AI", "Slate Analytics", "Flint Systems", "Coral Computing", "Birch AI",
+  "Cedar Analytics", "Elm Systems", "Maple Computing", "Oak AI", "Pine Analytics",
+  "Spruce Systems", "Aspen Computing", "Willow AI", "Hazel Analytics", "Ivy Systems"
+]
+
+customers = company_names.first(100).each_with_index.map do |name, i|
+  Customer.find_or_create_by!(organization: org, external_id: "cust_#{i + 1}") do |c|
+    c.name = name
+    c.monthly_subscription_revenue_in_cents = [ 0, 0, 5000, 10000, 25000, 50000, 100000, 250000 ].sample
+  end
+end
+
+puts "Created #{customers.size} customers"
+
+# Events
+event_types = %w[ai_analysis ai_completion ai_embedding image_generation speech_to_text text_to_speech document_parse vector_search moderation translation]
+vendors = %w[openai anthropic aws google cohere mistral replicate huggingface pinecone deepgram]
+
+event_count = 0
+customers.each do |customer|
+  num_events = rand(5..20)
+  num_events.times do
+    token = "req_#{customer.external_id}_#{SecureRandom.hex(8)}"
+    next if UsageTelemetryEvent.exists?(unique_request_token: token)
+
+    event_type = event_types.sample
+    revenue = rand(50..5000)
+
+    num_vendors = rand(1..3)
+    chosen_vendors = vendors.sample(num_vendors)
+    total_cost = 0
+    vendor_costs = chosen_vendors.map do |v|
+      cost = rand(10..(revenue * 0.9).to_i.clamp(10, 5000))
+      total_cost += cost
+      { vendor_name: v, amount_in_cents: cost, unit_count: rand(100..50000), unit_type: %w[tokens api_calls characters images seconds].sample }
+    end
+
+    margin = revenue - total_cost
+    occurred = rand(90).days.ago + rand(86400).seconds
+
+    event = UsageTelemetryEvent.create!(
+      organization: org,
+      customer: customer,
+      unique_request_token: token,
+      customer_external_id: customer.external_id,
+      customer_name: customer.name,
+      event_type: event_type,
+      revenue_amount_in_cents: revenue,
+      total_cost_in_cents: total_cost,
+      margin_in_cents: margin,
+      vendor_costs_raw: vendor_costs,
+      metadata: { model: %w[gpt-4 gpt-4o claude-3.5 claude-opus gemini-pro mistral-large command-r llama-3].sample },
+      occurred_at: occurred,
+      status: "processed"
+    )
+
+    vendor_costs.each do |vc|
+      CostEntry.create!(
+        usage_telemetry_event: event,
+        vendor_name: vc[:vendor_name],
+        amount_in_cents: vc[:amount_in_cents],
+        unit_count: vc[:unit_count],
+        unit_type: vc[:unit_type]
+      )
+    end
+
+    event_count += 1
+  end
+end
+
+puts "Created #{event_count} events"
+
+# Alerts
+alert_count = 0
+UsageTelemetryEvent.where("margin_in_cents < 0").limit(15).each do |event|
+  MarginAlert.find_or_create_by!(
+    organization: org,
+    customer: event.customer,
+    alert_type: "negative_margin",
+    message: "Event #{event.event_type} for #{event.customer_name || event.customer_external_id} had negative margin: #{event.margin_in_cents} cents"
+  ) do |a|
+    a.acknowledged_at = [ nil, nil, Time.current ].sample
+  end
+  alert_count += 1
+end
+
+UsageTelemetryEvent.where("margin_in_cents > 0 AND margin_in_cents < revenue_amount_in_cents * 0.1").limit(10).each do |event|
+  MarginAlert.find_or_create_by!(
+    organization: org,
+    customer: event.customer,
+    alert_type: "below_threshold",
+    message: "Event #{event.event_type} for #{event.customer_name || event.customer_external_id} margin below threshold: #{event.margin_in_cents} cents on #{event.revenue_amount_in_cents} cents revenue"
+  ) do |a|
+    a.acknowledged_at = [ nil, nil, nil, Time.current ].sample
+  end
+  alert_count += 1
+end
+
+puts "Created #{alert_count} alerts"
+puts "Done! Login with demo@example.com / password"

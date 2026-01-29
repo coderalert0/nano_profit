@@ -1,31 +1,31 @@
 <h1 class="text-2xl font-bold text-gray-900 mb-6">Margin Alerts</h1>
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
-  <table class="w-full text-sm">
+<div class="card overflow-hidden">
+  <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
       <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4">Time</th>
-        <th class="py-3 px-4">Type</th>
-        <th class="py-3 px-4">Customer</th>
-        <th class="py-3 px-4">Message</th>
-        <th class="py-3 px-4">Status</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort" data-sort-type="date">Time</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Type</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Customer</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Message</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Status</th>
         <th class="py-3 px-4"></th>
       </tr>
     </thead>
     <tbody>
       <% @alerts.each do |alert| %>
-        <tr class="border-b hover:bg-gray-50 <%= 'bg-red-50' unless alert.acknowledged? %>">
-          <td class="py-3 px-4 text-gray-500"><%= alert.created_at.strftime("%b %d %H:%M") %></td>
+        <tr class="table-row <%= 'bg-red-50' unless alert.acknowledged? %>">
+          <td class="py-3 px-4 text-gray-500" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at) %></td>
           <td class="py-3 px-4">
             <% if alert.alert_type == "negative_margin" %>
-              <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Negative Margin</span>
+              <span class="badge badge-red">Negative Margin</span>
             <% else %>
-              <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Below Threshold</span>
+              <span class="badge badge-yellow">Below Threshold</span>
             <% end %>
           </td>
           <td class="py-3 px-4">
             <% if alert.customer %>
-              <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "text-blue-600 hover:underline" %>
+              <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "link" %>
             <% else %>
               <span class="text-gray-400">-</span>
             <% end %>
@@ -47,7 +47,7 @@
       <% end %>
       <% if @alerts.empty? %>
         <tr>
-          <td colspan="6" class="py-8 text-center text-gray-400">No alerts. Your margins are looking good!</td>
+          <td colspan="6" class="empty-state">No alerts. Your margins are looking good!</td>
         </tr>
       <% end %>
     </tbody>

@@ -1,11 +1,11 @@
 <div class="mb-4">
-  <%= link_to "&larr; #{t('dashboard.show.title')}".html_safe, root_path, class: "text-blue-600 hover:underline text-sm" %>
+  <%= link_to "&larr; #{t('dashboard.show.title')}".html_safe, root_path, class: "link text-sm" %>
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("events.index.title") %></h1>
 
 <!-- Filters -->
-<div class="bg-white rounded-lg shadow p-4 mb-6">
+<div class="card p-4 mb-6">
   <%= form_with url: events_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.event_type") %></label>
@@ -35,52 +35,49 @@
     </div>
 
     <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">&nbsp;</label>
-        <%= link_to t("events.index.clear_filters"), events_path, class: "inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
-      </div>
+      <%= link_to t("events.index.clear_filters"), events_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
     <% end %>
   <% end %>
 </div>
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
-  <table class="w-full text-sm">
+<div class="card overflow-hidden">
+  <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
       <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4"><%= t("shared.time") %></th>
-        <th class="py-3 px-4"><%= t("shared.customer") %></th>
-        <th class="py-3 px-4"><%= t("shared.event_type") %></th>
-        <th class="py-3 px-4 text-right"><%= t("shared.revenue") %></th>
-        <th class="py-3 px-4 text-right"><%= t("shared.cost") %></th>
-        <th class="py-3 px-4 text-right"><%= t("shared.margin") %></th>
-        <th class="py-3 px-4"><%= t("shared.vendors") %></th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort" data-sort-type="date"><%= t("shared.time") %></th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.event_type") %></th>
+        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
+        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
+        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.vendors") %></th>
       </tr>
     </thead>
     <tbody>
       <% @events.each do |event| %>
-        <tr class="border-b hover:bg-gray-50">
-          <td class="py-3 px-4 text-gray-500"><%= event.occurred_at&.strftime("%b %d %H:%M") %></td>
+        <tr class="table-row">
+          <td class="py-3 px-4 text-gray-500" data-sort-value="<%= event.occurred_at&.to_i %>"><%= format_time(event.occurred_at) %></td>
           <td class="py-3 px-4">
             <% if event.customer %>
-              <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer), class: "text-blue-600 hover:underline" %>
+              <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer), class: "link" %>
             <% else %>
               <%= event.customer_external_id %>
             <% end %>
           </td>
-          <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"><%= event.event_type %></span></td>
+          <td class="py-3 px-4"><span class="badge badge-blue"><%= event.event_type %></span></td>
           <td class="py-3 px-4 text-right"><%= format_cents(event.revenue_amount_in_cents) %></td>
           <td class="py-3 px-4 text-right"><%= format_cents(event.total_cost_in_cents) %></td>
           <td class="py-3 px-4 text-right font-medium <%= margin_color_class(event.margin_in_cents) %>"><%= format_cents(event.margin_in_cents) %></td>
           <td class="py-3 px-4">
             <% event.cost_entries.each do |ce| %>
-              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mr-1"><%= ce.vendor_name %></span>
+              <span class="badge badge-gray mr-1"><%= ce.vendor_name %></span>
             <% end %>
           </td>
         </tr>
       <% end %>
       <% if @events.empty? %>
         <tr>
-          <td colspan="7" class="py-8 text-center text-gray-400"><%= t("events.index.no_events") %></td>
+          <td colspan="7" class="empty-state"><%= t("events.index.no_events") %></td>
         </tr>
       <% end %>
     </tbody>
@@ -92,13 +89,13 @@
   <div class="flex justify-between items-center mt-4">
     <div>
       <% if @page > 1 %>
-        <%= link_to t("events.index.previous"), events_path(**filter_params, page: @page - 1), class: "text-blue-600 hover:underline text-sm" %>
+        <%= link_to t("events.index.previous"), events_path(**filter_params, page: @page - 1), class: "link text-sm" %>
       <% end %>
     </div>
     <span class="text-sm text-gray-500"><%= t("events.index.page", number: @page) %></span>
     <div>
       <% if @has_next_page %>
-        <%= link_to t("events.index.next"), events_path(**filter_params, page: @page + 1), class: "text-blue-600 hover:underline text-sm" %>
+        <%= link_to t("events.index.next"), events_path(**filter_params, page: @page + 1), class: "link text-sm" %>
       <% end %>
     </div>
   </div>

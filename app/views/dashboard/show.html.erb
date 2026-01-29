@@ -6,29 +6,29 @@
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card p-6">
       <p class="text-sm text-gray-500"><%= t("dashboard.show.total_revenue") %></p>
       <p class="text-2xl font-bold text-gray-900" id="total-revenue"><%= format_cents(@margin.revenue_in_cents) %></p>
       <% if @margin.subscription_revenue_in_cents > 0 %>
         <p class="text-xs text-gray-400 mt-1"><%= t("dashboard.show.subscription_label", subscription: format_cents(@margin.subscription_revenue_in_cents), event: format_cents(@margin.event_revenue_in_cents)) %></p>
       <% end %>
     </div>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card p-6">
       <p class="text-sm text-gray-500"><%= t("dashboard.show.total_cost") %></p>
       <p class="text-2xl font-bold text-gray-900" id="total-cost"><%= format_cents(@margin.cost_in_cents) %></p>
     </div>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card p-6">
       <p class="text-sm text-gray-500"><%= t("shared.margin") %></p>
       <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="total-margin"><%= format_cents(@margin.margin_in_cents) %></p>
     </div>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="card p-6">
       <p class="text-sm text-gray-500"><%= t("shared.margin_percent") %></p>
       <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="margin-pct"><%= format_bps(@margin.margin_bps) %></p>
     </div>
   </div>
 
   <!-- Revenue vs Cost Chart -->
-  <div class="bg-white rounded-lg shadow p-6 mb-8">
+  <div class="card p-6 mb-8">
     <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("dashboard.show.revenue_vs_cost_over_time") %></h2>
     <%= line_chart [
       { name: t("shared.revenue"), data: @revenue_over_time },
@@ -38,14 +38,14 @@
 
   <!-- Vendor Cost Breakdown -->
   <% if @vendor_costs.any? %>
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <div class="card p-6 mb-8">
       <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("dashboard.show.cost_by_vendor") %></h2>
       <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
     </div>
   <% end %>
 
   <!-- Live Event Feed -->
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="card p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold text-gray-900"><%= t("dashboard.show.recent_events") %></h2>
       <div class="flex items-center gap-4">
@@ -54,7 +54,7 @@
             <%= t("dashboard.show.unacknowledged_alerts", count: @unacknowledged_alerts_count) %>
           <% end %>
         <% end %>
-        <%= link_to t("dashboard.show.view_all_events"), events_path, class: "text-sm text-blue-600 hover:underline" %>
+        <%= link_to t("dashboard.show.view_all_events"), events_path, class: "text-sm link" %>
       </div>
     </div>
 
@@ -76,7 +76,7 @@
           <% end %>
           <% if @recent_events.empty? %>
             <tr id="no-events-row">
-              <td colspan="6" class="py-8 text-center text-gray-400"><%= t("dashboard.show.no_events") %></td>
+              <td colspan="6" class="empty-state"><%= t("dashboard.show.no_events") %></td>
             </tr>
           <% end %>
         </tbody>

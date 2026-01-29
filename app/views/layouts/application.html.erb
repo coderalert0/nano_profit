@@ -48,6 +48,7 @@
               <%= link_to "Events", events_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'events'}" %>
               <%= link_to "Alerts", alerts_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'alerts'}" %>
               <%= link_to "Settings", settings_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'settings'}" %>
+              <%= link_to "Documentation", documentation_path, class: "text-gray-600 hover:text-gray-900 #{'font-medium text-gray-900' if controller_name == 'documentation'}" %>
             </div>
             <div class="flex items-center space-x-4">
               <span class="text-sm text-gray-500"><%= Current.organization&.name %></span>

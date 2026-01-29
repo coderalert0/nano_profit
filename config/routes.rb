@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   resource :settings, only: %i[ show update ] do
     post :regenerate_api_key, on: :member
   end
+  resource :documentation, only: :show, controller: "documentation"
 
   get "stripe/connect", to: "stripe#connect", as: :stripe_connect
   get "stripe/callback", to: "stripe#callback", as: :stripe_callback
