@@ -1,0 +1,84 @@
+<div class="mb-4">
+  <%= link_to "&larr; All Customers".html_safe, customers_path, class: "text-blue-600 hover:underline text-sm" %>
+</div>
+
+<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= @customer.name || @customer.external_id %></h1>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+  <div class="bg-white rounded-lg shadow p-6">
+    <p class="text-sm text-gray-500">Revenue</p>
+    <p class="text-2xl font-bold text-gray-900"><%= format_cents(@margin.revenue_in_cents) %></p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-6">
+    <p class="text-sm text-gray-500">Cost</p>
+    <p class="text-2xl font-bold text-gray-900"><%= format_cents(@margin.cost_in_cents) %></p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-6">
+    <p class="text-sm text-gray-500">Margin</p>
+    <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>"><%= format_cents(@margin.margin_in_cents) %></p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-6">
+    <p class="text-sm text-gray-500">Margin %</p>
+    <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>"><%= format_bps(@margin.margin_bps) %></p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+  <!-- Revenue vs Cost Chart -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Revenue vs. Cost</h2>
+    <%= line_chart [
+      { name: "Revenue", data: @revenue_over_time },
+      { name: "Cost", data: @cost_over_time }
+    ], prefix: "$" %>
+  </div>
+
+  <!-- Vendor Cost Breakdown -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Cost by Vendor</h2>
+    <% if @vendor_costs.any? %>
+      <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
+    <% else %>
+      <p class="text-gray-400 text-center py-8">No cost data yet.</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- Event History -->
+<div class="bg-white rounded-lg shadow p-6">
+  <h2 class="text-lg font-semibold text-gray-900 mb-4">Event History</h2>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b text-left text-gray-500">
+        <th class="py-2 pr-4">Time</th>
+        <th class="py-2 pr-4">Event Type</th>
+        <th class="py-2 pr-4 text-right">Revenue</th>
+        <th class="py-2 pr-4 text-right">Cost</th>
+        <th class="py-2 pr-4 text-right">Margin</th>
+        <th class="py-2">Vendors</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @events.each do |event| %>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-2 pr-4 text-gray-500"><%= event.occurred_at&.strftime("%b %d %H:%M") %></td>
+          <td class="py-2 pr-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"><%= event.event_type %></span></td>
+          <td class="py-2 pr-4 text-right"><%= format_cents(event.revenue_amount_in_cents) %></td>
+          <td class="py-2 pr-4 text-right"><%= format_cents(event.total_cost_in_cents) %></td>
+          <td class="py-2 pr-4 text-right font-medium <%= margin_color_class(event.margin_in_cents) %>"><%= format_cents(event.margin_in_cents) %></td>
+          <td class="py-2">
+            <% event.cost_entries.each do |ce| %>
+              <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mr-1"><%= ce.vendor_name %></span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @events.empty? %>
+        <tr>
+          <td colspan="6" class="py-8 text-center text-gray-400">No events for this customer yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

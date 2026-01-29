@@ -1,0 +1,4 @@
+acme:
+  name: Acme Inc
+  api_key: test_api_key_abc123
+  margin_alert_threshold_bps: 1000

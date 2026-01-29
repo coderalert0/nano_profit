@@ -1,0 +1,77 @@
+<div data-controller="dashboard" data-dashboard-organization-id-value="<%= @organization.id %>">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <p class="text-sm text-gray-500">Total Revenue</p>
+      <p class="text-2xl font-bold text-gray-900" id="total-revenue"><%= format_cents(@margin.revenue_in_cents) %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <p class="text-sm text-gray-500">Total Cost</p>
+      <p class="text-2xl font-bold text-gray-900" id="total-cost"><%= format_cents(@margin.cost_in_cents) %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <p class="text-sm text-gray-500">Margin</p>
+      <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="total-margin"><%= format_cents(@margin.margin_in_cents) %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <p class="text-sm text-gray-500">Margin %</p>
+      <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="margin-pct"><%= format_bps(@margin.margin_bps) %></p>
+    </div>
+  </div>
+
+  <!-- Revenue vs Cost Chart -->
+  <div class="bg-white rounded-lg shadow p-6 mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Revenue vs. Cost Over Time</h2>
+    <%= line_chart [
+      { name: "Revenue", data: @revenue_over_time },
+      { name: "Cost", data: @cost_over_time }
+    ], prefix: "$", library: { scales: { y: { beginAtZero: true } } } %>
+  </div>
+
+  <!-- Vendor Cost Breakdown -->
+  <% if @vendor_costs.any? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Cost by Vendor</h2>
+      <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
+    </div>
+  <% end %>
+
+  <!-- Live Event Feed -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Recent Events</h2>
+      <% if @unacknowledged_alerts_count > 0 %>
+        <%= link_to alerts_path, class: "text-sm text-red-600 font-medium" do %>
+          <%= @unacknowledged_alerts_count %> unacknowledged alert<%= @unacknowledged_alerts_count == 1 ? "" : "s" %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div id="event-feed">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b text-left text-gray-500">
+            <th class="py-2 pr-4">Time</th>
+            <th class="py-2 pr-4">Customer</th>
+            <th class="py-2 pr-4">Event Type</th>
+            <th class="py-2 pr-4 text-right">Revenue</th>
+            <th class="py-2 pr-4 text-right">Cost</th>
+            <th class="py-2 text-right">Margin</th>
+          </tr>
+        </thead>
+        <tbody id="events-table-body">
+          <% @recent_events.each do |event| %>
+            <%= render partial: "dashboard/event_row", locals: { event: event } %>
+          <% end %>
+          <% if @recent_events.empty? %>
+            <tr id="no-events-row">
+              <td colspan="6" class="py-8 text-center text-gray-400">No events yet. Send telemetry data via the API to get started.</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
