@@ -81,12 +81,9 @@ module Api
         return [] if raw.blank?
 
         raw.map do |vr|
-          raw_response = vr[:raw_response]
-          raw_response = raw_response.respond_to?(:to_unsafe_h) ? raw_response.to_unsafe_h : (raw_response || {})
-
           VendorResponseParser.call(
             vendor_name: vr[:vendor_name].to_s,
-            raw_response: raw_response
+            raw_response: vr[:raw_response]&.to_unsafe_h
           )
         end
       rescue VendorResponseParser::ParseError => e
