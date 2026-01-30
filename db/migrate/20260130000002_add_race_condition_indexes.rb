@@ -13,7 +13,7 @@ class AddRaceConditionIndexes < ActiveRecord::Migration[8.0]
     SQL
 
     add_index :margin_alerts,
-      [:organization_id, :customer_id, :alert_type],
+      [ :organization_id, :customer_id, :alert_type ],
       unique: true,
       where: "acknowledged_at IS NULL",
       name: "idx_margin_alerts_unique_unacknowledged"
@@ -31,7 +31,7 @@ class AddRaceConditionIndexes < ActiveRecord::Migration[8.0]
     SQL
 
     add_index :price_drifts,
-      [:vendor_name, :ai_model_name],
+      [ :vendor_name, :ai_model_name ],
       unique: true,
       where: "status = 0",
       name: "idx_price_drifts_unique_pending"

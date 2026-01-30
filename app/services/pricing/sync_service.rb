@@ -29,7 +29,7 @@ module Pricing
           next
         end
 
-        seen_pairs.add([vendor, model])
+        seen_pairs.add([ vendor, model ])
 
         existing = VendorRate.find_by(
           vendor_name: vendor,
@@ -74,7 +74,7 @@ module Pricing
 
       # Deactivate global rates no longer present in upstream data
       VendorRate.where(organization_id: nil, active: true).find_each do |rate|
-        unless seen_pairs.include?([rate.vendor_name, rate.ai_model_name])
+        unless seen_pairs.include?([ rate.vendor_name, rate.ai_model_name ])
           rate.update!(active: false)
           counts[:deactivated] += 1
         end
@@ -122,9 +122,9 @@ module Pricing
       # For prefixed keys like "vertex_ai/gemini-pro", strip the prefix
       model = if key.start_with?("#{vendor}/")
                 key.delete_prefix("#{vendor}/")
-              else
+      else
                 key
-              end
+      end
 
       [ vendor, model ]
     end

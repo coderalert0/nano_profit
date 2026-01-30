@@ -154,7 +154,7 @@ class MarginCalculator
 
     while cursor < period_end
       month_end = cursor.end_of_month + 1.day  # first day of next month
-      slice_end = [month_end, period_end].min
+      slice_end = [ month_end, period_end ].min
       days_in_slice = (slice_end - cursor).to_i
       days_in_month = Time.days_in_month(cursor.month, cursor.year)
 
@@ -168,7 +168,7 @@ class MarginCalculator
   def self.events_date_range(events_scope)
     range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
     return nil unless range&.first && range&.last
-    end_date = [range.last, range.first + 1.day].max
+    end_date = [ range.last, range.first + 1.day ].max
     range.first..end_date
   end
 

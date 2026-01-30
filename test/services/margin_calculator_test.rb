@@ -99,7 +99,7 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     assert_kind_of Numeric, result.margin_in_cents
     assert_kind_of Numeric, result.subscription_revenue_in_cents
     assert_kind_of Numeric, result.event_revenue_in_cents
-    [result.revenue_in_cents, result.cost_in_cents, result.margin_in_cents].each do |val|
+    [ result.revenue_in_cents, result.cost_in_cents, result.margin_in_cents ].each do |val|
       assert_not_kind_of Float, val, "Expected BigDecimal or Integer, not Float"
     end
   end

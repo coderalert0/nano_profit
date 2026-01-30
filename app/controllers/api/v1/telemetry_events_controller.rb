@@ -37,7 +37,7 @@ module Api
         return [] if vendor_costs.blank?
 
         known_pairs = VendorRate.active
-          .where(organization_id: [nil, current_organization.id])
+          .where(organization_id: [ nil, current_organization.id ])
           .pluck(:vendor_name, :ai_model_name)
           .to_set
 
@@ -50,7 +50,7 @@ module Api
 
           if ai_model_name.blank?
             errors << "Missing ai_model_name for vendor cost entry"
-          elsif !known_pairs.include?([vendor_name, ai_model_name])
+          elsif !known_pairs.include?([ vendor_name, ai_model_name ])
             errors << "Unrecognized vendor_name '#{vendor_name}' with ai_model_name '#{ai_model_name}'"
           end
 
