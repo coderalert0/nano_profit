@@ -99,16 +99,19 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     assert_equal 4700, sub_customer_margin[:margin].margin_in_cents
   end
 
-  test "integer arithmetic only - no floating point in margin results" do
+  test "no floating point in margin results" do
     org = organizations(:acme)
     result = MarginCalculator.organization_margin(org)
 
-    assert_kind_of Integer, result.margin_bps
-    assert_kind_of Integer, result.revenue_in_cents
-    assert_kind_of Integer, result.cost_in_cents
-    assert_kind_of Integer, result.margin_in_cents
-    assert_kind_of Integer, result.subscription_revenue_in_cents
-    assert_kind_of Integer, result.event_revenue_in_cents
+    assert_kind_of Numeric, result.margin_bps
+    assert_kind_of Numeric, result.revenue_in_cents
+    assert_kind_of Numeric, result.cost_in_cents
+    assert_kind_of Numeric, result.margin_in_cents
+    assert_kind_of Numeric, result.subscription_revenue_in_cents
+    assert_kind_of Numeric, result.event_revenue_in_cents
+    [result.revenue_in_cents, result.cost_in_cents, result.margin_in_cents].each do |val|
+      assert_not_kind_of Float, val, "Expected BigDecimal or Integer, not Float"
+    end
   end
 
   test "proration uses actual days in month" do
@@ -131,13 +134,14 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     assert_equal 1250, result.subscription_revenue_in_cents
   end
 
-  test "proration integer arithmetic - no floating point" do
+  test "proration arithmetic - no floating point" do
     customer = customers(:customer_with_subscription)
 
     period_start = Time.new(2026, 1, 1)
     period_end = Time.new(2026, 1, 8)
     result = MarginCalculator.customer_margin(customer, period_start..period_end)
 
-    assert_kind_of Integer, result.subscription_revenue_in_cents
+    assert_kind_of Numeric, result.subscription_revenue_in_cents
+    assert_not_kind_of Float, result.subscription_revenue_in_cents
   end
 end

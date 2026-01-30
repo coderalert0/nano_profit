@@ -41,6 +41,21 @@ class Admin::VendorRatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "claude-3"
   end
 
+  test "index preserves filters with pagination" do
+    get admin_vendor_rates_url, params: { vendor: "openai" }, headers: auth_headers(@admin_session)
+    assert_response :success
+    assert_select "td", text: "anthropic", count: 0
+  end
+
+  # --- Infinite Scroll ---
+
+  test "infinite scroll request returns rows partial" do
+    get admin_vendor_rates_url, params: { page: 1 },
+      headers: auth_headers(@admin_session).merge("Turbo-Frame" => "infinite-scroll-rows")
+    assert_response :success
+    assert_select "h1", count: 0
+  end
+
   # --- New / Create ---
 
   test "admin can view new form" do

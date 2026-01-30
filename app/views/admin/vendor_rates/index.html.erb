@@ -1,9 +1,7 @@
-<div class="mb-4">
-  <%= link_to "&larr; Dashboard".html_safe, root_path, class: "link text-sm" %>
-</div>
+<%= render "admin/nav" %>
 
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Vendor Rates <span class="text-gray-400 font-normal text-lg">(<%= @vendor_rates.size %>)</span></h1>
+  <h1 class="text-2xl font-bold text-gray-900">Vendor Rates <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
   <%= link_to "New Rate", new_admin_vendor_rate_path, class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium" %>
 </div>
 
@@ -24,48 +22,24 @@
   <% end %>
 </div>
 
-<div class="card overflow-hidden">
-  <table class="w-full text-sm">
+<% filter_params = { vendor: params[:vendor], model: params[:model] }.compact_blank %>
+
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= admin_vendor_rates_path(**filter_params) %>" data-infinite-scroll-page-value="1">
+  <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-gray-50">
-      <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4">Vendor</th>
-        <th class="py-3 px-4">Model</th>
-        <th class="py-3 px-4 text-right">Input / 1K</th>
-        <th class="py-3 px-4 text-right">Output / 1K</th>
-        <th class="py-3 px-4">Unit</th>
-        <th class="py-3 px-4">Scope</th>
-        <th class="py-3 px-4">Status</th>
+      <tr class="border-b text-left">
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Vendor</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Model</th>
+        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Input / 1K</th>
+        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Output / 1K</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Unit</th>
+        <th class="py-3 px-4 text-gray-500">Scope</th>
+        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Status</th>
         <th class="py-3 px-4"></th>
       </tr>
     </thead>
-    <tbody>
-      <% @vendor_rates.each do |rate| %>
-        <tr class="border-b hover:bg-gray-50">
-          <td class="py-3 px-4 font-medium text-gray-900"><%= rate.vendor_name %></td>
-          <td class="py-3 px-4 font-mono text-gray-700"><%= rate.ai_model_name %></td>
-          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.input_rate_per_1k, precision: 5) %></td>
-          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.output_rate_per_1k, precision: 5) %></td>
-          <td class="py-3 px-4 text-gray-500"><%= rate.unit_type %></td>
-          <td class="py-3 px-4">
-            <% if rate.organization %>
-              <span class="inline-flex items-center bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full"><%= rate.organization.name %></span>
-            <% else %>
-              <span class="inline-flex items-center bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">Global</span>
-            <% end %>
-          </td>
-          <td class="py-3 px-4">
-            <% if rate.active? %>
-              <span class="inline-flex items-center bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Active</span>
-            <% else %>
-              <span class="inline-flex items-center bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Inactive</span>
-            <% end %>
-          </td>
-          <td class="py-3 px-4 text-right space-x-2">
-            <%= link_to "Edit", edit_admin_vendor_rate_path(rate), class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
-            <%= button_to "Delete", admin_vendor_rate_path(rate), method: :delete, class: "text-red-600 hover:text-red-800 text-sm font-medium cursor-pointer", data: { turbo_confirm: "Delete this rate?" } %>
-          </td>
-        </tr>
-      <% end %>
+    <tbody data-infinite-scroll-target="tbody">
+      <%= render "rows", vendor_rates: @vendor_rates, page: @page, total_pages: @total_pages %>
       <% if @vendor_rates.empty? %>
         <tr>
           <td colspan="8" class="py-8 text-center text-gray-400">No vendor rates found.</td>

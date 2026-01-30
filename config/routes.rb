@@ -11,6 +11,15 @@ Rails.application.routes.draw do
 
   namespace :admin do
     resources :vendor_rates
+    resources :price_drifts, only: [:index] do
+      member do
+        patch :apply
+        patch :ignore
+      end
+      collection do
+        patch :update_threshold
+      end
+    end
     resources :margin_alerts, only: [] do
       member do
         patch :acknowledge
