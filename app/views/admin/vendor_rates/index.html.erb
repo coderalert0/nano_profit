@@ -1,7 +1,3 @@
-<div class="mb-4">
-  <%= link_to "&larr; Dashboard".html_safe, root_path, class: "link text-sm" %>
-</div>
-
 <%= render "admin/nav" %>
 
 <div class="flex items-center justify-between mb-6">
@@ -29,14 +25,14 @@
 <div class="card overflow-hidden">
   <table class="w-full text-sm">
     <thead class="bg-gray-50">
-      <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4">Vendor</th>
-        <th class="py-3 px-4">Model</th>
-        <th class="py-3 px-4 text-right">Input / 1K</th>
-        <th class="py-3 px-4 text-right">Output / 1K</th>
-        <th class="py-3 px-4">Unit</th>
-        <th class="py-3 px-4">Scope</th>
-        <th class="py-3 px-4">Status</th>
+      <tr class="border-b text-left">
+        <th class="py-3 px-4"><%= vendor_rate_sort_link("Vendor", "vendor_name") %></th>
+        <th class="py-3 px-4"><%= vendor_rate_sort_link("Model", "ai_model_name") %></th>
+        <th class="py-3 px-4 text-right"><%= vendor_rate_sort_link("Input / 1K", "input_rate_per_1k") %></th>
+        <th class="py-3 px-4 text-right"><%= vendor_rate_sort_link("Output / 1K", "output_rate_per_1k") %></th>
+        <th class="py-3 px-4"><%= vendor_rate_sort_link("Unit", "unit_type") %></th>
+        <th class="py-3 px-4 text-gray-500">Scope</th>
+        <th class="py-3 px-4"><%= vendor_rate_sort_link("Status", "active") %></th>
         <th class="py-3 px-4"></th>
       </tr>
     </thead>
@@ -45,8 +41,8 @@
         <tr class="border-b hover:bg-gray-50">
           <td class="py-3 px-4 font-medium text-gray-900"><%= rate.vendor_name %></td>
           <td class="py-3 px-4 font-mono text-gray-700"><%= rate.ai_model_name %></td>
-          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.input_rate_per_1k, precision: 5) %></td>
-          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.output_rate_per_1k, precision: 5) %></td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.input_rate_per_1k, precision: 6) %></td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(rate.output_rate_per_1k, precision: 6) %></td>
           <td class="py-3 px-4 text-gray-500"><%= rate.unit_type %></td>
           <td class="py-3 px-4">
             <% if rate.organization %>

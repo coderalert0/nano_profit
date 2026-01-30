@@ -1,7 +1,3 @@
-<div class="mb-4">
-  <%= link_to "&larr; Dashboard".html_safe, root_path, class: "link text-sm" %>
-</div>
-
 <%= render "admin/nav" %>
 
 <div class="flex items-center justify-between mb-6">
@@ -24,16 +20,16 @@
 <div class="card overflow-hidden">
   <table class="w-full text-sm">
     <thead class="bg-gray-50">
-      <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4">Vendor</th>
-        <th class="py-3 px-4">Model</th>
-        <th class="py-3 px-4 text-right">Old Input / 1K</th>
-        <th class="py-3 px-4 text-right">New Input / 1K</th>
-        <th class="py-3 px-4 text-right">Input Change</th>
-        <th class="py-3 px-4 text-right">Old Output / 1K</th>
-        <th class="py-3 px-4 text-right">New Output / 1K</th>
-        <th class="py-3 px-4 text-right">Output Change</th>
-        <th class="py-3 px-4">Status</th>
+      <tr class="border-b text-left">
+        <th class="py-3 px-4"><%= price_drift_sort_link("Vendor", "vendor_name") %></th>
+        <th class="py-3 px-4"><%= price_drift_sort_link("Model", "ai_model_name") %></th>
+        <th class="py-3 px-4 text-right"><%= price_drift_sort_link("Old Input / 1K", "old_input_rate") %></th>
+        <th class="py-3 px-4 text-right"><%= price_drift_sort_link("New Input / 1K", "new_input_rate") %></th>
+        <th class="py-3 px-4 text-right text-gray-500">Input Change</th>
+        <th class="py-3 px-4 text-right"><%= price_drift_sort_link("Old Output / 1K", "old_output_rate") %></th>
+        <th class="py-3 px-4 text-right"><%= price_drift_sort_link("New Output / 1K", "new_output_rate") %></th>
+        <th class="py-3 px-4 text-right text-gray-500">Output Change</th>
+        <th class="py-3 px-4"><%= price_drift_sort_link("Status", "status") %></th>
         <th class="py-3 px-4"></th>
       </tr>
     </thead>

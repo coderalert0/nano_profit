@@ -1,10 +1,11 @@
 require "net/http"
 require "json"
+require "shellwords"
 
 module Pricing
   class SyncService
     SOURCE_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
-    SUPPORTED_PREFIXES = %w[openai/ anthropic/ vertex_ai/].freeze
+    SUPPORTED_PROVIDERS = %w[openai anthropic vertex_ai].freeze
     DEFAULT_DRIFT_THRESHOLD = "0.0001".to_d
 
     def initialize(pricing_data: nil)
@@ -19,7 +20,7 @@ module Pricing
       counts = { created: 0, unchanged: 0, drifts_detected: 0, skipped: 0 }
 
       models.each do |key, entry|
-        vendor, model = parse_key(key)
+        vendor, model = parse_key(key, entry)
         input_rate = normalize_rate(entry, :input)
         output_rate = normalize_rate(entry, :output)
 
@@ -66,13 +67,28 @@ module Pricing
     private
 
     def fetch_pricing_data
+      body = fetch_via_net_http
+      JSON.parse(body)
+    rescue OpenSSL::SSL::SSLError
+      body = `curl -sS #{SOURCE_URL.shellescape}`
+      raise "curl fetch failed (exit #{$?.exitstatus})" unless $?.success?
+      JSON.parse(body)
+    end
+
+    def fetch_via_net_http
       uri = URI(SOURCE_URL)
-      response = Net::HTTP.get(uri)
-      JSON.parse(response)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.open_timeout = 10
+      http.read_timeout = 30
+      http.get(uri.request_uri).body
     end
 
     def filter_models(data)
-      data.select { |key, _| SUPPORTED_PREFIXES.any? { |prefix| key.start_with?(prefix) } }
+      data.select do |_, entry|
+        provider = entry["litellm_provider"]
+        SUPPORTED_PROVIDERS.any? { |p| provider&.start_with?(p) }
+      end
     end
 
     def reject_deprecated(models)
@@ -82,9 +98,18 @@ module Pricing
       end
     end
 
-    def parse_key(key)
-      vendor, *model_parts = key.split("/")
-      [ vendor, model_parts.join("/") ]
+    def parse_key(key, entry)
+      provider = entry["litellm_provider"]
+      vendor = SUPPORTED_PROVIDERS.find { |p| provider&.start_with?(p) }
+
+      # For prefixed keys like "vertex_ai/gemini-pro", strip the prefix
+      model = if key.start_with?("#{vendor}/")
+                key.delete_prefix("#{vendor}/")
+              else
+                key
+              end
+
+      [ vendor, model ]
     end
 
     def normalize_rate(entry, direction)

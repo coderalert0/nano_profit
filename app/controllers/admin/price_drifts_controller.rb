@@ -2,11 +2,12 @@ module Admin
   class PriceDriftsController < BaseController
     before_action :set_price_drift, only: %i[apply ignore]
 
+    SORTABLE_COLUMNS = %w[vendor_name ai_model_name old_input_rate new_input_rate old_output_rate new_output_rate status created_at].freeze
+
     def index
-      @price_drifts = PriceDrift.order(
-        Arel.sql("CASE status WHEN 0 THEN 0 WHEN 1 THEN 1 WHEN 2 THEN 2 END"),
-        created_at: :desc
-      )
+      @sort_column = SORTABLE_COLUMNS.include?(params[:sort]) ? params[:sort] : "status"
+      @sort_direction = %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
+      @price_drifts = PriceDrift.order(@sort_column => @sort_direction, created_at: :desc)
       @drift_threshold = PlatformSetting.drift_threshold
     end
 

@@ -41,6 +41,29 @@ class Admin::VendorRatesControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "claude-3"
   end
 
+  # --- Sorting ---
+
+  test "index sorts by column ascending" do
+    get admin_vendor_rates_url, params: { sort: "ai_model_name", direction: "asc" }, headers: auth_headers(@admin_session)
+    assert_response :success
+  end
+
+  test "index sorts by column descending" do
+    get admin_vendor_rates_url, params: { sort: "input_rate_per_1k", direction: "desc" }, headers: auth_headers(@admin_session)
+    assert_response :success
+  end
+
+  test "index ignores invalid sort column" do
+    get admin_vendor_rates_url, params: { sort: "drop_table", direction: "asc" }, headers: auth_headers(@admin_session)
+    assert_response :success
+  end
+
+  test "index preserves filters when sorting" do
+    get admin_vendor_rates_url, params: { sort: "vendor_name", direction: "desc", vendor: "openai" }, headers: auth_headers(@admin_session)
+    assert_response :success
+    assert_select "td", text: "anthropic", count: 0
+  end
+
   # --- New / Create ---
 
   test "admin can view new form" do

@@ -2,33 +2,40 @@ require "test_helper"
 
 class Pricing::SyncServiceTest < ActiveSupport::TestCase
   SAMPLE_DATA = {
-    "openai/gpt-4o" => {
+    "gpt-4o" => {
       "input_cost_per_token" => 0.0000025,
-      "output_cost_per_token" => 0.00001
+      "output_cost_per_token" => 0.00001,
+      "litellm_provider" => "openai"
     },
-    "openai/gpt-4o-mini" => {
+    "gpt-4o-mini" => {
       "input_cost_per_token" => 0.00000015,
-      "output_cost_per_token" => 0.0000006
+      "output_cost_per_token" => 0.0000006,
+      "litellm_provider" => "openai"
     },
-    "anthropic/claude-3-opus" => {
+    "claude-3-opus-20240229" => {
       "input_cost_per_token" => 0.000015,
-      "output_cost_per_token" => 0.000075
+      "output_cost_per_token" => 0.000075,
+      "litellm_provider" => "anthropic"
     },
     "vertex_ai/gemini-pro" => {
       "input_cost_per_character" => 0.0000003125,
-      "output_cost_per_character" => 0.000000625
+      "output_cost_per_character" => 0.000000625,
+      "litellm_provider" => "vertex_ai-language-models"
     },
-    "mistral/mistral-large" => {
+    "mistral-large-latest" => {
       "input_cost_per_token" => 0.000008,
-      "output_cost_per_token" => 0.000024
+      "output_cost_per_token" => 0.000024,
+      "litellm_provider" => "mistral"
     },
-    "openai/deprecated-model" => {
+    "gpt-3.5-turbo-deprecated" => {
       "input_cost_per_token" => 0.000001,
       "output_cost_per_token" => 0.000002,
+      "litellm_provider" => "openai",
       "deprecation_date" => "2024-01-01"
     },
-    "openai/no-cost-model" => {
-      "max_tokens" => 4096
+    "o1-no-cost" => {
+      "max_tokens" => 4096,
+      "litellm_provider" => "openai"
     }
   }.freeze
 
@@ -94,7 +101,7 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
   test "skips deprecated models" do
     @service.perform
-    rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "deprecated-model")
+    rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "gpt-3.5-turbo-deprecated")
     assert_nil rate
   end
 
@@ -110,14 +117,14 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
   test "skips entries with no cost data" do
     result = @service.perform
 
-    rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "no-cost-model")
+    rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "o1-no-cost")
     assert_nil rate
     assert result[:skipped] >= 1
   end
 
   test "skips unsupported vendors" do
     @service.perform
-    rate = VendorRate.find_by(vendor_name: "mistral", ai_model_name: "mistral-large")
+    rate = VendorRate.find_by(vendor_name: "mistral", ai_model_name: "mistral-large-latest")
     assert_nil rate
   end
 
