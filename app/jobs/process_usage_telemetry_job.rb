@@ -3,10 +3,33 @@ class ProcessUsageTelemetryJob < ApplicationJob
 
   def perform(event_id)
     event = UsageTelemetryEvent.find(event_id)
-    return if event.status == "processed"
 
+    link_customer(event) if event.status == "pending"
+    process_costs(event) if event.status == "customer_linked"
+
+    event.reload
+    return unless event.status == "processed"
+
+    check_margin_alerts(event)
+    broadcast_update(event)
+  rescue ActiveRecord::RecordNotFound
+    # Event was deleted between enqueue and perform; nothing to do
+  rescue RuntimeError => e
+    event&.update_column(:status, "failed") if event&.persisted?
+    raise
+  rescue => e
+    # Transient error — leave status unchanged so SolidQueue can retry
+    raise
+  end
+
+  private
+
+  def link_customer(event)
     ActiveRecord::Base.transaction do
-      organization = Organization.lock.find(event.organization_id)
+      event.lock!
+      return unless event.status == "pending"
+
+      organization = event.organization
 
       customer = organization.customers.create_or_find_by!(
         external_id: event.customer_external_id
@@ -14,9 +37,18 @@ class ProcessUsageTelemetryJob < ApplicationJob
         c.name = event.customer_name
       end
 
-      raise ActiveRecord::Rollback if customer.organization_id != organization.id
+      unless customer.organization_id == organization.id
+        raise "Customer #{customer.id} organization mismatch: expected #{organization.id}, got #{customer.organization_id}"
+      end
 
-      event.update!(customer: customer)
+      event.update!(customer: customer, status: "customer_linked")
+    end
+  end
+
+  def process_costs(event)
+    ActiveRecord::Base.transaction do
+      event.lock!
+      return unless event.status == "customer_linked"
 
       Telemetry::Processor.new(event).call
 
@@ -29,20 +61,7 @@ class ProcessUsageTelemetryJob < ApplicationJob
         status: "processed"
       )
     end
-
-    event.reload
-    return unless event.status == "processed"
-
-    check_margin_alerts(event)
-    broadcast_update(event)
-  rescue ActiveRecord::RecordNotFound
-    # Event was deleted between enqueue and perform; nothing to do
-  rescue => e
-    event&.update_column(:status, "failed") if event&.persisted?
-    raise
   end
-
-  private
 
   def check_margin_alerts(event)
     org = event.organization
@@ -52,23 +71,30 @@ class ProcessUsageTelemetryJob < ApplicationJob
     revenue_cents = event.revenue_amount_in_cents.to_d
 
     if margin_cents.negative?
-      MarginAlert.create!(
-        organization: org,
-        customer: event.customer,
-        alert_type: "negative_margin",
-        message: "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{margin_cents} cents"
+      create_alert_unless_duplicate(
+        org, event.customer, "negative_margin",
+        "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{margin_cents} cents"
       )
     elsif threshold_bps > 0 && revenue_cents > 0
       margin_bps = ((margin_cents * 10_000) / revenue_cents).to_i
       if margin_bps < threshold_bps
-        MarginAlert.create!(
-          organization: org,
-          customer: event.customer,
-          alert_type: "below_threshold",
-          message: "Margin #{margin_bps} bps below threshold #{threshold_bps} bps on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}"
+        create_alert_unless_duplicate(
+          org, event.customer, "below_threshold",
+          "Margin #{margin_bps} bps below threshold #{threshold_bps} bps on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}"
         )
       end
     end
+  end
+
+  def create_alert_unless_duplicate(org, customer, alert_type, message)
+    MarginAlert.create!(
+      organization: org,
+      customer: customer,
+      alert_type: alert_type,
+      message: message
+    )
+  rescue ActiveRecord::RecordNotUnique
+    # Duplicate unacknowledged alert already exists (partial unique index)
   end
 
   def broadcast_update(event)

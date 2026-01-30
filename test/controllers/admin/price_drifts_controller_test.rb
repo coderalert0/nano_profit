@@ -41,7 +41,6 @@ class Admin::PriceDriftsControllerTest < ActionDispatch::IntegrationTest
 
   test "admin can apply a pending drift" do
     rate = vendor_rates(:openai_gpt4_global)
-    original_input = rate.input_rate_per_1k
 
     patch apply_admin_price_drift_url(@pending_drift), headers: auth_headers(@admin_session)
 
@@ -59,7 +58,7 @@ class Admin::PriceDriftsControllerTest < ActionDispatch::IntegrationTest
   # --- Update Threshold ---
 
   test "admin can update drift threshold" do
-    patch update_threshold_admin_price_drifts_url, params: { drift_threshold: "0.005" }, headers: auth_headers(@admin_session)
+    patch update_threshold_admin_price_drifts_url, params: { drift_threshold: "0.5" }, headers: auth_headers(@admin_session)
 
     assert_redirected_to admin_price_drifts_path
     assert_match "Drift threshold updated", flash[:notice]
@@ -82,7 +81,7 @@ class Admin::PriceDriftsControllerTest < ActionDispatch::IntegrationTest
     PlatformSetting.drift_threshold = "0.05"
     get admin_price_drifts_url, headers: auth_headers(@admin_session)
     assert_response :success
-    assert_select "input[name='drift_threshold'][value='0.05']"
+    assert_select "input[name='drift_threshold'][value='5.0']"
   end
 
   # --- Ignore ---

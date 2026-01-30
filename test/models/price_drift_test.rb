@@ -79,6 +79,20 @@ class PriceDriftTest < ActiveSupport::TestCase
     assert_equal drift.new_output_rate, rate.output_rate_per_1k
   end
 
+  test "apply! raises StaleDriftError when rate has changed since detection" do
+    drift = price_drifts(:pending_drift)
+    rate = vendor_rates(:openai_gpt4_global)
+
+    # Manually change the rate to simulate someone editing it
+    rate.update!(input_rate_per_1k: "9.999".to_d)
+
+    assert_raises(PriceDrift::StaleDriftError) do
+      drift.apply!
+    end
+
+    assert_equal "pending", drift.reload.status
+  end
+
   test "ignore! sets status to ignored" do
     drift = price_drifts(:pending_drift)
     assert_equal "pending", drift.status

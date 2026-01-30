@@ -20,7 +20,8 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     mock_stripe_customer = ::OpenStruct.new(
       id: "cus_new_customer",
       name: "New Stripe Customer",
-      email: "new@example.com"
+      email: "new@example.com",
+      metadata: { "external_id" => nil }
     )
 
     service = Stripe::SubscriptionSyncService.new(@org)
@@ -121,9 +122,37 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "sync links Stripe subscription to existing telemetry customer via metadata.external_id" do
+    # Create a customer via telemetry (has external_id but no stripe_customer_id)
+    telemetry_customer = @org.customers.create!(
+      external_id: "tel_cust_100",
+      name: "Telemetry Customer"
+    )
+
+    mock_subscription = build_mock_subscription(
+      id: "sub_link",
+      customer_id: "cus_stripe_link",
+      customer_name: "Telemetry Customer",
+      amount: 7500,
+      interval: "month",
+      metadata: { "external_id" => "tel_cust_100" }
+    )
+
+    service = Stripe::SubscriptionSyncService.new(@org)
+    service.define_singleton_method(:fetch_active_subscriptions) { [ mock_subscription ] }
+
+    assert_no_difference "Customer.count" do
+      service.sync
+    end
+
+    telemetry_customer.reload
+    assert_equal "cus_stripe_link", telemetry_customer.stripe_customer_id
+    assert_equal 7500, telemetry_customer.monthly_subscription_revenue_in_cents
+  end
+
   private
 
-  def build_mock_subscription(id:, customer_id:, amount:, interval:, interval_count: 1, customer_name: nil)
+  def build_mock_subscription(id:, customer_id:, amount:, interval:, interval_count: 1, customer_name: nil, metadata: {})
     price = ::OpenStruct.new(
       unit_amount: amount,
       active: true,
@@ -134,7 +163,7 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
 
     ::OpenStruct.new(
       id: id,
-      customer: ::OpenStruct.new(id: customer_id, name: customer_name),
+      customer: ::OpenStruct.new(id: customer_id, name: customer_name, metadata: metadata),
       items: ::OpenStruct.new(data: [ item ])
     )
   end

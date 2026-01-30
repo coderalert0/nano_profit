@@ -8,12 +8,12 @@
   <div class="flex items-end gap-4">
     <%= form_with url: update_threshold_admin_price_drifts_path, method: :patch, class: "flex items-end gap-3" do %>
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Drift Threshold</label>
-        <input type="text" name="drift_threshold" value="<%= @drift_threshold %>" class="border border-gray-300 rounded px-3 py-2 text-sm font-mono w-40" />
+        <label class="block text-xs font-medium text-gray-500 mb-1">Drift Threshold (%)</label>
+        <input type="text" name="drift_threshold" value="<%= @drift_threshold_pct %>" class="border border-gray-300 rounded px-3 py-2 text-sm font-mono w-40" />
       </div>
       <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer">Update</button>
     <% end %>
-    <p class="text-xs text-gray-400 ml-2 pb-2">Rate changes below this absolute value are ignored as floating-point noise. Default: 0.0001</p>
+    <p class="text-xs text-gray-400 ml-2 pb-2">Minimum % rate change to flag a drift. Default: 1%</p>
   </div>
 </div>
 

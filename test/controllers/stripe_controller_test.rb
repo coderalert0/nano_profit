@@ -17,9 +17,10 @@ class StripeControllerTest < ActionDispatch::IntegrationTest
     ENV.delete("STRIPE_CLIENT_ID")
   end
 
-  test "disconnect clears Stripe credentials" do
+  test "disconnect revokes token and clears Stripe credentials" do
     @org.update!(stripe_user_id: "acct_test", stripe_access_token: "sk_test")
 
+    # deauthorize raises Stripe::StripeError without valid keys; controller rescues it
     delete stripe_disconnect_url, headers: auth_headers
     assert_redirected_to settings_path
 

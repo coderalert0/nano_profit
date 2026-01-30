@@ -48,8 +48,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "gpt-4o", organization_id: nil)
     assert_not_nil rate
-    assert_equal "0.0025".to_d, rate.input_rate_per_1k
-    assert_equal "0.01".to_d, rate.output_rate_per_1k
+    assert_equal "0.25".to_d, rate.input_rate_per_1k
+    assert_equal "1.0".to_d, rate.output_rate_per_1k
     assert rate.active?
     assert_equal "tokens", rate.unit_type
 
@@ -78,7 +78,7 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     assert_equal "openai", drift.vendor_name
     assert_equal "gpt-4o", drift.ai_model_name
     assert_equal "1.0".to_d, drift.old_input_rate
-    assert_equal "0.0025".to_d, drift.new_input_rate
+    assert_equal "0.25".to_d, drift.new_input_rate
     assert drift.pending?
   end
 
@@ -86,8 +86,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     VendorRate.create!(
       vendor_name: "openai",
       ai_model_name: "gpt-4o",
-      input_rate_per_1k: "0.0025".to_d,
-      output_rate_per_1k: "0.01".to_d,
+      input_rate_per_1k: "0.25".to_d,
+      output_rate_per_1k: "1.0".to_d,
       unit_type: "tokens",
       active: true,
       organization_id: nil
@@ -110,8 +110,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     rate = VendorRate.find_by(vendor_name: "vertex_ai", ai_model_name: "gemini-pro", organization_id: nil)
     assert_not_nil rate
-    assert_equal "0.00125".to_d, rate.input_rate_per_1k
-    assert_equal "0.0025".to_d, rate.output_rate_per_1k
+    assert_equal "0.125".to_d, rate.input_rate_per_1k
+    assert_equal "0.25".to_d, rate.output_rate_per_1k
   end
 
   test "skips entries with no cost data" do
@@ -137,24 +137,24 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     assert_equal original_input, org_rate.reload.input_rate_per_1k
   end
 
-  test "uses custom drift threshold from PlatformSetting" do
+  test "uses percentage-based drift threshold" do
     VendorRate.create!(
       vendor_name: "openai",
       ai_model_name: "gpt-4o",
-      input_rate_per_1k: "0.00251".to_d,
-      output_rate_per_1k: "0.01001".to_d,
+      input_rate_per_1k: "0.2525".to_d,   # 1% above 0.25
+      output_rate_per_1k: "1.0".to_d,
       unit_type: "tokens",
       active: true,
       organization_id: nil
     )
 
-    # Default threshold 0.0001 — difference of 0.00001 is below it, so no drift
+    # Default threshold is 1% (0.01). 0.2525 vs 0.25 = 0.99% change — below threshold
     assert_no_difference "PriceDrift.count" do
       @service.perform
     end
 
     # Set a tighter threshold — now the same difference triggers a drift
-    PlatformSetting.drift_threshold = "0.000001"
+    PlatformSetting.drift_threshold = "0.005"  # 0.5%
     service2 = Pricing::SyncService.new(pricing_data: SAMPLE_DATA)
 
     assert_difference "PriceDrift.count", 1 do
@@ -172,5 +172,67 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     assert_equal vendor_count_before, VendorRate.count
     assert_equal drift_count_before, PriceDrift.count
+  end
+
+  test "deactivates global rates not present in upstream data" do
+    # Create a rate that won't appear in SAMPLE_DATA
+    stale_rate = VendorRate.create!(
+      vendor_name: "openai",
+      ai_model_name: "davinci-002",
+      input_rate_per_1k: "1.0".to_d,
+      output_rate_per_1k: "2.0".to_d,
+      unit_type: "tokens",
+      active: true,
+      organization_id: nil
+    )
+
+    result = @service.perform
+
+    assert_not stale_rate.reload.active?, "Stale rate should be deactivated"
+    assert result[:deactivated] >= 1
+  end
+
+  test "does not deactivate org-specific rates" do
+    org_rate = vendor_rates(:openai_gpt4_acme)
+    assert org_rate.active?
+
+    @service.perform
+
+    assert org_rate.reload.active?, "Org-specific rate should not be deactivated"
+  end
+
+  test "updates existing pending drift with new rates instead of creating duplicate" do
+    VendorRate.create!(
+      vendor_name: "openai",
+      ai_model_name: "gpt-4o",
+      input_rate_per_1k: "1.000000".to_d,
+      output_rate_per_1k: "2.000000".to_d,
+      unit_type: "tokens",
+      active: true,
+      organization_id: nil
+    )
+
+    # First sync creates a pending drift
+    @service.perform
+    drift = PriceDrift.find_by(vendor_name: "openai", ai_model_name: "gpt-4o", status: :pending)
+    assert_not_nil drift
+    assert_equal "0.25".to_d, drift.new_input_rate
+
+    # Second sync with different upstream data updates the existing drift
+    updated_data = SAMPLE_DATA.dup
+    updated_data["gpt-4o"] = {
+      "input_cost_per_token" => 0.000003,
+      "output_cost_per_token" => 0.000012,
+      "litellm_provider" => "openai"
+    }
+    service2 = Pricing::SyncService.new(pricing_data: updated_data)
+
+    assert_no_difference "PriceDrift.count" do
+      service2.perform
+    end
+
+    drift.reload
+    assert_equal "0.3".to_d, drift.new_input_rate
+    assert_equal "1.2".to_d, drift.new_output_rate
   end
 end

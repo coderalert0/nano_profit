@@ -6,9 +6,16 @@ module Admin
 
     def index
       scope = VendorRate.includes(:organization)
-      scope = scope.where("vendor_name ILIKE ?", "%#{params[:vendor]}%") if params[:vendor].present?
-      scope = scope.where("ai_model_name ILIKE ?", "%#{params[:model]}%") if params[:model].present?
+
+      @selected_vendors = Array(params[:vendor]).reject(&:blank?)
+      @selected_models = Array(params[:model]).reject(&:blank?)
+
+      scope = scope.where(vendor_name: @selected_vendors) if @selected_vendors.any?
+      scope = scope.where(ai_model_name: @selected_models) if @selected_models.any?
       scope = scope.order(vendor_name: :asc, ai_model_name: :asc)
+
+      @vendors = VendorRate.distinct.pluck(:vendor_name).sort
+      @models = VendorRate.distinct.pluck(:ai_model_name).sort
 
       @vendor_rates = paginate(scope)
 
