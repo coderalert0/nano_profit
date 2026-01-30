@@ -1,0 +1,17 @@
+pending_drift:
+  vendor_name: openai
+  ai_model_name: gpt-4
+  old_input_rate: 3.000000
+  new_input_rate: 3.500000
+  old_output_rate: 6.000000
+  new_output_rate: 7.000000
+  status: 0
+
+applied_drift:
+  vendor_name: anthropic
+  ai_model_name: claude-3
+  old_input_rate: 1.500000
+  new_input_rate: 1.800000
+  old_output_rate: 7.500000
+  new_output_rate: 8.000000
+  status: 1

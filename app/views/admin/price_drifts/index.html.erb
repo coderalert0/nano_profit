@@ -1,0 +1,87 @@
+<div class="mb-4">
+  <%= link_to "&larr; Dashboard".html_safe, root_path, class: "link text-sm" %>
+</div>
+
+<%= render "admin/nav" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Price Drifts <span class="text-gray-400 font-normal text-lg">(<%= @price_drifts.size %>)</span></h1>
+</div>
+
+<div class="card p-4 mb-6">
+  <div class="flex items-end gap-4">
+    <%= form_with url: update_threshold_admin_price_drifts_path, method: :patch, class: "flex items-end gap-3" do %>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Drift Threshold</label>
+        <input type="text" name="drift_threshold" value="<%= @drift_threshold %>" class="border border-gray-300 rounded px-3 py-2 text-sm font-mono w-40" />
+      </div>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium cursor-pointer">Update</button>
+    <% end %>
+    <p class="text-xs text-gray-400 ml-2 pb-2">Rate changes below this absolute value are ignored as floating-point noise. Default: 0.0001</p>
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr class="border-b text-left text-gray-500">
+        <th class="py-3 px-4">Vendor</th>
+        <th class="py-3 px-4">Model</th>
+        <th class="py-3 px-4 text-right">Old Input / 1K</th>
+        <th class="py-3 px-4 text-right">New Input / 1K</th>
+        <th class="py-3 px-4 text-right">Input Change</th>
+        <th class="py-3 px-4 text-right">Old Output / 1K</th>
+        <th class="py-3 px-4 text-right">New Output / 1K</th>
+        <th class="py-3 px-4 text-right">Output Change</th>
+        <th class="py-3 px-4">Status</th>
+        <th class="py-3 px-4"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @price_drifts.each do |drift| %>
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4 font-medium text-gray-900"><%= drift.vendor_name %></td>
+          <td class="py-3 px-4 font-mono text-gray-700"><%= drift.ai_model_name %></td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.old_input_rate, precision: 6) %></td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.new_input_rate, precision: 6) %></td>
+          <td class="py-3 px-4 text-right font-mono">
+            <% pct = drift.input_drift_pct %>
+            <span class="<%= pct.negative? ? 'text-green-600' : 'text-red-600' %>">
+              <%= pct.positive? ? "+" : "" %><%= number_with_precision(pct, precision: 1) %>%
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.old_output_rate, precision: 6) %></td>
+          <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.new_output_rate, precision: 6) %></td>
+          <td class="py-3 px-4 text-right font-mono">
+            <% pct = drift.output_drift_pct %>
+            <span class="<%= pct.negative? ? 'text-green-600' : 'text-red-600' %>">
+              <%= pct.positive? ? "+" : "" %><%= number_with_precision(pct, precision: 1) %>%
+            </span>
+          </td>
+          <td class="py-3 px-4">
+            <% if drift.pending? %>
+              <span class="inline-flex items-center bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full">Pending</span>
+            <% elsif drift.applied? %>
+              <span class="inline-flex items-center bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Applied</span>
+            <% else %>
+              <span class="inline-flex items-center bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Ignored</span>
+            <% end %>
+          </td>
+          <td class="py-3 px-4">
+            <% if drift.pending? %>
+              <div class="flex items-center justify-end gap-2">
+                <%= button_to "Apply", apply_admin_price_drift_path(drift), method: :patch, class: "bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium cursor-pointer" %>
+                <%= button_to "Ignore", ignore_admin_price_drift_path(drift), method: :patch, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-medium cursor-pointer" %>
+              </div>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @price_drifts.empty? %>
+        <tr>
+          <td colspan="10" class="py-8 text-center text-gray-400">No price drifts detected yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

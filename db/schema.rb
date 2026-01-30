@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_210000) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_29_230000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_210000) do
     t.index ["api_key"], name: "index_organizations_on_api_key", unique: true
   end
 
+  create_table "platform_settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_platform_settings_on_key", unique: true
+  end
+
+  create_table "price_drifts", force: :cascade do |t|
+    t.string "vendor_name", null: false
+    t.string "ai_model_name", null: false
+    t.decimal "old_input_rate", precision: 15, scale: 6, null: false
+    t.decimal "new_input_rate", precision: 15, scale: 6, null: false
+    t.decimal "old_output_rate", precision: 15, scale: 6, null: false
+    t.decimal "new_output_rate", precision: 15, scale: 6, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "ip_address"
@@ -112,8 +132,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_210000) do
   create_table "vendor_rates", force: :cascade do |t|
     t.string "vendor_name", null: false
     t.string "ai_model_name", null: false
-    t.decimal "input_rate_per_1k", precision: 10, scale: 4, null: false
-    t.decimal "output_rate_per_1k", precision: 10, scale: 4, null: false
+    t.decimal "input_rate_per_1k", precision: 15, scale: 6, null: false
+    t.decimal "output_rate_per_1k", precision: 15, scale: 6, null: false
     t.string "unit_type", default: "tokens", null: false
     t.boolean "active", default: true, null: false
     t.bigint "organization_id"

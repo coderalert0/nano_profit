@@ -50,33 +50,9 @@ end
 
 puts "Created #{customers.size} customers"
 
-# Vendor Rates (Global)
-# Pricing per 1K tokens, converted from published per-1M-token rates.
-global_rates = [
-  # OpenAI — https://openai.com/api/pricing
-  { vendor_name: "openai", ai_model_name: "gpt-4o",         input_rate_per_1k: 0.0025,  output_rate_per_1k: 0.0100 },
-  { vendor_name: "openai", ai_model_name: "gpt-4o-mini",    input_rate_per_1k: 0.00015, output_rate_per_1k: 0.0006 },
-  { vendor_name: "openai", ai_model_name: "o1-preview",     input_rate_per_1k: 0.0150,  output_rate_per_1k: 0.0600 },
-  { vendor_name: "openai", ai_model_name: "gpt-3.5-turbo",  input_rate_per_1k: 0.0005,  output_rate_per_1k: 0.0015 },
-
-  # Anthropic — https://docs.anthropic.com/en/docs/about-claude/models
-  { vendor_name: "anthropic", ai_model_name: "claude-3-5-sonnet-latest",  input_rate_per_1k: 0.0030, output_rate_per_1k: 0.0150 },
-  { vendor_name: "anthropic", ai_model_name: "claude-3-haiku-20240307",   input_rate_per_1k: 0.00025, output_rate_per_1k: 0.00125 },
-  { vendor_name: "anthropic", ai_model_name: "claude-3-opus-latest",      input_rate_per_1k: 0.0150, output_rate_per_1k: 0.0750 }
-]
-
-vendor_rate_count = 0
-global_rates.each do |attrs|
-  VendorRate.find_or_create_by!(vendor_name: attrs[:vendor_name], ai_model_name: attrs[:ai_model_name], organization_id: nil) do |vr|
-    vr.input_rate_per_1k  = attrs[:input_rate_per_1k]
-    vr.output_rate_per_1k = attrs[:output_rate_per_1k]
-    vr.unit_type = "tokens"
-    vr.active = true
-  end
-  vendor_rate_count += 1
-end
-
-puts "Created #{vendor_rate_count} global vendor rates"
+# Vendor Rates (Global) — synced from LiteLLM community pricing data
+result = Pricing::SyncService.new.perform
+puts "Pricing sync: #{result.inspect}"
 
 # Enterprise Override Example (uncomment and set a real org ID):
 #
