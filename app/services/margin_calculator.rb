@@ -6,7 +6,7 @@ class MarginCalculator
   )
 
   def self.customer_margin(customer, period = nil)
-    events = customer.usage_telemetry_events.processed
+    events = customer.events.processed
     events = events.where(occurred_at: period) if period
     event_result = calculate(events)
 
@@ -26,18 +26,18 @@ class MarginCalculator
   end
 
   def self.event_type_margin(organization, event_type, period = nil)
-    events = organization.usage_telemetry_events.processed.where(event_type: event_type)
+    events = organization.events.processed.where(event_type: event_type)
     events = events.where(occurred_at: period) if period
     calculate(events)
   end
 
   def self.organization_margin(organization, period = nil)
-    events = organization.usage_telemetry_events.processed
+    events = organization.events.processed
     events = events.where(occurred_at: period) if period
     event_result = calculate(events)
 
     total_sub_revenue = organization.customers.sum(:monthly_subscription_revenue_in_cents)
-    effective_period = period || events_date_range(organization.usage_telemetry_events.processed)
+    effective_period = period || events_date_range(organization.events.processed)
     sub_revenue = prorate_subscription(total_sub_revenue, effective_period)
     total_revenue = event_result.revenue_in_cents + sub_revenue
     total_margin = total_revenue - event_result.cost_in_cents
@@ -53,16 +53,16 @@ class MarginCalculator
   end
 
   def self.vendor_cost_breakdown(organization, period = nil)
-    events = organization.usage_telemetry_events.processed
+    events = organization.events.processed
     events = events.where(occurred_at: period) if period
 
-    CostEntry.where(usage_telemetry_event_id: events.select(:id))
+    CostEntry.where(event_id: events.select(:id))
       .group(:vendor_name)
       .sum(:amount_in_cents)
   end
 
   def self.customer_margins(organization, period = nil)
-    events = organization.usage_telemetry_events.processed
+    events = organization.events.processed
     events = events.where(occurred_at: period) if period
 
     effective_period = period || events_date_range(events)

@@ -73,7 +73,7 @@ customers.each do |customer|
   num_events = rand(5..20)
   num_events.times do
     token = "req_#{customer.external_id}_#{SecureRandom.hex(8)}"
-    next if UsageTelemetryEvent.exists?(unique_request_token: token)
+    next if Event.exists?(unique_request_token: token)
 
     event_type = event_types.sample
     revenue = rand(50..5000)
@@ -90,7 +90,7 @@ customers.each do |customer|
     margin = revenue - total_cost
     occurred = rand(90).days.ago + rand(86400).seconds
 
-    event = UsageTelemetryEvent.create!(
+    event = Event.create!(
       organization: org,
       customer: customer,
       unique_request_token: token,
@@ -108,7 +108,7 @@ customers.each do |customer|
 
     vendor_costs.each do |vc|
       CostEntry.create!(
-        usage_telemetry_event: event,
+        event: event,
         vendor_name: vc[:vendor_name],
         amount_in_cents: vc[:amount_in_cents],
         unit_count: vc[:unit_count],
@@ -127,7 +127,7 @@ alert_count = 0
 500.times do |i|
   customer = customers.sample
   alert_type = %w[negative_margin below_threshold].sample
-  event = customer.usage_telemetry_events.processed.sample
+  event = customer.events.processed.sample
 
   message = if alert_type == "negative_margin"
     "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} had negative margin: #{rand(-5000..-1)} cents"

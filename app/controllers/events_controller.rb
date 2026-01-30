@@ -4,7 +4,7 @@ class EventsController < ApplicationController
   def index
     @page = [ params[:page].to_i, 1 ].max
 
-    events = Current.organization.usage_telemetry_events.processed
+    events = Current.organization.events.processed
 
     @selected_event_types = Array(params[:event_type]).reject(&:blank?)
     @selected_customer_ids = Array(params[:customer_id]).reject(&:blank?)
@@ -16,10 +16,10 @@ class EventsController < ApplicationController
       events = events.joins(:cost_entries).where(cost_entries: { vendor_name: @selected_vendors }).distinct
     end
 
-    @event_types = Current.organization.usage_telemetry_events.processed
+    @event_types = Current.organization.events.processed
       .distinct.pluck(:event_type).sort
     @customers = Current.organization.customers.order(:name)
-    @vendors = CostEntry.where(usage_telemetry_event_id: Current.organization.usage_telemetry_events.processed.select(:id))
+    @vendors = CostEntry.where(event_id: Current.organization.events.processed.select(:id))
       .distinct.pluck(:vendor_name).sort
 
     @total_count = events.count

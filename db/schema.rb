@@ -10,12 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_30_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "cost_entries", force: :cascade do |t|
-    t.bigint "usage_telemetry_event_id", null: false
+    t.bigint "event_id", null: false
     t.string "vendor_name"
     t.decimal "amount_in_cents", precision: 15, scale: 6
     t.decimal "unit_count"
@@ -23,7 +23,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_000002) do
     t.jsonb "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["usage_telemetry_event_id"], name: "index_cost_entries_on_usage_telemetry_event_id"
+    t.index ["event_id"], name: "index_cost_entries_on_event_id"
   end
 
   create_table "customers", force: :cascade do |t|
@@ -37,6 +37,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_000002) do
     t.index ["organization_id", "external_id"], name: "index_customers_on_organization_id_and_external_id", unique: true
     t.index ["organization_id", "stripe_customer_id"], name: "idx_customers_unique_org_stripe_id", unique: true, where: "(stripe_customer_id IS NOT NULL)"
     t.index ["organization_id"], name: "index_customers_on_organization_id"
+  end
+
+  create_table "events", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.bigint "customer_id"
+    t.string "unique_request_token", null: false
+    t.string "customer_external_id", null: false
+    t.string "customer_name"
+    t.string "event_type", null: false
+    t.bigint "revenue_amount_in_cents", null: false
+    t.decimal "total_cost_in_cents", precision: 15, scale: 6
+    t.decimal "margin_in_cents", precision: 15, scale: 6
+    t.jsonb "vendor_costs_raw", default: []
+    t.jsonb "metadata", default: {}
+    t.datetime "occurred_at"
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id", "occurred_at"], name: "index_events_on_customer_id_and_occurred_at"
+    t.index ["customer_id"], name: "index_events_on_customer_id"
+    t.index ["organization_id", "status"], name: "index_events_on_organization_id_and_status"
+    t.index ["organization_id"], name: "index_events_on_organization_id"
+    t.index ["unique_request_token"], name: "index_events_on_unique_request_token", unique: true
   end
 
   create_table "margin_alerts", force: :cascade do |t|
@@ -97,29 +120,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_000002) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
-  create_table "usage_telemetry_events", force: :cascade do |t|
-    t.bigint "organization_id", null: false
-    t.bigint "customer_id"
-    t.string "unique_request_token", null: false
-    t.string "customer_external_id", null: false
-    t.string "customer_name"
-    t.string "event_type", null: false
-    t.bigint "revenue_amount_in_cents", null: false
-    t.decimal "total_cost_in_cents", precision: 15, scale: 6
-    t.decimal "margin_in_cents", precision: 15, scale: 6
-    t.jsonb "vendor_costs_raw", default: []
-    t.jsonb "metadata", default: {}
-    t.datetime "occurred_at"
-    t.string "status", default: "pending", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["customer_id", "occurred_at"], name: "index_usage_telemetry_events_on_customer_id_and_occurred_at"
-    t.index ["customer_id"], name: "index_usage_telemetry_events_on_customer_id"
-    t.index ["organization_id", "status"], name: "index_usage_telemetry_events_on_organization_id_and_status"
-    t.index ["organization_id"], name: "index_usage_telemetry_events_on_organization_id"
-    t.index ["unique_request_token"], name: "index_usage_telemetry_events_on_unique_request_token", unique: true
-  end
-
   create_table "users", force: :cascade do |t|
     t.string "email_address", null: false
     t.string "password_digest", null: false
@@ -146,14 +146,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_000002) do
     t.index ["vendor_name", "ai_model_name"], name: "idx_vendor_rates_unique_vendor_model_global", unique: true, where: "(organization_id IS NULL)"
   end
 
-  add_foreign_key "cost_entries", "usage_telemetry_events"
+  add_foreign_key "cost_entries", "events"
   add_foreign_key "customers", "organizations"
+  add_foreign_key "events", "customers"
+  add_foreign_key "events", "organizations"
   add_foreign_key "margin_alerts", "customers"
   add_foreign_key "margin_alerts", "organizations"
   add_foreign_key "margin_alerts", "users", column: "acknowledged_by_id"
   add_foreign_key "sessions", "users"
-  add_foreign_key "usage_telemetry_events", "customers"
-  add_foreign_key "usage_telemetry_events", "organizations"
   add_foreign_key "users", "organizations"
   add_foreign_key "vendor_rates", "organizations"
 end
