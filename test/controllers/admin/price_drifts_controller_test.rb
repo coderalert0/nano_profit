@@ -41,7 +41,6 @@ class Admin::PriceDriftsControllerTest < ActionDispatch::IntegrationTest
 
   test "admin can apply a pending drift" do
     rate = vendor_rates(:openai_gpt4_global)
-    original_input = rate.input_rate_per_1k
 
     patch apply_admin_price_drift_url(@pending_drift), headers: auth_headers(@admin_session)
 

@@ -17,6 +17,9 @@ module Admin
     def apply
       @price_drift.apply!
       redirect_to admin_price_drifts_path, notice: "Price drift applied — vendor rate updated."
+    rescue ActiveRecord::RecordNotFound
+      @price_drift.ignored!
+      redirect_to admin_price_drifts_path, alert: "Vendor rate no longer exists — drift ignored."
     end
 
     def ignore

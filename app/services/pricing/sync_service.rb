@@ -46,16 +46,18 @@ module Pricing
           )
           counts[:created] += 1
         elsif rate_drifted?(existing, input_rate, output_rate)
-          PriceDrift.create!(
-            vendor_name: vendor,
-            ai_model_name: model,
-            old_input_rate: existing.input_rate_per_1k,
-            new_input_rate: input_rate,
-            old_output_rate: existing.output_rate_per_1k,
-            new_output_rate: output_rate,
-            status: :pending
-          )
-          counts[:drifts_detected] += 1
+          unless PriceDrift.exists?(vendor_name: vendor, ai_model_name: model, status: :pending)
+            PriceDrift.create!(
+              vendor_name: vendor,
+              ai_model_name: model,
+              old_input_rate: existing.input_rate_per_1k,
+              new_input_rate: input_rate,
+              old_output_rate: existing.output_rate_per_1k,
+              new_output_rate: output_rate,
+              status: :pending
+            )
+            counts[:drifts_detected] += 1
+          end
         else
           counts[:unchanged] += 1
         end
@@ -86,8 +88,7 @@ module Pricing
 
     def filter_models(data)
       data.select do |_, entry|
-        provider = entry["litellm_provider"]
-        SUPPORTED_PROVIDERS.any? { |p| provider&.start_with?(p) }
+        match_provider(entry["litellm_provider"]).present?
       end
     end
 
@@ -99,8 +100,7 @@ module Pricing
     end
 
     def parse_key(key, entry)
-      provider = entry["litellm_provider"]
-      vendor = SUPPORTED_PROVIDERS.find { |p| provider&.start_with?(p) }
+      vendor = match_provider(entry["litellm_provider"])
 
       # For prefixed keys like "vertex_ai/gemini-pro", strip the prefix
       model = if key.start_with?("#{vendor}/")
@@ -112,14 +112,18 @@ module Pricing
       [ vendor, model ]
     end
 
+    def match_provider(provider)
+      SUPPORTED_PROVIDERS.find { |p| provider == p || provider&.start_with?("#{p}/", "#{p}-") }
+    end
+
     def normalize_rate(entry, direction)
       token_key = "#{direction}_cost_per_token"
       char_key = "#{direction}_cost_per_character"
 
       if entry[token_key].present?
-        entry[token_key].to_d * 1000
+        entry[token_key].to_d * 100_000  # dollars/token → cents/1K tokens
       elsif entry[char_key].present?
-        entry[char_key].to_d * 4 * 1000
+        entry[char_key].to_d * 4 * 100_000  # dollars/char → cents/1K tokens (×4 chars/token)
       end
     end
 

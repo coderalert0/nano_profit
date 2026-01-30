@@ -48,8 +48,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     rate = VendorRate.find_by(vendor_name: "openai", ai_model_name: "gpt-4o", organization_id: nil)
     assert_not_nil rate
-    assert_equal "0.0025".to_d, rate.input_rate_per_1k
-    assert_equal "0.01".to_d, rate.output_rate_per_1k
+    assert_equal "0.25".to_d, rate.input_rate_per_1k
+    assert_equal "1.0".to_d, rate.output_rate_per_1k
     assert rate.active?
     assert_equal "tokens", rate.unit_type
 
@@ -78,7 +78,7 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     assert_equal "openai", drift.vendor_name
     assert_equal "gpt-4o", drift.ai_model_name
     assert_equal "1.0".to_d, drift.old_input_rate
-    assert_equal "0.0025".to_d, drift.new_input_rate
+    assert_equal "0.25".to_d, drift.new_input_rate
     assert drift.pending?
   end
 
@@ -86,8 +86,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     VendorRate.create!(
       vendor_name: "openai",
       ai_model_name: "gpt-4o",
-      input_rate_per_1k: "0.0025".to_d,
-      output_rate_per_1k: "0.01".to_d,
+      input_rate_per_1k: "0.25".to_d,
+      output_rate_per_1k: "1.0".to_d,
       unit_type: "tokens",
       active: true,
       organization_id: nil
@@ -110,8 +110,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     rate = VendorRate.find_by(vendor_name: "vertex_ai", ai_model_name: "gemini-pro", organization_id: nil)
     assert_not_nil rate
-    assert_equal "0.00125".to_d, rate.input_rate_per_1k
-    assert_equal "0.0025".to_d, rate.output_rate_per_1k
+    assert_equal "0.125".to_d, rate.input_rate_per_1k
+    assert_equal "0.25".to_d, rate.output_rate_per_1k
   end
 
   test "skips entries with no cost data" do
@@ -141,8 +141,8 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     VendorRate.create!(
       vendor_name: "openai",
       ai_model_name: "gpt-4o",
-      input_rate_per_1k: "0.00251".to_d,
-      output_rate_per_1k: "0.01001".to_d,
+      input_rate_per_1k: "0.25001".to_d,
+      output_rate_per_1k: "1.00001".to_d,
       unit_type: "tokens",
       active: true,
       organization_id: nil

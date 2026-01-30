@@ -49,6 +49,15 @@ class StripeController < ApplicationController
 
   def disconnect
     organization = Current.organization
+
+    if organization.stripe_user_id.present?
+      begin
+        Stripe::OAuth.deauthorize(stripe_user_id: organization.stripe_user_id)
+      rescue Stripe::StripeError => e
+        Rails.logger.error("Stripe deauthorize error: #{e.message}")
+      end
+    end
+
     organization.update!(stripe_user_id: nil, stripe_access_token: nil)
     redirect_to settings_path, notice: t("controllers.stripe.disconnected")
   end

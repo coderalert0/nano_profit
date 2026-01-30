@@ -14,6 +14,9 @@ class RegistrationsController < ApplicationController
       redirect_to root_path, notice: "Welcome to NanoProfit!"
     else
       @user.valid?
+      organization.errors.each do |error|
+        @user.errors.add(:base, error.full_message)
+      end
       render :new, status: :unprocessable_entity
     end
   end

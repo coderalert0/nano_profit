@@ -6,7 +6,7 @@ class ProcessUsageTelemetryJob < ApplicationJob
     return if event.status == "processed"
 
     ActiveRecord::Base.transaction do
-      organization = Organization.lock.find(event.organization_id)
+      organization = event.organization
 
       customer = organization.customers.create_or_find_by!(
         external_id: event.customer_external_id
@@ -14,7 +14,9 @@ class ProcessUsageTelemetryJob < ApplicationJob
         c.name = event.customer_name
       end
 
-      raise ActiveRecord::Rollback if customer.organization_id != organization.id
+      unless customer.organization_id == organization.id
+        raise "Customer #{customer.id} organization mismatch: expected #{organization.id}, got #{customer.organization_id}"
+      end
 
       event.update!(customer: customer)
 

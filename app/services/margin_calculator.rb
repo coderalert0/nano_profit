@@ -122,7 +122,7 @@ class MarginCalculator
     days_in_period = (period_end - period_start).to_i
     days_in_month = Time.days_in_month(period_start.month, period_start.year)
 
-    (monthly_cents * days_in_period) / days_in_month
+    (monthly_cents.to_d * days_in_period / days_in_month).round
   end
 
   private_class_method :calculate, :prorate_subscription
