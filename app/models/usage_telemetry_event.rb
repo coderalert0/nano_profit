@@ -6,7 +6,7 @@ class UsageTelemetryEvent < ApplicationRecord
   validates :unique_request_token, presence: true
   validates :customer_external_id, presence: true
   validates :event_type, presence: true
-  validates :revenue_amount_in_cents, presence: true
+  validates :revenue_amount_in_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
   scope :processed, -> { where(status: "processed") }
   scope :pending, -> { where(status: "pending") }

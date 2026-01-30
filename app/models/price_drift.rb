@@ -1,4 +1,6 @@
 class PriceDrift < ApplicationRecord
+  class StaleDriftError < StandardError; end
+
   enum :status, { pending: 0, applied: 1, ignored: 2 }
 
   validates :vendor_name, presence: true
@@ -25,6 +27,13 @@ class PriceDrift < ApplicationRecord
         ai_model_name: ai_model_name,
         organization_id: nil
       )
+
+      if rate.input_rate_per_1k != old_input_rate || rate.output_rate_per_1k != old_output_rate
+        raise StaleDriftError, "Rate has changed since drift was detected. " \
+          "Expected input=#{old_input_rate}, output=#{old_output_rate}; " \
+          "got input=#{rate.input_rate_per_1k}, output=#{rate.output_rate_per_1k}"
+      end
+
       rate.update!(
         input_rate_per_1k: new_input_rate,
         output_rate_per_1k: new_output_rate

@@ -27,7 +27,7 @@ class PlatformSettingTest < ActiveSupport::TestCase
 
   test "drift_threshold returns default when no record exists" do
     PlatformSetting.where(key: "drift_threshold").delete_all
-    assert_equal "0.0001".to_d, PlatformSetting.drift_threshold
+    assert_equal "0.01".to_d, PlatformSetting.drift_threshold
   end
 
   test "drift_threshold= creates a new record" do

@@ -5,12 +5,12 @@ openai_cost:
   unit_count: 15000
   unit_type: tokens
 
-aws_cost:
+openai_cost_2:
   usage_telemetry_event: processed_event
-  vendor_name: aws
+  vendor_name: openai
   amount_in_cents: 50
-  unit_count: 1
-  unit_type: api_calls
+  unit_count: 1500
+  unit_type: tokens
 
 subscription_customer_openai_cost:
   usage_telemetry_event: subscription_customer_event

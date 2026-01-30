@@ -6,7 +6,6 @@ module Pricing
   class SyncService
     SOURCE_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
     SUPPORTED_PROVIDERS = %w[openai anthropic vertex_ai].freeze
-    DEFAULT_DRIFT_THRESHOLD = "0.0001".to_d
 
     def initialize(pricing_data: nil)
       @pricing_data = pricing_data
@@ -17,7 +16,8 @@ module Pricing
       models = filter_models(data)
       models = reject_deprecated(models)
 
-      counts = { created: 0, unchanged: 0, drifts_detected: 0, skipped: 0 }
+      counts = { created: 0, unchanged: 0, drifts_detected: 0, skipped: 0, deactivated: 0 }
+      seen_pairs = Set.new
 
       models.each do |key, entry|
         vendor, model = parse_key(key, entry)
@@ -28,6 +28,8 @@ module Pricing
           counts[:skipped] += 1
           next
         end
+
+        seen_pairs.add([vendor, model])
 
         existing = VendorRate.find_by(
           vendor_name: vendor,
@@ -60,6 +62,14 @@ module Pricing
           end
         else
           counts[:unchanged] += 1
+        end
+      end
+
+      # Deactivate global rates no longer present in upstream data
+      VendorRate.where(organization_id: nil, active: true).find_each do |rate|
+        unless seen_pairs.include?([rate.vendor_name, rate.ai_model_name])
+          rate.update!(active: false)
+          counts[:deactivated] += 1
         end
       end
 
@@ -132,8 +142,16 @@ module Pricing
     end
 
     def rate_drifted?(existing, new_input, new_output)
-      (existing.input_rate_per_1k - new_input).abs > drift_threshold ||
-        (existing.output_rate_per_1k - new_output).abs > drift_threshold
+      input_pct = percentage_change(existing.input_rate_per_1k, new_input)
+      output_pct = percentage_change(existing.output_rate_per_1k, new_output)
+
+      input_pct > drift_threshold || output_pct > drift_threshold
+    end
+
+    def percentage_change(old_val, new_val)
+      return BigDecimal("0") if old_val.zero? && new_val.zero?
+      return BigDecimal("Infinity") if old_val.zero?
+      ((new_val - old_val) / old_val).abs
     end
   end
 end

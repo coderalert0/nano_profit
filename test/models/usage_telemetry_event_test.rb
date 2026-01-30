@@ -19,6 +19,18 @@ class UsageTelemetryEventTest < ActiveSupport::TestCase
     assert_raises(ActiveRecord::RecordNotUnique) { dup.save(validate: false) }
   end
 
+  test "revenue_amount_in_cents must be non-negative" do
+    event = UsageTelemetryEvent.new(
+      organization: organizations(:acme),
+      unique_request_token: "req_neg_rev",
+      customer_external_id: "cust_001",
+      event_type: "test",
+      revenue_amount_in_cents: -100
+    )
+    assert_not event.valid?
+    assert_includes event.errors[:revenue_amount_in_cents], "must be greater than or equal to 0"
+  end
+
   test "scopes work correctly" do
     assert_includes UsageTelemetryEvent.processed, usage_telemetry_events(:processed_event)
     assert_not_includes UsageTelemetryEvent.processed, usage_telemetry_events(:pending_event)

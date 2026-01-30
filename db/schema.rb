@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_29_230000) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_30_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -140,7 +140,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_29_230000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["organization_id"], name: "index_vendor_rates_on_organization_id"
-    t.index ["vendor_name", "ai_model_name", "organization_id"], name: "idx_vendor_rates_unique_vendor_model_org", unique: true
+    t.index ["vendor_name", "ai_model_name", "organization_id"], name: "idx_vendor_rates_unique_vendor_model_org", unique: true, where: "(organization_id IS NOT NULL)"
+    t.index ["vendor_name", "ai_model_name"], name: "idx_vendor_rates_unique_vendor_model_global", unique: true, where: "(organization_id IS NULL)"
   end
 
   add_foreign_key "cost_entries", "usage_telemetry_events"

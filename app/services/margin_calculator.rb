@@ -10,7 +10,8 @@ class MarginCalculator
     events = events.where(occurred_at: period) if period
     event_result = calculate(events)
 
-    sub_revenue = prorate_subscription(customer.monthly_subscription_revenue_in_cents, period)
+    effective_period = period || events_date_range(customer.usage_telemetry_events.processed)
+    sub_revenue = prorate_subscription(customer.monthly_subscription_revenue_in_cents, effective_period)
     total_revenue = event_result.revenue_in_cents + sub_revenue
     total_margin = total_revenue - event_result.cost_in_cents
 
@@ -36,7 +37,8 @@ class MarginCalculator
     event_result = calculate(events)
 
     total_sub_revenue = organization.customers.sum(:monthly_subscription_revenue_in_cents)
-    sub_revenue = prorate_subscription(total_sub_revenue, period)
+    effective_period = period || events_date_range(organization.usage_telemetry_events.processed)
+    sub_revenue = prorate_subscription(total_sub_revenue, effective_period)
     total_revenue = event_result.revenue_in_cents + sub_revenue
     total_margin = total_revenue - event_result.cost_in_cents
 
@@ -114,8 +116,7 @@ class MarginCalculator
   end
 
   def self.prorate_subscription(monthly_cents, period)
-    return monthly_cents if period.nil?
-    return 0 if monthly_cents == 0
+    return 0 if period.nil? || monthly_cents == 0
 
     period_start = period.begin.to_date
     period_end = period.end.to_date
@@ -125,5 +126,11 @@ class MarginCalculator
     (monthly_cents.to_d * days_in_period / days_in_month).round
   end
 
-  private_class_method :calculate, :prorate_subscription
+  def self.events_date_range(events_scope)
+    range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
+    return nil unless range&.first && range&.last
+    range.first..range.last
+  end
+
+  private_class_method :calculate, :prorate_subscription, :events_date_range
 end

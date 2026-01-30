@@ -2,6 +2,12 @@ module Api
   module V1
     class TelemetryEventsController < BaseController
       def create
+        model_errors = validate_ai_model_names(event_params[:vendor_costs])
+        if model_errors.any?
+          render json: { errors: model_errors }, status: :unprocessable_entity
+          return
+        end
+
         event = current_organization.usage_telemetry_events.create_or_find_by!(
           unique_request_token: event_params[:unique_request_token]
         ) do |e|
@@ -26,6 +32,27 @@ module Api
       end
 
       private
+
+      def validate_ai_model_names(vendor_costs)
+        return [] if vendor_costs.blank?
+
+        known_pairs = VendorRate.active
+          .where(organization_id: [nil, current_organization.id])
+          .pluck(:vendor_name, :ai_model_name)
+          .to_set
+
+        errors = []
+        vendor_costs.each do |vc|
+          ai_model_name = vc[:ai_model_name]
+          vendor_name = vc[:vendor_name]
+          if ai_model_name.blank?
+            errors << "Missing ai_model_name for vendor cost entry"
+          elsif !known_pairs.include?([vendor_name, ai_model_name])
+            errors << "Unrecognized vendor_name '#{vendor_name}' with ai_model_name '#{ai_model_name}'"
+          end
+        end
+        errors
+      end
 
       def event_params
         params.require(:telemetry_event).permit(
