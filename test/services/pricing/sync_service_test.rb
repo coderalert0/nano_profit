@@ -200,4 +200,39 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
 
     assert org_rate.reload.active?, "Org-specific rate should not be deactivated"
   end
+
+  test "updates existing pending drift with new rates instead of creating duplicate" do
+    VendorRate.create!(
+      vendor_name: "openai",
+      ai_model_name: "gpt-4o",
+      input_rate_per_1k: "1.000000".to_d,
+      output_rate_per_1k: "2.000000".to_d,
+      unit_type: "tokens",
+      active: true,
+      organization_id: nil
+    )
+
+    # First sync creates a pending drift
+    @service.perform
+    drift = PriceDrift.find_by(vendor_name: "openai", ai_model_name: "gpt-4o", status: :pending)
+    assert_not_nil drift
+    assert_equal "0.25".to_d, drift.new_input_rate
+
+    # Second sync with different upstream data updates the existing drift
+    updated_data = SAMPLE_DATA.dup
+    updated_data["gpt-4o"] = {
+      "input_cost_per_token" => 0.000003,
+      "output_cost_per_token" => 0.000012,
+      "litellm_provider" => "openai"
+    }
+    service2 = Pricing::SyncService.new(pricing_data: updated_data)
+
+    assert_no_difference "PriceDrift.count" do
+      service2.perform
+    end
+
+    drift.reload
+    assert_equal "0.3".to_d, drift.new_input_rate
+    assert_equal "1.2".to_d, drift.new_output_rate
+  end
 end

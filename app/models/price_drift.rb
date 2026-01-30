@@ -22,7 +22,7 @@ class PriceDrift < ApplicationRecord
 
   def apply!
     transaction do
-      rate = VendorRate.find_by!(
+      rate = VendorRate.lock.find_by!(
         vendor_name: vendor_name,
         ai_model_name: ai_model_name,
         organization_id: nil

@@ -6,6 +6,7 @@ class Organization < ApplicationRecord
   has_many :vendor_rates
 
   encrypts :stripe_access_token
+  encrypts :api_key, deterministic: true
 
   validates :name, presence: true
   validates :api_key, presence: true, uniqueness: true

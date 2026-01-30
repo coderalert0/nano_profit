@@ -20,7 +20,7 @@ module Telemetry
       input_tokens = BigDecimal(vc.fetch("input_tokens", 0).to_s)
       output_tokens = BigDecimal(vc.fetch("output_tokens", 0).to_s)
 
-      rate = VendorRate.find_rate(
+      rate = VendorRate.find_rate_for_processing(
         vendor_name: vendor_name,
         ai_model_name: ai_model_name.to_s,
         organization: @event.organization

@@ -2,7 +2,7 @@ module Api
   module V1
     class TelemetryEventsController < BaseController
       def create
-        model_errors = validate_ai_model_names(event_params[:vendor_costs])
+        model_errors = validate_vendor_costs(event_params[:vendor_costs])
         if model_errors.any?
           render json: { errors: model_errors }, status: :unprocessable_entity
           return
@@ -33,7 +33,7 @@ module Api
 
       private
 
-      def validate_ai_model_names(vendor_costs)
+      def validate_vendor_costs(vendor_costs)
         return [] if vendor_costs.blank?
 
         known_pairs = VendorRate.active
@@ -45,10 +45,25 @@ module Api
         vendor_costs.each do |vc|
           ai_model_name = vc[:ai_model_name]
           vendor_name = vc[:vendor_name]
+          input_tokens = vc[:input_tokens].to_i
+          output_tokens = vc[:output_tokens].to_i
+
           if ai_model_name.blank?
             errors << "Missing ai_model_name for vendor cost entry"
           elsif !known_pairs.include?([vendor_name, ai_model_name])
             errors << "Unrecognized vendor_name '#{vendor_name}' with ai_model_name '#{ai_model_name}'"
+          end
+
+          if vc[:input_tokens].present? && vc[:input_tokens].to_i < 0
+            errors << "Negative input_tokens for vendor '#{vendor_name}'"
+          end
+
+          if vc[:output_tokens].present? && vc[:output_tokens].to_i < 0
+            errors << "Negative output_tokens for vendor '#{vendor_name}'"
+          end
+
+          if input_tokens == 0 && output_tokens == 0
+            errors << "Both input_tokens and output_tokens are zero or missing for vendor '#{vendor_name}'"
           end
         end
         errors

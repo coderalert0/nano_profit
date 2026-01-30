@@ -6,9 +6,7 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     result = MarginCalculator.organization_margin(org)
 
     # Event revenue: 1000 (processed_event) + 0 (subscription_customer_event) = 1000
-    # Subscription revenue is prorated based on event date range (not full month)
-    # Events occurred ~1 hour ago, so range is very short
-    # With a tiny period, sub_revenue will be near 0
+    # With minimum 1-day range, sub_revenue will be non-zero
     assert_equal 1000, result.event_revenue_in_cents
     assert_equal 800, result.cost_in_cents
     assert result.subscription_revenue_in_cents >= 0
@@ -33,7 +31,8 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     # Event revenue: 0, Subscription prorated over event date range, Cost: 300
     assert_equal 300, result.cost_in_cents
     assert_equal 0, result.event_revenue_in_cents
-    assert result.subscription_revenue_in_cents >= 0
+    # With minimum 1-day range, subscription revenue should be > 0
+    assert result.subscription_revenue_in_cents > 0
   end
 
   test "subscription customer with zero event revenue shows positive margin with period" do
@@ -134,5 +133,44 @@ class MarginCalculatorTest < ActiveSupport::TestCase
 
     assert_kind_of Numeric, result.subscription_revenue_in_cents
     assert_not_kind_of Float, result.subscription_revenue_in_cents
+  end
+
+  test "multi-month proration iterates month by month" do
+    customer = customers(:customer_with_subscription)
+
+    # Jan 15 to Feb 15: 17 days in Jan (Jan 15..Feb 1) + 14 days in Feb (Feb 1..Feb 15)
+    period_start = Time.new(2026, 1, 15)
+    period_end = Time.new(2026, 2, 15)
+    result = MarginCalculator.customer_margin(customer, period_start..period_end)
+
+    # 5000 * 17/31 + 5000 * 14/28 = 2741.9... + 2500 = 5241.9... → 5242 rounded
+    expected = (5000.to_d * 17 / 31 + 5000.to_d * 14 / 28).round
+    assert_equal expected, result.subscription_revenue_in_cents
+  end
+
+  test "same-day events produce non-zero subscription revenue with minimum 1-day range" do
+    customer = customers(:customer_with_subscription)
+
+    # Create an event for the subscription customer at a specific time
+    # The fixture already has subscription_customer_event at 1.hour.ago
+    result = MarginCalculator.customer_margin(customer)
+
+    # Should have at least 1 day of subscription revenue due to minimum range
+    assert result.subscription_revenue_in_cents > 0
+  end
+
+  test "customer_margins includes subscription-only customers without events in period" do
+    org = organizations(:acme)
+
+    # Use a period that excludes fixture events
+    period = Time.new(2026, 1, 1)..Time.new(2026, 1, 8)
+    margins = MarginCalculator.customer_margins(org, period)
+
+    # customer_with_subscription has subscription revenue but no events in this period
+    sub_customer = margins.find { |cm| cm[:customer_name] == "Subscription Customer" }
+    assert_not_nil sub_customer, "Subscription-only customer should appear in results"
+    assert sub_customer[:margin].subscription_revenue_in_cents > 0
+    assert_equal 0, sub_customer[:margin].event_revenue_in_cents
+    assert_equal 0, sub_customer[:margin].cost_in_cents
   end
 end

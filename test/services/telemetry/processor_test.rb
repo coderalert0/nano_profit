@@ -158,4 +158,34 @@ class Telemetry::ProcessorTest < ActiveSupport::TestCase
     assert_equal 1, entries.size
     assert_equal BigDecimal("0"), entries.first.amount_in_cents
   end
+
+  test "uses deactivated global rate for processing (find_rate_for_processing)" do
+    # Deactivate the global rate for gpt-3.5 (already inactive in fixtures)
+    inactive = vendor_rates(:inactive_rate)
+    assert_not inactive.active?
+
+    event = @org.usage_telemetry_events.create!(
+      unique_request_token: "req_deactivated_#{SecureRandom.hex(4)}",
+      customer_external_id: "cust_001",
+      customer_name: "Customer One",
+      event_type: "ai_analysis",
+      revenue_amount_in_cents: 1000,
+      vendor_costs_raw: [ {
+        "vendor_name" => "openai",
+        "ai_model_name" => "gpt-3.5",
+        "input_tokens" => 1000,
+        "output_tokens" => 500,
+        "unit_count" => 1500,
+        "unit_type" => "tokens"
+      } ],
+      occurred_at: Time.current
+    )
+
+    entries = Telemetry::Processor.new(event).call
+
+    assert_equal 1, entries.size
+    # inactive rate: input=0.05/1k, output=0.15/1k
+    # cost = (1000 * 0.05 / 1000) + (500 * 0.15 / 1000) = 0.05 + 0.075 = 0.125
+    assert_equal BigDecimal("0.125"), entries.first.amount_in_cents
+  end
 end

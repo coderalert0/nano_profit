@@ -14,8 +14,11 @@ class ProcessUsageTelemetryJob < ApplicationJob
     broadcast_update(event)
   rescue ActiveRecord::RecordNotFound
     # Event was deleted between enqueue and perform; nothing to do
-  rescue => e
+  rescue RuntimeError => e
     event&.update_column(:status, "failed") if event&.persisted?
+    raise
+  rescue => e
+    # Transient error — leave status unchanged so SolidQueue can retry
     raise
   end
 
@@ -23,6 +26,9 @@ class ProcessUsageTelemetryJob < ApplicationJob
 
   def link_customer(event)
     ActiveRecord::Base.transaction do
+      event.lock!
+      return unless event.status == "pending"
+
       organization = event.organization
 
       customer = organization.customers.create_or_find_by!(
@@ -41,6 +47,9 @@ class ProcessUsageTelemetryJob < ApplicationJob
 
   def process_costs(event)
     ActiveRecord::Base.transaction do
+      event.lock!
+      return unless event.status == "customer_linked"
+
       Telemetry::Processor.new(event).call
 
       total_cost = event.cost_entries.sum(:amount_in_cents)
@@ -78,19 +87,14 @@ class ProcessUsageTelemetryJob < ApplicationJob
   end
 
   def create_alert_unless_duplicate(org, customer, alert_type, message)
-    return if MarginAlert.exists?(
-      organization: org,
-      customer: customer,
-      alert_type: alert_type,
-      acknowledged_at: nil
-    )
-
     MarginAlert.create!(
       organization: org,
       customer: customer,
       alert_type: alert_type,
       message: message
     )
+  rescue ActiveRecord::RecordNotUnique
+    # Duplicate unacknowledged alert already exists (partial unique index)
   end
 
   def broadcast_update(event)

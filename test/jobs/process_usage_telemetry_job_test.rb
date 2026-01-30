@@ -140,4 +140,53 @@ class ProcessUsageTelemetryJobTest < ActiveSupport::TestCase
     assert_equal "processed", event.status
     assert event.cost_entries.any?
   end
+
+  test "transient errors leave status unchanged for retry" do
+    org = organizations(:acme)
+    event = org.usage_telemetry_events.create!(
+      unique_request_token: "req_transient_#{SecureRandom.hex(4)}",
+      customer_external_id: "cust_001",
+      customer_name: "Customer One",
+      event_type: "ai_analysis",
+      revenue_amount_in_cents: 1000,
+      vendor_costs_raw: [ { "vendor_name" => "openai", "ai_model_name" => "gpt-4", "input_tokens" => 1000, "output_tokens" => 500, "unit_count" => 1500, "unit_type" => "tokens" } ],
+      occurred_at: Time.current,
+      customer: customers(:customer_one),
+      status: "customer_linked"
+    )
+
+    # Temporarily override Processor#call to raise a transient error
+    original_call = Telemetry::Processor.instance_method(:call)
+    Telemetry::Processor.define_method(:call) { raise ActiveRecord::ConnectionNotEstablished, "connection lost" }
+
+    assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      ProcessUsageTelemetryJob.perform_now(event.id)
+    end
+
+    # Status should remain customer_linked (not failed)
+    assert_equal "customer_linked", event.reload.status
+  ensure
+    Telemetry::Processor.define_method(:call, original_call) if original_call
+  end
+
+  test "RuntimeError marks event as failed" do
+    org = organizations(:acme)
+    event = org.usage_telemetry_events.create!(
+      unique_request_token: "req_runtime_#{SecureRandom.hex(4)}",
+      customer_external_id: "cust_nonexistent",
+      customer_name: "No Customer",
+      event_type: "ai_analysis",
+      revenue_amount_in_cents: 1000,
+      vendor_costs_raw: [ { "vendor_name" => "unknown_vendor", "ai_model_name" => "unknown_model", "input_tokens" => 1000, "output_tokens" => 500, "unit_count" => 1500, "unit_type" => "tokens" } ],
+      occurred_at: Time.current,
+      customer: customers(:customer_one),
+      status: "customer_linked"
+    )
+
+    assert_raises(RuntimeError) do
+      ProcessUsageTelemetryJob.perform_now(event.id)
+    end
+
+    assert_equal "failed", event.reload.status
+  end
 end

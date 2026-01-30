@@ -48,17 +48,24 @@ module Pricing
           )
           counts[:created] += 1
         elsif rate_drifted?(existing, input_rate, output_rate)
-          unless PriceDrift.exists?(vendor_name: vendor, ai_model_name: model, status: :pending)
-            PriceDrift.create!(
-              vendor_name: vendor,
-              ai_model_name: model,
-              old_input_rate: existing.input_rate_per_1k,
-              new_input_rate: input_rate,
-              old_output_rate: existing.output_rate_per_1k,
-              new_output_rate: output_rate,
-              status: :pending
-            )
+          begin
+            existing_drift = PriceDrift.find_by(vendor_name: vendor, ai_model_name: model, status: :pending)
+            if existing_drift
+              existing_drift.update!(new_input_rate: input_rate, new_output_rate: output_rate)
+            else
+              PriceDrift.create!(
+                vendor_name: vendor,
+                ai_model_name: model,
+                old_input_rate: existing.input_rate_per_1k,
+                new_input_rate: input_rate,
+                old_output_rate: existing.output_rate_per_1k,
+                new_output_rate: output_rate,
+                status: :pending
+              )
+            end
             counts[:drifts_detected] += 1
+          rescue ActiveRecord::RecordNotUnique
+            # Lost race — another process already created the pending drift
           end
         else
           counts[:unchanged] += 1

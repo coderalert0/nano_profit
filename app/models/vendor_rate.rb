@@ -16,4 +16,13 @@ class VendorRate < ApplicationRecord
 
     active.find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization_id: nil)
   end
+
+  def self.find_rate_for_processing(vendor_name:, ai_model_name:, organization: nil)
+    if organization
+      rate = find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization: organization)
+      return rate if rate
+    end
+
+    find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization_id: nil)
+  end
 end
