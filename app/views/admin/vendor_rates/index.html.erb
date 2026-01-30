@@ -9,20 +9,27 @@
   <%= form_with url: admin_vendor_rates_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">Vendor</label>
-      <input type="text" name="vendor" value="<%= params[:vendor] %>" placeholder="e.g. openai" class="border border-gray-300 rounded px-3 py-2 text-sm" />
+      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="All vendors" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <% @vendors.each do |v| %>
+          <option value="<%= v %>" <%= "selected" if @selected_vendors.include?(v) %>><%= v %></option>
+        <% end %>
+      </select>
     </div>
     <div>
       <label class="block text-xs font-medium text-gray-500 mb-1">Model</label>
-      <input type="text" name="model" value="<%= params[:model] %>" placeholder="e.g. gpt-4o" class="border border-gray-300 rounded px-3 py-2 text-sm" />
+      <select name="model[]" multiple data-controller="searchable-select" data-placeholder="All models" class="border border-gray-300 rounded px-3 py-2 text-sm">
+        <% @models.each do |m| %>
+          <option value="<%= m %>" <%= "selected" if @selected_models.include?(m) %>><%= m %></option>
+        <% end %>
+      </select>
     </div>
-    <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-medium">Filter</button>
-    <% if params[:vendor].present? || params[:model].present? %>
-      <%= link_to "Clear", admin_vendor_rates_path, class: "border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+    <% if @selected_vendors.any? || @selected_models.any? %>
+      <%= link_to "Clear filters", admin_vendor_rates_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
     <% end %>
   <% end %>
 </div>
 
-<% filter_params = { vendor: params[:vendor], model: params[:model] }.compact_blank %>
+<% filter_params = { vendor: @selected_vendors, model: @selected_models }.compact_blank %>
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= admin_vendor_rates_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
