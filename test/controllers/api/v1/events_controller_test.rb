@@ -91,7 +91,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_001",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: []
+          vendor_responses: []
         }
       ]
     }
@@ -106,9 +106,9 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "duplicate", json["results"][0]["status"]
   end
 
-  # ── Vendor cost persistence ───────────────────────────────────────
+  # ── Vendor response persistence ────────────────────────────────────
 
-  test "persists ai_model_name and token counts in vendor_costs_raw" do
+  test "persists normalized vendor costs from OpenAI raw_response" do
     payload = {
       events: [
         {
@@ -117,8 +117,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_name: "Acme Corp",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-4", amount_in_cents: 999, input_tokens: 2000, output_tokens: 500, unit_count: 2500, unit_type: "tokens" }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: 2000, completion_tokens: 500 }
+              }
+            }
           ],
           occurred_at: Time.current.iso8601
         }
@@ -132,9 +138,87 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
     event = Event.find(JSON.parse(response.body)["results"][0]["id"])
     vc = event.vendor_costs_raw.first
+    assert_equal "openai", vc["vendor_name"]
     assert_equal "gpt-4", vc["ai_model_name"]
     assert_equal 2000, vc["input_tokens"]
     assert_equal 500, vc["output_tokens"]
+  end
+
+  test "persists normalized vendor costs from Anthropic raw_response" do
+    payload = {
+      events: [
+        {
+          unique_request_token: "req_anthropic_#{SecureRandom.hex(8)}",
+          customer_external_id: "cust_123",
+          customer_name: "Acme Corp",
+          event_type: "ai_analysis",
+          revenue_amount_in_cents: 1000,
+          vendor_responses: [
+            {
+              vendor_name: "anthropic",
+              raw_response: {
+                model: "claude-3",
+                usage: { input_tokens: 800, output_tokens: 300 }
+              }
+            }
+          ],
+          occurred_at: Time.current.iso8601
+        }
+      ]
+    }
+
+    assert_enqueued_with(job: ProcessEventJob) do
+      post api_v1_events_url, params: payload.to_json, headers: @headers
+    end
+
+    assert_response :ok
+    event = Event.find(JSON.parse(response.body)["results"][0]["id"])
+    vc = event.vendor_costs_raw.first
+    assert_equal "anthropic", vc["vendor_name"]
+    assert_equal "claude-3", vc["ai_model_name"]
+    assert_equal 800, vc["input_tokens"]
+    assert_equal 300, vc["output_tokens"]
+  end
+
+  test "persists multiple appended responses from one event" do
+    payload = {
+      events: [
+        {
+          unique_request_token: "req_multi_resp_#{SecureRandom.hex(8)}",
+          customer_external_id: "cust_123",
+          customer_name: "Acme Corp",
+          event_type: "ai_analysis",
+          revenue_amount_in_cents: 2000,
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: 1000, completion_tokens: 200 }
+              }
+            },
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: 500, completion_tokens: 100 }
+              }
+            }
+          ],
+          occurred_at: Time.current.iso8601
+        }
+      ]
+    }
+
+    assert_enqueued_with(job: ProcessEventJob) do
+      post api_v1_events_url, params: payload.to_json, headers: @headers
+    end
+
+    assert_response :ok
+    event = Event.find(JSON.parse(response.body)["results"][0]["id"])
+    assert_equal 2, event.vendor_costs_raw.size
+    assert_equal 1000, event.vendor_costs_raw[0]["input_tokens"]
+    assert_equal 500, event.vendor_costs_raw[1]["input_tokens"]
   end
 
   # ── Validation errors ─────────────────────────────────────────────
@@ -147,8 +231,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-nonexistent", input_tokens: 100, output_tokens: 1 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-nonexistent",
+                usage: { prompt_tokens: 100, completion_tokens: 1 }
+              }
+            }
           ]
         }
       ]
@@ -169,8 +259,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-nonexistent", input_tokens: 100, output_tokens: 1 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-nonexistent",
+                usage: { prompt_tokens: 100, completion_tokens: 1 }
+              }
+            }
           ]
         }
       ]
@@ -192,8 +288,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "anthropic", ai_model_name: "gpt-4", input_tokens: 100, output_tokens: 1 }
+          vendor_responses: [
+            {
+              vendor_name: "anthropic",
+              raw_response: {
+                model: "gpt-4",
+                usage: { input_tokens: 100, output_tokens: 1 }
+              }
+            }
           ]
         }
       ]
@@ -214,7 +316,31 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
-  test "rejects vendor_costs missing ai_model_name" do
+  test "rejects unsupported vendor with error" do
+    payload = {
+      events: [
+        {
+          unique_request_token: "req_unsupported_#{SecureRandom.hex(8)}",
+          customer_external_id: "cust_123",
+          event_type: "ai_analysis",
+          revenue_amount_in_cents: 1000,
+          vendor_responses: [
+            {
+              vendor_name: "unknown_vendor",
+              raw_response: { model: "some-model", usage: { prompt_tokens: 10, completion_tokens: 5 } }
+            }
+          ]
+        }
+      ]
+    }
+
+    post api_v1_events_url, params: payload.to_json, headers: @headers
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert json["results"][0]["errors"].any? { |e| e.include?("Unknown vendor") }
+  end
+
+  test "rejects vendor_responses with empty raw_response resolving to missing model" do
     payload = {
       events: [
         {
@@ -222,8 +348,11 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "send_campaign",
           revenue_amount_in_cents: 500,
-          vendor_costs: [
-            { vendor_name: "twilio", input_tokens: 0, output_tokens: 0, unit_count: 10, unit_type: "messages" }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {}
+            }
           ]
         }
       ]
@@ -243,9 +372,21 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-fake", input_tokens: 100, output_tokens: 1 },
-            { vendor_name: "anthropic", ai_model_name: "claude-fake", input_tokens: 200, output_tokens: 1 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-fake",
+                usage: { prompt_tokens: 100, completion_tokens: 1 }
+              }
+            },
+            {
+              vendor_name: "anthropic",
+              raw_response: {
+                model: "claude-fake",
+                usage: { input_tokens: 200, output_tokens: 1 }
+              }
+            }
           ]
         }
       ]
@@ -269,7 +410,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
-  test "rejects negative input_tokens" do
+  test "rejects negative input_tokens from raw_response" do
     payload = {
       events: [
         {
@@ -277,8 +418,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-4", input_tokens: -100, output_tokens: 500 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: -100, completion_tokens: 500 }
+              }
+            }
           ]
         }
       ]
@@ -290,7 +437,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert json["results"][0]["errors"].any? { |e| e.include?("Negative input_tokens") }
   end
 
-  test "rejects negative output_tokens" do
+  test "rejects negative output_tokens from raw_response" do
     payload = {
       events: [
         {
@@ -298,8 +445,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-4", input_tokens: 100, output_tokens: -500 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: 100, completion_tokens: -500 }
+              }
+            }
           ]
         }
       ]
@@ -311,7 +464,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert json["results"][0]["errors"].any? { |e| e.include?("Negative output_tokens") }
   end
 
-  test "rejects zero input and output tokens" do
+  test "rejects zero input and output tokens from raw_response" do
     payload = {
       events: [
         {
@@ -319,8 +472,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
           customer_external_id: "cust_123",
           event_type: "ai_analysis",
           revenue_amount_in_cents: 1000,
-          vendor_costs: [
-            { vendor_name: "openai", ai_model_name: "gpt-4", input_tokens: 0, output_tokens: 0 }
+          vendor_responses: [
+            {
+              vendor_name: "openai",
+              raw_response: {
+                model: "gpt-4",
+                usage: { prompt_tokens: 0, completion_tokens: 0 }
+              }
+            }
           ]
         }
       ]
@@ -341,8 +500,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
       customer_name: "Acme Corp",
       event_type: "ai_analysis",
       revenue_amount_in_cents: 1000,
-      vendor_costs: [
-        { vendor_name: "openai", ai_model_name: "gpt-4", input_tokens: 15000, output_tokens: 1, unit_count: 15000, unit_type: "tokens" }
+      vendor_responses: [
+        {
+          vendor_name: "openai",
+          raw_response: {
+            model: "gpt-4",
+            usage: { prompt_tokens: 15000, completion_tokens: 1 }
+          }
+        }
       ],
       metadata: { model: "gpt-4" },
       occurred_at: Time.current.iso8601

@@ -1,18 +1,7 @@
-/** Cost data for a single AI vendor call. */
-interface VendorCost {
-    vendorName: string;
-    aiModelName: string;
-    inputTokens: number;
-    outputTokens: number;
-    unitCount?: number;
-    unitType?: string;
-    amountInCents?: number;
-}
 /** Payload passed to `NanoProfit.track()`. */
 interface EventPayload {
     customerExternalId: string;
     revenueAmountInCents: number;
-    vendorCosts: VendorCost[];
     uniqueRequestToken?: string;
     customerName?: string;
     eventType?: string;
@@ -43,21 +32,14 @@ interface NanoProfitConfig {
     onError?: (error: NanoProfitError) => void;
     handleSignals?: boolean;
 }
-/** Internal wire format for vendor costs (snake_case). */
-interface WireVendorCost {
-    vendor_name: string;
-    ai_model_name: string;
-    input_tokens: number;
-    output_tokens: number;
-    unit_count?: number;
-    unit_type?: string;
-    amount_in_cents?: number;
-}
 /** Internal wire format for events (snake_case). */
 interface WireEvent {
     customer_external_id: string;
     revenue_amount_in_cents: number;
-    vendor_costs: WireVendorCost[];
+    vendor_responses: {
+        vendor_name: string;
+        raw_response: Record<string, unknown>;
+    }[];
     unique_request_token: string;
     customer_name?: string;
     event_type: string;
@@ -82,11 +64,22 @@ declare class NanoProfit {
     private flushTimer;
     private shutdownPromise;
     private signalHandlers;
+    private pendingResponses;
     constructor(config: NanoProfitConfig);
+    /**
+     * Append a raw AI provider response for inclusion in the next
+     * {@link track} call. Call this once per AI API call — if an agent
+     * session makes three calls, call `addResponse` three times, then
+     * call `track` once to attach them all to a single event.
+     */
+    addResponse(vendorName: string, rawResponse: Record<string, unknown>): void;
     /**
      * Enqueue an event for delivery. This method is synchronous and will
      * never throw -- errors are silently swallowed so that tracking can
      * never crash the host application.
+     *
+     * All responses previously added via {@link addResponse} are drained
+     * and attached to the event.
      */
     track(event: EventPayload): void;
     /**
@@ -107,4 +100,4 @@ declare class NanoProfit {
     private reportError;
 }
 
-export { type BatchResult, type EventPayload, NanoProfit, type NanoProfitConfig, type NanoProfitError, type VendorCost, type WireEvent, type WireVendorCost };
+export { type BatchResult, type EventPayload, NanoProfit, type NanoProfitConfig, type NanoProfitError, type WireEvent };

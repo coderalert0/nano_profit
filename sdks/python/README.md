@@ -13,7 +13,7 @@ pip install nanoprofit
 ```python
 import asyncio
 from openai import AsyncOpenAI
-from nanoprofit import NanoProfit, Event, VendorCost
+from nanoprofit import NanoProfit, Event
 
 async def main():
     openai = AsyncOpenAI()
@@ -24,17 +24,10 @@ async def main():
             messages=[{"role": "user", "content": "Hello!"}],
         )
 
+        np.add_response("openai", response)
         np.track(Event(
             customer_external_id="cust_123",
             revenue_amount_in_cents=500,
-            vendor_costs=[
-                VendorCost(
-                    vendor_name="openai",
-                    ai_model_name=response.model,
-                    input_tokens=response.usage.prompt_tokens,
-                    output_tokens=response.usage.completion_tokens,
-                )
-            ],
         ))
 
     # Events are automatically flushed when exiting the context manager.
@@ -44,40 +37,37 @@ asyncio.run(main())
 
 ## Tracking events
 
-Pass vendor cost data directly from your AI provider's response:
+Append raw AI provider responses with `add_response()`, then call
+`track()` to flush them into an event. The server extracts model names
+and token counts automatically.
 
 ```python
-# OpenAI
+# Single call
+r1 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
+np.add_response("openai", r1)
 np.track(Event(
     customer_external_id="cust_123",
     revenue_amount_in_cents=500,
-    vendor_costs=[
-        VendorCost(
-            vendor_name="openai",
-            ai_model_name=response.model,
-            input_tokens=response.usage.prompt_tokens,
-            output_tokens=response.usage.completion_tokens,
-        )
-    ],
 ))
 
-# Anthropic
+# Agent session with multiple AI calls
+r2 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
+np.add_response("openai", r2)
+
+r3 = await anthropic.messages.create(model="claude-3-opus-20240229", messages=messages)
+np.add_response("anthropic", r3)
+
+r4 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
+np.add_response("openai", r4)
+
 np.track(Event(
-    customer_external_id="cust_123",
-    revenue_amount_in_cents=500,
-    vendor_costs=[
-        VendorCost(
-            vendor_name="anthropic",
-            ai_model_name=response.model,
-            input_tokens=response.usage.input_tokens,
-            output_tokens=response.usage.output_tokens,
-        )
-    ],
+    customer_external_id="cust_456",
+    revenue_amount_in_cents=1200,
 ))
 ```
 
-For Groq, Azure OpenAI, or AWS Bedrock, use the same fields — just set
-`vendor_name` to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
+For Groq, Azure OpenAI, or AWS Bedrock, use the same pattern — just set
+the vendor name to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
 
 ## Configuration
 
@@ -102,6 +92,7 @@ your application exits to ensure all buffered events are sent:
 ```python
 np = NanoProfit(api_key="np_your_api_key")
 try:
+    np.add_response("openai", response)
     np.track(event)
     await np.flush()   # flush immediately if needed
 finally:

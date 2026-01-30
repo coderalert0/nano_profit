@@ -20,7 +20,14 @@ module Api
           .to_set
 
         results = events_data.map do |event_data|
-          process_single_event(permit_event(event_data), known_pairs)
+          permitted = permit_event_fields(event_data)
+          normalized = normalize_vendor_responses(event_data)
+
+          if normalized.is_a?(Array)
+            process_single_event(permitted, normalized, known_pairs)
+          else
+            normalized
+          end
         end
 
         status = batch_status(results)
@@ -29,8 +36,8 @@ module Api
 
       private
 
-      def process_single_event(ep, known_pairs)
-        model_errors = validate_vendor_costs_with_pairs(ep[:vendor_costs], known_pairs)
+      def process_single_event(ep, vendor_costs, known_pairs)
+        model_errors = validate_vendor_costs_with_pairs(vendor_costs, known_pairs)
         if model_errors.any?
           return { status: "error", errors: model_errors }
         end
@@ -42,7 +49,7 @@ module Api
           e.customer_name = ep[:customer_name]
           e.event_type = ep[:event_type]
           e.revenue_amount_in_cents = ep[:revenue_amount_in_cents]
-          e.vendor_costs_raw = ep[:vendor_costs] || []
+          e.vendor_costs_raw = vendor_costs
           e.metadata = ep[:metadata] || {}
           e.occurred_at = ep[:occurred_at] || Time.current
           e.status = "pending"
@@ -69,15 +76,32 @@ module Api
         end
       end
 
+      def normalize_vendor_responses(event_data)
+        raw = event_data[:vendor_responses]
+        return [] if raw.blank?
+
+        raw.map do |vr|
+          raw_response = vr[:raw_response]
+          raw_response = raw_response.respond_to?(:to_unsafe_h) ? raw_response.to_unsafe_h : (raw_response || {})
+
+          VendorResponseParser.call(
+            vendor_name: vr[:vendor_name].to_s,
+            raw_response: raw_response
+          )
+        end
+      rescue VendorResponseParser::ParseError => e
+        { status: "error", errors: [ e.message ] }
+      end
+
       def validate_vendor_costs_with_pairs(vendor_costs, known_pairs)
         return [] if vendor_costs.blank?
 
         errors = []
         vendor_costs.each do |vc|
-          ai_model_name = vc[:ai_model_name]
-          vendor_name = vc[:vendor_name]
-          input_tokens = vc[:input_tokens].to_i
-          output_tokens = vc[:output_tokens].to_i
+          ai_model_name = vc["ai_model_name"]
+          vendor_name = vc["vendor_name"]
+          input_tokens = vc["input_tokens"].to_i
+          output_tokens = vc["output_tokens"].to_i
 
           if ai_model_name.blank?
             errors << "Missing ai_model_name for vendor cost entry"
@@ -85,11 +109,11 @@ module Api
             errors << "Unrecognized vendor_name '#{vendor_name}' with ai_model_name '#{ai_model_name}'"
           end
 
-          if vc[:input_tokens].present? && vc[:input_tokens].to_i < 0
+          if vc["input_tokens"].present? && vc["input_tokens"].to_i < 0
             errors << "Negative input_tokens for vendor '#{vendor_name}'"
           end
 
-          if vc[:output_tokens].present? && vc[:output_tokens].to_i < 0
+          if vc["output_tokens"].present? && vc["output_tokens"].to_i < 0
             errors << "Negative output_tokens for vendor '#{vendor_name}'"
           end
 
@@ -100,7 +124,7 @@ module Api
         errors
       end
 
-      def permit_event(event_data)
+      def permit_event_fields(event_data)
         event_data.permit(
           :unique_request_token,
           :customer_external_id,
@@ -108,8 +132,7 @@ module Api
           :event_type,
           :revenue_amount_in_cents,
           :occurred_at,
-          metadata: {},
-          vendor_costs: [ :vendor_name, :amount_in_cents, :unit_count, :unit_type, :ai_model_name, :input_tokens, :output_tokens ]
+          metadata: {}
         )
       end
     end

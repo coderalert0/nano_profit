@@ -22,15 +22,10 @@ const response = await openai.chat.completions.create({
   messages: [{ role: "user", content: "Hello!" }],
 });
 
+np.addResponse("openai", response);
 np.track({
   customerExternalId: "cust_123",
   revenueAmountInCents: 500,
-  vendorCosts: [{
-    vendorName: "openai",
-    aiModelName: response.model,
-    inputTokens: response.usage?.prompt_tokens ?? 0,
-    outputTokens: response.usage?.completion_tokens ?? 0,
-  }],
 });
 
 // Before your process exits:
@@ -57,36 +52,31 @@ const np = new NanoProfit({
 
 ## Tracking events
 
-Pass vendor cost data directly from your AI provider's response:
+Append raw AI provider responses with `addResponse()`, then call
+`track()` to flush them into an event. The server extracts model names
+and token counts automatically.
 
 ```typescript
-// OpenAI
-np.track({
-  customerExternalId: "cust_123",
-  revenueAmountInCents: 500,
-  vendorCosts: [{
-    vendorName: "openai",
-    aiModelName: response.model,
-    inputTokens: response.usage?.prompt_tokens ?? 0,
-    outputTokens: response.usage?.completion_tokens ?? 0,
-  }],
-});
+// Single call
+const r1 = await openai.chat.completions.create({ model: "gpt-4o", messages });
+np.addResponse("openai", r1);
+np.track({ customerExternalId: "cust_123", revenueAmountInCents: 500 });
 
-// Anthropic
-np.track({
-  customerExternalId: "cust_123",
-  revenueAmountInCents: 500,
-  vendorCosts: [{
-    vendorName: "anthropic",
-    aiModelName: response.model,
-    inputTokens: response.usage?.input_tokens ?? 0,
-    outputTokens: response.usage?.output_tokens ?? 0,
-  }],
-});
+// Agent session with multiple AI calls
+const r2 = await openai.chat.completions.create({ model: "gpt-4o", messages });
+np.addResponse("openai", r2);
+
+const r3 = await anthropic.messages.create({ model: "claude-3-opus-20240229", messages });
+np.addResponse("anthropic", r3);
+
+const r4 = await openai.chat.completions.create({ model: "gpt-4o", messages });
+np.addResponse("openai", r4);
+
+np.track({ customerExternalId: "cust_456", revenueAmountInCents: 1200 });
 ```
 
-For Groq, Azure OpenAI, or AWS Bedrock, use the same fields — just set
-`vendorName` to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
+For Groq, Azure OpenAI, or AWS Bedrock, use the same pattern — just set
+the vendor name to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
 
 ## Shutdown
 

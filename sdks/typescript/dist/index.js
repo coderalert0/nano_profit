@@ -99,23 +99,14 @@ async function withRetry(fn, options) {
 }
 
 // src/serializer.ts
-function toWireVendorCost(vc) {
-  const wire = {
-    vendor_name: vc.vendorName,
-    ai_model_name: vc.aiModelName,
-    input_tokens: vc.inputTokens,
-    output_tokens: vc.outputTokens
-  };
-  if (vc.unitCount !== void 0) wire.unit_count = vc.unitCount;
-  if (vc.unitType !== void 0) wire.unit_type = vc.unitType;
-  if (vc.amountInCents !== void 0) wire.amount_in_cents = vc.amountInCents;
-  return wire;
-}
-function toWireEvent(event, defaultEventType) {
+function toWireEvent(event, responses, defaultEventType) {
   const wire = {
     customer_external_id: event.customerExternalId,
     revenue_amount_in_cents: event.revenueAmountInCents,
-    vendor_costs: event.vendorCosts.map(toWireVendorCost),
+    vendor_responses: responses.map((r) => ({
+      vendor_name: r.vendorName,
+      raw_response: r.rawResponse
+    })),
     unique_request_token: event.uniqueRequestToken ?? crypto.randomUUID(),
     event_type: event.eventType ?? defaultEventType,
     occurred_at: event.occurredAt ?? (/* @__PURE__ */ new Date()).toISOString()
@@ -147,6 +138,7 @@ var NanoProfit = class {
   flushTimer = null;
   shutdownPromise = null;
   signalHandlers = [];
+  pendingResponses = [];
   constructor(config) {
     this.apiKey = config.apiKey;
     this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
@@ -177,13 +169,27 @@ var NanoProfit = class {
     }
   }
   /**
+   * Append a raw AI provider response for inclusion in the next
+   * {@link track} call. Call this once per AI API call — if an agent
+   * session makes three calls, call `addResponse` three times, then
+   * call `track` once to attach them all to a single event.
+   */
+  addResponse(vendorName, rawResponse) {
+    this.pendingResponses.push({ vendorName, rawResponse });
+  }
+  /**
    * Enqueue an event for delivery. This method is synchronous and will
    * never throw -- errors are silently swallowed so that tracking can
    * never crash the host application.
+   *
+   * All responses previously added via {@link addResponse} are drained
+   * and attached to the event.
    */
   track(event) {
     try {
-      const wire = toWireEvent(event, this.defaultEventType);
+      const responses = this.pendingResponses;
+      this.pendingResponses = [];
+      const wire = toWireEvent(event, responses, this.defaultEventType);
       this.queue.enqueue(wire);
     } catch {
     }

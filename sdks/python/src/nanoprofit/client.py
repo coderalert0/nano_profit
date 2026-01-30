@@ -19,10 +19,10 @@ class NanoProfit:
     Usage::
 
         async with NanoProfit(api_key="np_...") as np:
+            np.add_response("openai", response)
             np.track(Event(
                 customer_external_id="cust_123",
                 revenue_amount_in_cents=500,
-                vendor_costs=[cost],
             ))
         # Events are automatically flushed on exit.
 
@@ -64,6 +64,7 @@ class NanoProfit:
         self._max_retries = max_retries
         self._default_event_type = default_event_type
         self._on_error = on_error
+        self._pending_responses: list[tuple[str, Any]] = []
 
         self._http = httpx.AsyncClient(
             base_url=self._base_url,
@@ -102,14 +103,29 @@ class NanoProfit:
     # Public API
     # ------------------------------------------------------------------
 
+    def add_response(self, vendor_name: str, raw_response: Any) -> None:
+        """Append a raw AI provider response for inclusion in the next
+        :meth:`track` call.
+
+        Call this once per AI API call.  If an agent session makes three
+        calls, call ``add_response`` three times, then call ``track``
+        once to attach them all to a single event.
+        """
+        self._pending_responses.append((vendor_name, raw_response))
+
     def track(self, event: Event) -> None:
         """Enqueue an event for batch sending.
 
         This method is **synchronous** and never raises.  Events are buffered
         internally and sent in the background.
+
+        All responses previously added via :meth:`add_response` are drained
+        and attached to the event.
         """
         try:
-            payload = event_to_dict(event, self._default_event_type)
+            responses = self._pending_responses
+            self._pending_responses = []
+            payload = event_to_dict(event, responses, self._default_event_type)
             self._queue.enqueue(payload)
         except Exception:
             logger.exception("nanoprofit: failed to enqueue event")

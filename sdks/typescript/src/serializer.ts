@@ -1,33 +1,27 @@
 import type {
   EventPayload,
-  VendorCost,
   WireEvent,
-  WireVendorCost,
 } from "./types.js";
 
-/** Convert a camelCase `VendorCost` to the snake_case wire format. */
-export function toWireVendorCost(vc: VendorCost): WireVendorCost {
-  const wire: WireVendorCost = {
-    vendor_name: vc.vendorName,
-    ai_model_name: vc.aiModelName,
-    input_tokens: vc.inputTokens,
-    output_tokens: vc.outputTokens,
-  };
-  if (vc.unitCount !== undefined) wire.unit_count = vc.unitCount;
-  if (vc.unitType !== undefined) wire.unit_type = vc.unitType;
-  if (vc.amountInCents !== undefined) wire.amount_in_cents = vc.amountInCents;
-  return wire;
+/** Pending response collected via `addResponse()`. */
+export interface PendingResponse {
+  vendorName: string;
+  rawResponse: Record<string, unknown>;
 }
 
-/** Convert a camelCase `EventPayload` to the snake_case wire format. */
+/** Convert a camelCase `EventPayload` + accumulated responses to the snake_case wire format. */
 export function toWireEvent(
   event: EventPayload,
+  responses: PendingResponse[],
   defaultEventType: string,
 ): WireEvent {
   const wire: WireEvent = {
     customer_external_id: event.customerExternalId,
     revenue_amount_in_cents: event.revenueAmountInCents,
-    vendor_costs: event.vendorCosts.map(toWireVendorCost),
+    vendor_responses: responses.map((r) => ({
+      vendor_name: r.vendorName,
+      raw_response: r.rawResponse,
+    })),
     unique_request_token:
       event.uniqueRequestToken ?? crypto.randomUUID(),
     event_type: event.eventType ?? defaultEventType,

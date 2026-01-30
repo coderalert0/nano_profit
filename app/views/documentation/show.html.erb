@@ -40,15 +40,10 @@ const response = await openai.chat.completions.create({
   messages: [{ role: "user", content: "Hello!" }],
 });
 
+np.addResponse("openai", response);
 np.track({
   customerExternalId: "cust_123",
   revenueAmountInCents: 500,
-  vendorCosts: [{
-    vendorName: "openai",
-    aiModelName: response.model,
-    inputTokens: response.usage?.prompt_tokens ?? 0,
-    outputTokens: response.usage?.completion_tokens ?? 0,
-  }],
 });
 
 // Events are flushed automatically in the background.
@@ -66,7 +61,7 @@ await np.shutdown();</code></pre>
       <div class="bg-slate-800 px-4 py-2 text-xs font-mono text-slate-400">Python</div>
       <pre class="bg-slate-900 text-emerald-400 p-4 text-xs overflow-x-auto"><code>import asyncio
 from openai import AsyncOpenAI
-from nanoprofit import NanoProfit, Event, VendorCost
+from nanoprofit import NanoProfit, Event
 
 async def main():
     openai = AsyncOpenAI()
@@ -80,17 +75,10 @@ async def main():
             messages=[{"role": "user", "content": "Hello!"}],
         )
 
+        np.add_response("openai", response)
         np.track(Event(
             customer_external_id="cust_123",
             revenue_amount_in_cents=500,
-            vendor_costs=[
-                VendorCost(
-                    vendor_name="openai",
-                    ai_model_name=response.model,
-                    input_tokens=response.usage.prompt_tokens,
-                    output_tokens=response.usage.completion_tokens,
-                )
-            ],
         ))
 
     # Events are automatically flushed when exiting the context manager.
@@ -104,7 +92,7 @@ asyncio.run(main())</code></pre>
     <h2 class="text-lg font-semibold text-slate-900 mb-1"><%= t("documentation.show.vendor_costs") %></h2>
     <div class="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
       <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <p class="text-sm text-blue-700"><strong>Note:</strong> <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">amount_in_cents</code> is optional when <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">ai_model_name</code> and token counts (<code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">input_tokens</code>, <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">output_tokens</code>) are provided. Cost is calculated automatically from configured vendor rates.</p>
+      <p class="text-sm text-blue-700"><strong>Note:</strong> Just pass the vendor name and the raw AI provider response via <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addResponse()</code>. The server automatically extracts the model name and token counts, then calculates cost from your configured vendor rates. For agent sessions with multiple AI calls, call <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addResponse()</code> once per call, then <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">track()</code> once to attach them all.</p>
     </div>
   </div>
 
