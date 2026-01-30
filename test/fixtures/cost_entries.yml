@@ -1,19 +1,19 @@
 openai_cost:
-  usage_telemetry_event: processed_event
+  event: processed_event
   vendor_name: openai
   amount_in_cents: 450
   unit_count: 15000
   unit_type: tokens
 
 openai_cost_2:
-  usage_telemetry_event: processed_event
+  event: processed_event
   vendor_name: openai
   amount_in_cents: 50
   unit_count: 1500
   unit_type: tokens
 
 subscription_customer_openai_cost:
-  usage_telemetry_event: subscription_customer_event
+  event: subscription_customer_event
   vendor_name: openai
   amount_in_cents: 300
   unit_count: 10000

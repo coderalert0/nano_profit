@@ -1,11 +1,11 @@
-<h1 class="text-2xl font-bold text-gray-900 mb-6"><%= t("events.index.title") %> <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+<h1 class="text-2xl font-bold text-slate-900 mb-6"><%= t("events.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
 <!-- Filters -->
 <div class="card p-4 mb-6">
   <%= form_with url: events_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.event_type") %></label>
-      <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_event_types") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
+      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.event_type") %></label>
+      <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_event_types") %>" class="input-field">
         <% @event_types.each do |et| %>
           <option value="<%= et %>" <%= "selected" if @selected_event_types.include?(et) %>><%= et %></option>
         <% end %>
@@ -13,8 +13,8 @@
     </div>
 
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.customer") %></label>
-      <select name="customer_id[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_customers") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
+      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.customer") %></label>
+      <select name="customer_id[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_customers") %>" class="input-field">
         <% @customers.each do |c| %>
           <option value="<%= c.id %>" <%= "selected" if @selected_customer_ids.include?(c.id.to_s) %>><%= c.name || c.external_id %></option>
         <% end %>
@@ -22,8 +22,8 @@
     </div>
 
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1"><%= t("shared.vendors") %></label>
-      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_vendors") %>" class="border border-gray-300 rounded px-3 py-2 text-sm">
+      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.vendors") %></label>
+      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_vendors") %>" class="input-field">
         <% @vendors.each do |v| %>
           <option value="<%= v %>" <%= "selected" if @selected_vendors.include?(v) %>><%= v %></option>
         <% end %>
@@ -31,7 +31,7 @@
     </div>
 
     <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
-      <%= link_to t("events.index.clear_filters"), events_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+      <%= link_to t("events.index.clear_filters"), events_path, class: "btn-secondary self-end" %>
     <% end %>
   <% end %>
 </div>
@@ -40,22 +40,25 @@
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= events_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
-    <thead class="bg-gray-50">
-      <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort" data-sort-type="date"><%= t("shared.time") %></th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.event_type") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.vendors") %></th>
+    <thead class="bg-slate-50/75">
+      <tr class="border-b border-slate-200 text-left text-slate-500">
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="date"><%= t("shared.time") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.event_type") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.vendors") %></th>
       </tr>
     </thead>
     <tbody data-infinite-scroll-target="tbody">
       <%= render "rows", events: @events, page: @page, total_pages: @total_pages %>
       <% if @events.empty? %>
         <tr>
-          <td colspan="7" class="empty-state"><%= t("events.index.no_events") %></td>
+          <td colspan="7" class="empty-state">
+            <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <%= t("events.index.no_events") %>
+          </td>
         </tr>
       <% end %>
     </tbody>

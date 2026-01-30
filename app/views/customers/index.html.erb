@@ -1,5 +1,5 @@
 <div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-bold text-gray-900"><%= t("customers.index.title") %> <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+  <h1 class="text-2xl font-bold text-slate-900"><%= t("customers.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
   <%= render "shared/period_selector", selected: @selected_period %>
 </div>
 
@@ -7,22 +7,25 @@
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= customers_path(**period_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
-    <thead class="bg-gray-50">
-      <tr class="border-b text-left text-gray-500">
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort"><%= t("shared.external_id") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.subscription") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin_percent") %></th>
+    <thead class="bg-slate-50/75">
+      <tr class="border-b border-slate-200 text-left text-slate-500">
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.external_id") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.subscription") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin_percent") %></th>
       </tr>
     </thead>
     <tbody data-infinite-scroll-target="tbody">
       <%= render "rows", customer_margins: @customer_margins, page: @page, total_pages: @total_pages %>
       <% if @customer_margins.empty? %>
         <tr>
-          <td colspan="7" class="empty-state"><%= t("customers.index.no_data") %></td>
+          <td colspan="7" class="empty-state">
+            <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <%= t("customers.index.no_data") %>
+          </td>
         </tr>
       <% end %>
     </tbody>

@@ -1,11 +1,11 @@
 <% events.each do |event| %>
   <tr class="table-row">
-    <td class="py-3 px-4 text-gray-500" data-sort-value="<%= event.occurred_at&.to_i %>"><%= format_time(event.occurred_at) %></td>
+    <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap" data-sort-value="<%= event.occurred_at&.to_i %>"><%= format_time(event.occurred_at) %></td>
     <td class="py-3 px-4">
       <% if event.customer %>
         <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer), class: "link" %>
       <% else %>
-        <%= event.customer_external_id %>
+        <span class="text-slate-500"><%= event.customer_external_id %></span>
       <% end %>
     </td>
     <td class="py-3 px-4"><span class="badge badge-blue"><%= event.event_type %></span></td>
@@ -21,6 +21,6 @@
 <% end %>
 <% if page < total_pages %>
   <tr data-infinite-scroll-target="sentinel" class="sentinel">
-    <td colspan="7" class="py-4 text-center text-sm text-gray-400">Loading more...</td>
+    <td colspan="7" class="py-4 text-center text-sm text-slate-400">Loading more...</td>
   </tr>
 <% end %>

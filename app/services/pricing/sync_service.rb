@@ -5,7 +5,7 @@ require "shellwords"
 module Pricing
   class SyncService
     SOURCE_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
-    SUPPORTED_PROVIDERS = %w[openai anthropic vertex_ai].freeze
+    SUPPORTED_PROVIDERS = %w[openai anthropic gemini groq azure bedrock].freeze
 
     def initialize(pricing_data: nil)
       @pricing_data = pricing_data

@@ -1,48 +1,40 @@
-<div class="mx-auto md:w-2/3 w-full">
-  <% if alert = flash[:alert] %>
-    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
-  <% end %>
+<h1 class="text-2xl font-bold text-slate-900 mb-1">Create account</h1>
+<p class="text-sm text-slate-500 mb-6">Set up your organization and start monitoring margins.</p>
 
-  <h1 class="font-bold text-4xl">Sign up</h1>
-  <p class="text-gray-500 mt-2">Create your organization and start monitoring margins.</p>
-
-  <%= form_with model: @user, url: registration_path, class: "contents" do |form| %>
-    <% if @user.errors.any? %>
-      <div class="bg-red-50 text-red-500 px-3 py-2 rounded-lg mt-3">
-        <% @user.errors.full_messages.each do |message| %>
-          <p><%= message %></p>
-        <% end %>
-      </div>
-    <% end %>
-
-    <div class="my-5">
-      <label class="block text-sm font-medium text-gray-700">Organization Name</label>
-      <input type="text" name="organization_name" required autofocus value="<%= params[:organization_name] %>" placeholder="Your company name" class="block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" />
-    </div>
-
-    <div class="my-5">
-      <label class="block text-sm font-medium text-gray-700">Email Address</label>
-      <%= form.email_field :email_address, required: true, autocomplete: "username", placeholder: "you@example.com", class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="my-5">
-      <label class="block text-sm font-medium text-gray-700">Password</label>
-      <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "At least 8 characters", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="my-5">
-      <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Confirm your password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
-      <div class="inline">
-        <%= form.submit "Create Account", class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
-      </div>
-
-      <div class="mt-4 text-sm text-gray-500 sm:mt-0">
-        Already have an account? <%= link_to "Sign in", new_session_path, class: "text-gray-700 underline hover:no-underline" %>
-      </div>
+<%= form_with model: @user, url: registration_path, class: "space-y-4" do |form| %>
+  <% if @user.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      <% @user.errors.full_messages.each do |message| %>
+        <p><%= message %></p>
+      <% end %>
     </div>
   <% end %>
-</div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Organization name</label>
+    <input type="text" name="organization_name" required autofocus value="<%= params[:organization_name] %>" placeholder="Your company name" class="input-field" />
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Email address</label>
+    <%= form.email_field :email_address, required: true, autocomplete: "username", placeholder: "you@example.com", class: "input-field" %>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+    <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "At least 8 characters", maxlength: 72, class: "input-field" %>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1">Confirm password</label>
+    <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Confirm your password", maxlength: 72, class: "input-field" %>
+  </div>
+
+  <div class="pt-2">
+    <%= form.submit "Create Account", class: "btn-primary w-full" %>
+  </div>
+
+  <p class="text-sm text-center text-slate-500 pt-1">
+    Already have an account? <%= link_to "Sign in", new_session_path, class: "text-blue-600 hover:text-blue-700 font-medium transition-colors" %>
+  </p>
+<% end %>

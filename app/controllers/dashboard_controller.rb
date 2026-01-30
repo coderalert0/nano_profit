@@ -6,13 +6,13 @@ class DashboardController < ApplicationController
 
     @margin = MarginCalculator.organization_margin(@organization, @period)
     @vendor_costs = MarginCalculator.vendor_cost_breakdown(@organization, @period)
-    @recent_events = @organization.usage_telemetry_events
+    @recent_events = @organization.events
       .processed
       .recent
       .includes(:customer)
       .limit(20)
 
-    events = @organization.usage_telemetry_events.processed
+    events = @organization.events.processed
     events = events.where(occurred_at: @period) if @period
     @revenue_over_time = events
       .group_by_day(:occurred_at)

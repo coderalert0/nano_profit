@@ -122,9 +122,9 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
     end
   end
 
-  test "sync links Stripe subscription to existing telemetry customer via metadata.external_id" do
-    # Create a customer via telemetry (has external_id but no stripe_customer_id)
-    telemetry_customer = @org.customers.create!(
+  test "sync links Stripe subscription to existing event customer via metadata.external_id" do
+    # Create a customer via event API (has external_id but no stripe_customer_id)
+    event_customer = @org.customers.create!(
       external_id: "tel_cust_100",
       name: "Telemetry Customer"
     )
@@ -145,9 +145,9 @@ class Stripe::SubscriptionSyncServiceTest < ActiveSupport::TestCase
       service.sync
     end
 
-    telemetry_customer.reload
-    assert_equal "cus_stripe_link", telemetry_customer.stripe_customer_id
-    assert_equal 7500, telemetry_customer.monthly_subscription_revenue_in_cents
+    event_customer.reload
+    assert_equal "cus_stripe_link", event_customer.stripe_customer_id
+    assert_equal 7500, event_customer.monthly_subscription_revenue_in_cents
   end
 
   private

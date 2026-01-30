@@ -1,41 +1,206 @@
 @import "tailwindcss";
 
+/* ── Cards ── */
 .card {
-  @apply bg-white rounded-lg shadow;
+  @apply bg-white rounded-xl border border-slate-200 shadow-sm;
 }
 
+/* ── Stat card with colored top border ── */
+.stat-card {
+  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6 relative overflow-hidden;
+}
+.stat-card::before {
+  content: "";
+  @apply absolute top-0 left-0 right-0 h-1 rounded-t-xl;
+}
+.stat-card-green::before { @apply bg-emerald-500; }
+.stat-card-red::before   { @apply bg-red-500; }
+.stat-card-blue::before  { @apply bg-blue-500; }
+.stat-card-amber::before { @apply bg-amber-500; }
+
+/* ── Tables ── */
 .table-row {
-  @apply border-b hover:bg-gray-50;
-}
-
-.link {
-  @apply text-blue-600 hover:underline;
-}
-
-.empty-state {
-  @apply py-8 text-center text-gray-400;
+  @apply border-b border-slate-100 hover:bg-slate-50 transition-colors;
 }
 
 .th-sortable {
-  @apply cursor-pointer select-none hover:text-gray-700;
+  @apply cursor-pointer select-none hover:text-slate-700 transition-colors;
 }
 
+/* ── Links ── */
+.link {
+  @apply text-blue-600 hover:text-blue-700 hover:underline transition-colors;
+}
+
+/* ── Empty states ── */
+.empty-state {
+  @apply py-12 text-center text-slate-400;
+}
+
+/* ── Badges ── */
 .badge {
-  @apply text-xs px-2 py-1 rounded;
+  @apply text-xs font-medium px-2.5 py-0.5 rounded-full inline-flex items-center;
 }
 
 .badge-blue {
-  @apply bg-blue-100 text-blue-800;
+  @apply bg-blue-50 text-blue-700;
 }
 
 .badge-gray {
-  @apply bg-gray-100 text-gray-600;
+  @apply bg-slate-100 text-slate-600;
 }
 
 .badge-red {
-  @apply bg-red-100 text-red-800;
+  @apply bg-red-50 text-red-700;
 }
 
 .badge-yellow {
-  @apply bg-yellow-100 text-yellow-800;
+  @apply bg-amber-50 text-amber-700;
+}
+
+.badge-green {
+  @apply bg-emerald-50 text-emerald-700;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium
+         cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2 rounded-lg text-sm font-medium
+         cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2;
+}
+
+.btn-danger {
+  @apply bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-medium
+         cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
+}
+
+/* ── Sidebar ── */
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+         text-slate-400 hover:text-white hover:bg-slate-800
+         transition-colors duration-150;
+}
+
+.sidebar-link-active {
+  @apply text-white bg-slate-800 border-l-2 border-blue-400;
+}
+
+/* ── Form inputs ── */
+.input-field {
+  @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+         shadow-sm placeholder:text-slate-400
+         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+         transition-colors;
+}
+
+/* ── Tom Select overrides ── */
+.ts-wrapper {
+  min-width: 160px;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ts-wrapper.single .ts-control {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: #fff;
+  box-shadow: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ts-wrapper.single .ts-control::after {
+  border-color: #94a3b8 transparent transparent;
+}
+
+.ts-wrapper.single.input-active .ts-control,
+.ts-wrapper.single.focus .ts-control {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.ts-control > input {
+  font-size: 0.875rem;
+}
+
+.ts-dropdown {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  margin-top: 4px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  font-size: 0.875rem;
+  overflow: hidden;
+}
+
+.ts-dropdown .option {
+  padding: 0.5rem 0.75rem;
+  transition: background-color 0.1s;
+}
+
+.ts-dropdown .active {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+.ts-dropdown .option:hover {
+  background-color: #f8fafc;
+}
+
+.ts-dropdown .no-results {
+  padding: 0.5rem 0.75rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.ts-wrapper.multi .ts-control {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.875rem;
+  background-color: #fff;
+  box-shadow: none;
+  min-height: 2.25rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ts-wrapper.multi .ts-control > .item {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  margin: 0.1rem 0.2rem;
+}
+
+.ts-wrapper.multi .ts-control > .item .remove {
+  border-left: 1px solid #bfdbfe;
+  margin-left: 0.3rem;
+}
+
+.ts-wrapper.multi.input-active .ts-control,
+.ts-wrapper.multi.focus .ts-control {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.ts-wrapper.multi .ts-control > input {
+  font-size: 0.875rem;
+}
+
+.ts-wrapper.multi .ts-control > input::placeholder {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+select.tomselected.ts-hidden-accessible {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }

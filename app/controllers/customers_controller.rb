@@ -24,7 +24,7 @@ class CustomersController < ApplicationController
 
     @margin = MarginCalculator.customer_margin(@customer, @period)
 
-    events = @customer.usage_telemetry_events.processed
+    events = @customer.events.processed
     events = events.where(occurred_at: @period) if @period
 
     @total_event_count = events.count
@@ -34,14 +34,14 @@ class CustomersController < ApplicationController
       .limit(PER_PAGE)
 
     @vendor_costs = CostEntry
-      .where(usage_telemetry_event: @customer.usage_telemetry_events.processed.then { |e| @period ? e.where(occurred_at: @period) : e })
+      .where(event: @customer.events.processed.then { |e| @period ? e.where(occurred_at: @period) : e })
       .group(:vendor_name)
       .sum(:amount_in_cents)
-    @revenue_over_time = (@period ? @customer.usage_telemetry_events.processed.where(occurred_at: @period) : @customer.usage_telemetry_events.processed)
+    @revenue_over_time = (@period ? @customer.events.processed.where(occurred_at: @period) : @customer.events.processed)
       .group_by_day(:occurred_at)
       .sum(:revenue_amount_in_cents)
       .transform_values { |v| v / 100.0 }
-    @cost_over_time = (@period ? @customer.usage_telemetry_events.processed.where(occurred_at: @period) : @customer.usage_telemetry_events.processed)
+    @cost_over_time = (@period ? @customer.events.processed.where(occurred_at: @period) : @customer.events.processed)
       .group_by_day(:occurred_at)
       .sum(:total_cost_in_cents)
       .transform_values { |v| v / 100.0 }

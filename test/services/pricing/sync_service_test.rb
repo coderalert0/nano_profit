@@ -17,10 +17,25 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
       "output_cost_per_token" => 0.000075,
       "litellm_provider" => "anthropic"
     },
-    "vertex_ai/gemini-pro" => {
+    "gemini/gemini-pro" => {
       "input_cost_per_character" => 0.0000003125,
       "output_cost_per_character" => 0.000000625,
-      "litellm_provider" => "vertex_ai-language-models"
+      "litellm_provider" => "gemini"
+    },
+    "groq/llama-3" => {
+      "input_cost_per_token" => 0.00000005,
+      "output_cost_per_token" => 0.00000008,
+      "litellm_provider" => "groq"
+    },
+    "azure/gpt-4o" => {
+      "input_cost_per_token" => 0.0000025,
+      "output_cost_per_token" => 0.00001,
+      "litellm_provider" => "azure"
+    },
+    "bedrock/claude-3" => {
+      "input_cost_per_token" => 0.000015,
+      "output_cost_per_token" => 0.000075,
+      "litellm_provider" => "bedrock"
     },
     "mistral-large-latest" => {
       "input_cost_per_token" => 0.000008,
@@ -105,13 +120,37 @@ class Pricing::SyncServiceTest < ActiveSupport::TestCase
     assert_nil rate
   end
 
-  test "handles character-based pricing for vertex_ai" do
+  test "handles character-based pricing for gemini" do
     @service.perform
 
-    rate = VendorRate.find_by(vendor_name: "vertex_ai", ai_model_name: "gemini-pro", organization_id: nil)
+    rate = VendorRate.find_by(vendor_name: "gemini", ai_model_name: "gemini-pro", organization_id: nil)
     assert_not_nil rate
     assert_equal "0.125".to_d, rate.input_rate_per_1k
     assert_equal "0.25".to_d, rate.output_rate_per_1k
+  end
+
+  test "creates rates for groq provider" do
+    @service.perform
+
+    rate = VendorRate.find_by(vendor_name: "groq", ai_model_name: "llama-3", organization_id: nil)
+    assert_not_nil rate
+    assert rate.active?
+  end
+
+  test "creates rates for azure provider" do
+    @service.perform
+
+    rate = VendorRate.find_by(vendor_name: "azure", ai_model_name: "gpt-4o", organization_id: nil)
+    assert_not_nil rate
+    assert rate.active?
+  end
+
+  test "creates rates for bedrock provider" do
+    @service.perform
+
+    rate = VendorRate.find_by(vendor_name: "bedrock", ai_model_name: "claude-3", organization_id: nil)
+    assert_not_nil rate
+    assert rate.active?
   end
 
   test "skips entries with no cost data" do

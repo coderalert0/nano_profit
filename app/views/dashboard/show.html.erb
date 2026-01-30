@@ -1,35 +1,47 @@
 <div data-controller="dashboard" data-dashboard-organization-id-value="<%= @organization.id %>">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900"><%= t("dashboard.show.title") %></h1>
+    <h1 class="text-2xl font-bold text-slate-900"><%= t("dashboard.show.title") %></h1>
     <%= render "shared/period_selector", selected: @selected_period %>
   </div>
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-    <div class="card p-6">
-      <p class="text-sm text-gray-500"><%= t("dashboard.show.total_revenue") %></p>
-      <p class="text-2xl font-bold text-gray-900" id="total-revenue"><%= format_cents(@margin.revenue_in_cents) %></p>
+    <div class="stat-card stat-card-green">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-sm text-slate-500"><%= t("dashboard.show.total_revenue") %></p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900" id="total-revenue"><%= format_cents(@margin.revenue_in_cents) %></p>
       <% if @margin.subscription_revenue_in_cents > 0 %>
-        <p class="text-xs text-gray-400 mt-1"><%= t("dashboard.show.subscription_label", subscription: format_cents(@margin.subscription_revenue_in_cents), event: format_cents(@margin.event_revenue_in_cents)) %></p>
+        <p class="text-xs text-slate-400 mt-1"><%= t("dashboard.show.subscription_label", subscription: format_cents(@margin.subscription_revenue_in_cents), event: format_cents(@margin.event_revenue_in_cents)) %></p>
       <% end %>
     </div>
-    <div class="card p-6">
-      <p class="text-sm text-gray-500"><%= t("dashboard.show.total_cost") %></p>
-      <p class="text-2xl font-bold text-gray-900" id="total-cost"><%= format_cents(@margin.cost_in_cents) %></p>
+    <div class="stat-card stat-card-red">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+        <p class="text-sm text-slate-500"><%= t("dashboard.show.total_cost") %></p>
+      </div>
+      <p class="text-2xl font-bold text-slate-900" id="total-cost"><%= format_cents(@margin.cost_in_cents) %></p>
     </div>
-    <div class="card p-6">
-      <p class="text-sm text-gray-500"><%= t("shared.margin") %></p>
+    <div class="stat-card stat-card-blue">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <p class="text-sm text-slate-500"><%= t("shared.margin") %></p>
+      </div>
       <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="total-margin"><%= format_cents(@margin.margin_in_cents) %></p>
     </div>
-    <div class="card p-6">
-      <p class="text-sm text-gray-500"><%= t("shared.margin_percent") %></p>
+    <div class="stat-card stat-card-amber">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+        <p class="text-sm text-slate-500"><%= t("shared.margin_percent") %></p>
+      </div>
       <p class="text-2xl font-bold <%= margin_color_class(@margin.margin_in_cents) %>" id="margin-pct"><%= format_bps(@margin.margin_bps) %></p>
     </div>
   </div>
 
   <!-- Revenue vs Cost Chart -->
   <div class="card p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("dashboard.show.revenue_vs_cost_over_time") %></h2>
+    <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("dashboard.show.revenue_vs_cost_over_time") %></h2>
     <%= line_chart [
       { name: t("shared.revenue"), data: @revenue_over_time },
       { name: t("shared.cost"), data: @cost_over_time }
@@ -39,7 +51,7 @@
   <!-- Vendor Cost Breakdown -->
   <% if @vendor_costs.any? %>
     <div class="card p-6 mb-8">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= t("dashboard.show.cost_by_vendor") %></h2>
+      <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("dashboard.show.cost_by_vendor") %></h2>
       <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
     </div>
   <% end %>
@@ -47,10 +59,10 @@
   <!-- Live Event Feed -->
   <div class="card p-6">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold text-gray-900"><%= t("dashboard.show.recent_events") %></h2>
+      <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.recent_events") %></h2>
       <div class="flex items-center gap-4">
         <% if @unacknowledged_alerts_count > 0 %>
-          <%= link_to alerts_path, class: "text-sm text-red-600 font-medium" do %>
+          <%= link_to alerts_path, class: "text-sm text-red-600 font-medium hover:text-red-700 transition-colors" do %>
             <%= t("dashboard.show.unacknowledged_alerts", count: @unacknowledged_alerts_count) %>
           <% end %>
         <% end %>
@@ -61,13 +73,13 @@
     <div id="event-feed">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b text-left text-gray-500">
-            <th class="py-2 pr-4"><%= t("shared.time") %></th>
-            <th class="py-2 pr-4"><%= t("shared.customer") %></th>
-            <th class="py-2 pr-4"><%= t("shared.event_type") %></th>
-            <th class="py-2 pr-4 text-right"><%= t("shared.revenue") %></th>
-            <th class="py-2 pr-4 text-right"><%= t("shared.cost") %></th>
-            <th class="py-2 text-right"><%= t("shared.margin") %></th>
+          <tr class="border-b border-slate-200 text-left text-slate-500">
+            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.time") %></th>
+            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.customer") %></th>
+            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.event_type") %></th>
+            <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.revenue") %></th>
+            <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.cost") %></th>
+            <th class="py-2.5 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.margin") %></th>
           </tr>
         </thead>
         <tbody id="events-table-body">
@@ -76,7 +88,10 @@
           <% end %>
           <% if @recent_events.empty? %>
             <tr id="no-events-row">
-              <td colspan="6" class="empty-state"><%= t("dashboard.show.no_events") %></td>
+              <td colspan="6" class="empty-state">
+                <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <%= t("dashboard.show.no_events") %>
+              </td>
             </tr>
           <% end %>
         </tbody>
