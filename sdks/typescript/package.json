@@ -12,7 +12,9 @@
       "require": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -21,9 +23,16 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
-  "keywords": ["ai", "llm", "margin", "tracking", "nanoprofit"],
+  "keywords": [
+    "ai",
+    "llm",
+    "margin",
+    "tracking",
+    "nanoprofit"
+  ],
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^25.1.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"
   }

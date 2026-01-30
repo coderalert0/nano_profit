@@ -11,7 +11,7 @@ npm install nanoprofit
 ## Quick start
 
 ```typescript
-import { NanoProfit, extractOpenAI } from "nanoprofit";
+import { NanoProfit } from "nanoprofit";
 import OpenAI from "openai";
 
 const np = new NanoProfit({ apiKey: process.env.NANOPROFIT_API_KEY! });
@@ -24,8 +24,13 @@ const response = await openai.chat.completions.create({
 
 np.track({
   customerExternalId: "cust_123",
-  revenueAmountInCents: 5,
-  vendorCosts: [extractOpenAI(response)],
+  revenueAmountInCents: 500,
+  vendorCosts: [{
+    vendorName: "openai",
+    aiModelName: response.model,
+    inputTokens: response.usage?.prompt_tokens ?? 0,
+    outputTokens: response.usage?.completion_tokens ?? 0,
+  }],
 });
 
 // Before your process exits:
@@ -36,48 +41,61 @@ await np.shutdown();
 
 ```typescript
 const np = new NanoProfit({
-  apiKey: "np_...",          // required
-  baseUrl: "https://...",    // default: https://app.nanoprofit.dev/api/v1
-  flushIntervalMs: 5000,     // default: 5000
-  maxQueueSize: 1000,        // default: 1000
-  batchSize: 25,             // default: 25
-  maxRetries: 3,             // default: 3
+  apiKey: "np_...",               // required
+  baseUrl: "https://...",         // default: https://app.nanoprofit.dev/api/v1
+  flushIntervalMs: 5000,          // default: 5000
+  maxQueueSize: 1000,             // default: 1000
+  batchSize: 25,                  // default: 25
+  maxRetries: 3,                  // default: 3
   defaultEventType: "ai_request", // default: "ai_request"
+  handleSignals: true,            // default: true — auto-flush on SIGTERM/SIGINT
+  onError: (err) => {             // optional error callback
+    console.error(err.message);
+  },
 });
 ```
 
-## Provider helpers
+## Tracking events
 
-Extract token usage from popular AI provider responses:
+Pass vendor cost data directly from your AI provider's response:
 
 ```typescript
-import { extractOpenAI, extractAnthropic, extractGoogle } from "nanoprofit";
-
 // OpenAI
-const openaiCost = extractOpenAI(openaiResponse);
+np.track({
+  customerExternalId: "cust_123",
+  revenueAmountInCents: 500,
+  vendorCosts: [{
+    vendorName: "openai",
+    aiModelName: response.model,
+    inputTokens: response.usage?.prompt_tokens ?? 0,
+    outputTokens: response.usage?.completion_tokens ?? 0,
+  }],
+});
 
 // Anthropic
-const anthropicCost = extractAnthropic(anthropicResponse);
-
-// Google Gemini
-const googleCost = extractGoogle(geminiResponse);
+np.track({
+  customerExternalId: "cust_123",
+  revenueAmountInCents: 500,
+  vendorCosts: [{
+    vendorName: "anthropic",
+    aiModelName: response.model,
+    inputTokens: response.usage?.input_tokens ?? 0,
+    outputTokens: response.usage?.output_tokens ?? 0,
+  }],
+});
 ```
 
-### Groq, Azure, and Bedrock
+For Groq, Azure OpenAI, or AWS Bedrock, use the same fields — just set
+`vendorName` to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
 
-Groq and Azure OpenAI use the same response shape as OpenAI. AWS Bedrock
-(with Anthropic models) uses the same shape as Anthropic. Pass a vendor name
-override to attribute costs to the correct provider:
+## Shutdown
+
+The SDK automatically flushes pending events on `SIGTERM` and `SIGINT`.
+You can disable this with `handleSignals: false` and call `shutdown()`
+manually:
 
 ```typescript
-// Groq (OpenAI-compatible)
-const groqCost = extractOpenAI(groqResponse, "groq");
-
-// Azure OpenAI
-const azureCost = extractOpenAI(azureResponse, "azure");
-
-// AWS Bedrock (Anthropic models)
-const bedrockCost = extractAnthropic(bedrockResponse, "bedrock");
+await np.shutdown();
 ```
 
 ## License

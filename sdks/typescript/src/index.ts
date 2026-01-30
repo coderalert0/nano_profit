@@ -1,11 +1,11 @@
 export { NanoProfit } from "./client.js";
 
 export type {
+  BatchResult,
   EventPayload,
   NanoProfitConfig,
+  NanoProfitError,
   VendorCost,
   WireEvent,
   WireVendorCost,
 } from "./types.js";
-
-export { extractOpenAI, extractAnthropic, extractGoogle } from "./providers/index.js";

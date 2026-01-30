@@ -25,3 +25,10 @@ class Event:
     event_type: str | None = None
     occurred_at: str | None = None
     metadata: dict[str, Any] | None = None
+
+
+@dataclass
+class NanoProfitError:
+    message: str
+    cause: Exception | None = None
+    events: list | None = None

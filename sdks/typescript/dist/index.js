@@ -20,10 +20,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
-  NanoProfit: () => NanoProfit,
-  extractAnthropic: () => extractAnthropic,
-  extractGoogle: () => extractGoogle,
-  extractOpenAI: () => extractOpenAI
+  NanoProfit: () => NanoProfit
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -101,13 +98,7 @@ async function withRetry(fn, options) {
   throw lastError;
 }
 
-// src/client.ts
-var DEFAULT_BASE_URL = "https://app.nanoprofit.dev/api/v1";
-var DEFAULT_FLUSH_INTERVAL_MS = 5e3;
-var DEFAULT_MAX_QUEUE_SIZE = 1e3;
-var DEFAULT_BATCH_SIZE2 = 25;
-var DEFAULT_MAX_RETRIES = 3;
-var DEFAULT_EVENT_TYPE = "ai_request";
+// src/serializer.ts
 function toWireVendorCost(vc) {
   const wire = {
     vendor_name: vc.vendorName,
@@ -137,19 +128,31 @@ function toWireEvent(event, defaultEventType) {
   }
   return wire;
 }
+
+// src/client.ts
+var DEFAULT_BASE_URL = "https://app.nanoprofit.dev/api/v1";
+var DEFAULT_FLUSH_INTERVAL_MS = 5e3;
+var DEFAULT_MAX_QUEUE_SIZE = 1e3;
+var DEFAULT_BATCH_SIZE2 = 25;
+var DEFAULT_MAX_RETRIES = 3;
+var DEFAULT_EVENT_TYPE = "ai_request";
 var NanoProfit = class {
   apiKey;
   baseUrl;
   maxRetries;
   defaultEventType;
+  onError;
   queue;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   flushTimer = null;
+  shutdownPromise = null;
+  signalHandlers = [];
   constructor(config) {
     this.apiKey = config.apiKey;
     this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
     this.defaultEventType = config.defaultEventType ?? DEFAULT_EVENT_TYPE;
+    this.onError = config.onError;
     this.queue = new EventQueue(
       config.maxQueueSize ?? DEFAULT_MAX_QUEUE_SIZE,
       config.batchSize ?? DEFAULT_BATCH_SIZE2
@@ -160,6 +163,17 @@ var NanoProfit = class {
     }, intervalMs);
     if (this.flushTimer && typeof this.flushTimer.unref === "function") {
       this.flushTimer.unref();
+    }
+    if (config.handleSignals !== false && typeof process !== "undefined" && process.on) {
+      for (const signal of ["SIGTERM", "SIGINT"]) {
+        const handler = () => {
+          void this.shutdown().then(() => {
+            process.exit(0);
+          });
+        };
+        process.on(signal, handler);
+        this.signalHandlers.push({ signal, handler });
+      }
     }
   }
   /**
@@ -192,70 +206,80 @@ var NanoProfit = class {
    * Call this before your process exits.
    */
   async shutdown() {
-    if (this.flushTimer !== null) {
-      clearInterval(this.flushTimer);
-      this.flushTimer = null;
+    if (this.shutdownPromise !== null) {
+      return this.shutdownPromise;
     }
-    await this.flush();
+    this.shutdownPromise = (async () => {
+      if (this.flushTimer !== null) {
+        clearInterval(this.flushTimer);
+        this.flushTimer = null;
+      }
+      for (const { signal, handler } of this.signalHandlers) {
+        process.removeListener(signal, handler);
+      }
+      this.signalHandlers = [];
+      await this.flush();
+    })();
+    return this.shutdownPromise;
   }
   /** Send a single batch of events to the API with retry. */
   async sendBatch(events) {
-    await Promise.allSettled(
-      events.map(
-        (wireEvent) => withRetry(
-          async () => {
-            const response = await fetch(`${this.baseUrl}/events`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.apiKey}`
-              },
-              body: JSON.stringify({ event: wireEvent })
-            });
-            if (!response.ok) {
-              throw response;
-            }
-          },
-          { maxRetries: this.maxRetries }
-        )
-      )
-    );
+    try {
+      const response = await withRetry(
+        async () => {
+          const res = await fetch(`${this.baseUrl}/events`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify({ events })
+          });
+          if (res.status >= 500) {
+            throw res;
+          }
+          return res;
+        },
+        { maxRetries: this.maxRetries }
+      );
+      if (response.status === 207) {
+        const body = await response.json();
+        const failed = body.results.filter((r) => r.status === "error");
+        if (failed.length > 0) {
+          this.reportError({
+            message: `Batch partially failed: ${failed.length} of ${body.results.length} events had errors`,
+            events
+          });
+        }
+        return;
+      }
+      if (!response.ok) {
+        let errorMessage = `Batch request failed with status ${response.status}`;
+        try {
+          const body = await response.json();
+          if (body.error) errorMessage = body.error;
+        } catch {
+        }
+        this.reportError({ message: errorMessage, events });
+      }
+    } catch (err) {
+      this.reportError({
+        message: "Batch request failed after retries",
+        cause: err,
+        events
+      });
+    }
+  }
+  /** Call the onError callback if configured, swallowing any errors from the callback. */
+  reportError(error) {
+    if (!this.onError) return;
+    try {
+      this.onError(error);
+    } catch {
+    }
   }
 };
-
-// src/providers/openai.ts
-function extractOpenAI(response, vendorName) {
-  return {
-    vendorName: vendorName ?? "openai",
-    aiModelName: response.model,
-    inputTokens: response.usage?.prompt_tokens ?? 0,
-    outputTokens: response.usage?.completion_tokens ?? 0
-  };
-}
-
-// src/providers/anthropic.ts
-function extractAnthropic(response, vendorName) {
-  return {
-    vendorName: vendorName ?? "anthropic",
-    aiModelName: response.model,
-    inputTokens: response.usage?.input_tokens ?? 0,
-    outputTokens: response.usage?.output_tokens ?? 0
-  };
-}
-
-// src/providers/google.ts
-function extractGoogle(response, vendorName) {
-  return {
-    vendorName: vendorName ?? "gemini",
-    aiModelName: response.modelVersion ?? "",
-    inputTokens: response.usageMetadata?.promptTokenCount ?? 0,
-    outputTokens: response.usageMetadata?.candidatesTokenCount ?? 0
-  };
-}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  NanoProfit,
-  extractAnthropic,
-  extractGoogle,
-  extractOpenAI
+  NanoProfit
 });

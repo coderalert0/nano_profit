@@ -21,6 +21,20 @@ export interface EventPayload {
   metadata?: Record<string, unknown>;
 }
 
+/** Error information surfaced via the `onError` callback. */
+export interface NanoProfitError {
+  message: string;
+  cause?: unknown;
+  events?: WireEvent[];
+}
+
+/** Per-event result returned by the batch API. */
+export interface BatchResult {
+  id: number;
+  status: string;
+  errors?: string[];
+}
+
 /** SDK configuration options. */
 export interface NanoProfitConfig {
   apiKey: string;
@@ -30,6 +44,8 @@ export interface NanoProfitConfig {
   batchSize?: number;
   maxRetries?: number;
   defaultEventType?: string;
+  onError?: (error: NanoProfitError) => void;
+  handleSignals?: boolean;
 }
 
 /** Internal wire format for vendor costs (snake_case). */

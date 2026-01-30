@@ -19,6 +19,18 @@ interface EventPayload {
     occurredAt?: string;
     metadata?: Record<string, unknown>;
 }
+/** Error information surfaced via the `onError` callback. */
+interface NanoProfitError {
+    message: string;
+    cause?: unknown;
+    events?: WireEvent[];
+}
+/** Per-event result returned by the batch API. */
+interface BatchResult {
+    id: number;
+    status: string;
+    errors?: string[];
+}
 /** SDK configuration options. */
 interface NanoProfitConfig {
     apiKey: string;
@@ -28,6 +40,8 @@ interface NanoProfitConfig {
     batchSize?: number;
     maxRetries?: number;
     defaultEventType?: string;
+    onError?: (error: NanoProfitError) => void;
+    handleSignals?: boolean;
 }
 /** Internal wire format for vendor costs (snake_case). */
 interface WireVendorCost {
@@ -63,8 +77,11 @@ declare class NanoProfit {
     private readonly baseUrl;
     private readonly maxRetries;
     private readonly defaultEventType;
+    private readonly onError?;
     private readonly queue;
     private flushTimer;
+    private shutdownPromise;
+    private signalHandlers;
     constructor(config: NanoProfitConfig);
     /**
      * Enqueue an event for delivery. This method is synchronous and will
@@ -86,30 +103,8 @@ declare class NanoProfit {
     shutdown(): Promise<void>;
     /** Send a single batch of events to the API with retry. */
     private sendBatch;
+    /** Call the onError callback if configured, swallowing any errors from the callback. */
+    private reportError;
 }
 
-/**
- * Extract token usage from an OpenAI chat/completion response object.
- *
- * @param response - The raw response from the OpenAI SDK.
- * @param vendorName - Optional override for the vendor name (defaults to `"openai"`).
- */
-declare function extractOpenAI(response: any, vendorName?: string): VendorCost;
-
-/**
- * Extract token usage from an Anthropic message response object.
- *
- * @param response - The raw response from the Anthropic SDK.
- * @param vendorName - Optional override for the vendor name (defaults to `"anthropic"`).
- */
-declare function extractAnthropic(response: any, vendorName?: string): VendorCost;
-
-/**
- * Extract token usage from a Google Gemini response object.
- *
- * @param response - The raw response from the Google AI SDK.
- * @param vendorName - Optional override for the vendor name (defaults to `"gemini"`).
- */
-declare function extractGoogle(response: any, vendorName?: string): VendorCost;
-
-export { type EventPayload, NanoProfit, type NanoProfitConfig, type VendorCost, type WireEvent, type WireVendorCost, extractAnthropic, extractGoogle, extractOpenAI };
+export { type BatchResult, type EventPayload, NanoProfit, type NanoProfitConfig, type NanoProfitError, type VendorCost, type WireEvent, type WireVendorCost };

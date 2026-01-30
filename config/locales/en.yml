@@ -61,8 +61,13 @@ en:
   documentation:
     show:
       title: "Documentation"
-      api_usage: "API Usage"
-      api_usage_description: "Send events to <code class=\"bg-gray-100 px-1 rounded\">POST /api/v1/events</code>"
+      sdk_setup: "Installation"
+      sdk_setup_description: "Install the NanoProfit SDK for your language."
+      typescript_usage: "TypeScript"
+      typescript_usage_description: "Track events using the NanoProfit TypeScript SDK."
+      python_usage: "Python"
+      python_usage_description: "Track events using the NanoProfit Python SDK."
+      vendor_costs: "Vendor Cost Calculation"
   settings:
     show:
       title: "Settings"

@@ -12,66 +12,86 @@ pip install nanoprofit
 
 ```python
 import asyncio
-from nanoprofit import NanoProfit, Event, VendorCost, extract_openai
+from openai import AsyncOpenAI
+from nanoprofit import NanoProfit, Event, VendorCost
 
 async def main():
+    openai = AsyncOpenAI()
+
     async with NanoProfit(api_key="np_your_api_key") as np:
-        # Track an event with manual vendor costs
+        response = await openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "Hello!"}],
+        )
+
         np.track(Event(
             customer_external_id="cust_123",
             revenue_amount_in_cents=500,
             vendor_costs=[
                 VendorCost(
                     vendor_name="openai",
-                    ai_model_name="gpt-4o",
-                    input_tokens=150,
-                    output_tokens=350,
+                    ai_model_name=response.model,
+                    input_tokens=response.usage.prompt_tokens,
+                    output_tokens=response.usage.completion_tokens,
                 )
             ],
         ))
-
-        # Or extract costs from an OpenAI response automatically
-        # response = await openai_client.chat.completions.create(...)
-        # cost = extract_openai(response)
-        # np.track(Event(
-        #     customer_external_id="cust_123",
-        #     revenue_amount_in_cents=500,
-        #     vendor_costs=[cost],
-        # ))
 
     # Events are automatically flushed when exiting the context manager.
 
 asyncio.run(main())
 ```
 
-## Provider Extractors
+## Tracking events
 
-The SDK includes helper functions to extract `VendorCost` objects from
-popular AI provider response objects:
+Pass vendor cost data directly from your AI provider's response:
 
 ```python
-from nanoprofit import extract_openai, extract_anthropic, extract_google
+# OpenAI
+np.track(Event(
+    customer_external_id="cust_123",
+    revenue_amount_in_cents=500,
+    vendor_costs=[
+        VendorCost(
+            vendor_name="openai",
+            ai_model_name=response.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+        )
+    ],
+))
 
-cost = extract_openai(openai_response)
-cost = extract_anthropic(anthropic_response)
-cost = extract_google(gemini_response)
+# Anthropic
+np.track(Event(
+    customer_external_id="cust_123",
+    revenue_amount_in_cents=500,
+    vendor_costs=[
+        VendorCost(
+            vendor_name="anthropic",
+            ai_model_name=response.model,
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+        )
+    ],
+))
 ```
 
-### Groq, Azure, and Bedrock
+For Groq, Azure OpenAI, or AWS Bedrock, use the same fields — just set
+`vendor_name` to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
 
-Groq and Azure OpenAI use the same response shape as OpenAI. AWS Bedrock
-(with Anthropic models) uses the same shape as Anthropic. Pass a vendor name
-override to attribute costs to the correct provider:
+## Configuration
 
 ```python
-# Groq (OpenAI-compatible)
-cost = extract_openai(groq_response, vendor_name="groq")
-
-# Azure OpenAI
-cost = extract_openai(azure_response, vendor_name="azure")
-
-# AWS Bedrock (Anthropic models)
-cost = extract_anthropic(bedrock_response, vendor_name="bedrock")
+NanoProfit(
+    api_key="np_...",               # required
+    base_url="https://...",         # default: https://app.nanoprofit.dev/api/v1
+    flush_interval=5.0,             # default: 5.0 seconds
+    max_queue_size=1000,            # default: 1000
+    batch_size=25,                  # default: 25
+    max_retries=3,                  # default: 3
+    default_event_type="ai_request",# default: "ai_request"
+    on_error=lambda err: print(err.message),  # optional error callback
+)
 ```
 
 ## Manual Flush and Shutdown
