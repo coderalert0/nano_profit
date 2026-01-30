@@ -1,17 +1,20 @@
 module Admin
   class VendorRatesController < BaseController
+    include Paginatable
+
     before_action :set_vendor_rate, only: %i[edit update destroy]
 
-    SORTABLE_COLUMNS = %w[vendor_name ai_model_name input_rate_per_1k output_rate_per_1k unit_type active].freeze
-
     def index
-      @vendor_rates = VendorRate.includes(:organization)
-      @vendor_rates = @vendor_rates.where("vendor_name ILIKE ?", "%#{params[:vendor]}%") if params[:vendor].present?
-      @vendor_rates = @vendor_rates.where("ai_model_name ILIKE ?", "%#{params[:model]}%") if params[:model].present?
+      scope = VendorRate.includes(:organization)
+      scope = scope.where("vendor_name ILIKE ?", "%#{params[:vendor]}%") if params[:vendor].present?
+      scope = scope.where("ai_model_name ILIKE ?", "%#{params[:model]}%") if params[:model].present?
+      scope = scope.order(vendor_name: :asc, ai_model_name: :asc)
 
-      @sort_column = SORTABLE_COLUMNS.include?(params[:sort]) ? params[:sort] : "vendor_name"
-      @sort_direction = %w[asc desc].include?(params[:direction]) ? params[:direction] : "asc"
-      @vendor_rates = @vendor_rates.order(@sort_column => @sort_direction)
+      @vendor_rates = paginate(scope)
+
+      if infinite_scroll_request?
+        render partial: "rows", locals: { vendor_rates: @vendor_rates, page: @page, total_pages: @total_pages }, layout: false
+      end
     end
 
     def new

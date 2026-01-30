@@ -1,0 +1,44 @@
+<% price_drifts.each do |drift| %>
+  <tr class="border-b hover:bg-gray-50">
+    <td class="py-3 px-4 font-medium text-gray-900"><%= drift.vendor_name %></td>
+    <td class="py-3 px-4 font-mono text-gray-700"><%= drift.ai_model_name %></td>
+    <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.old_input_rate, precision: 6) %></td>
+    <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.new_input_rate, precision: 6) %></td>
+    <td class="py-3 px-4 text-right font-mono">
+      <% pct = drift.input_drift_pct %>
+      <span class="<%= pct.negative? ? 'text-green-600' : 'text-red-600' %>">
+        <%= pct.positive? ? "+" : "" %><%= number_with_precision(pct, precision: 1) %>%
+      </span>
+    </td>
+    <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.old_output_rate, precision: 6) %></td>
+    <td class="py-3 px-4 text-right font-mono"><%= number_with_precision(drift.new_output_rate, precision: 6) %></td>
+    <td class="py-3 px-4 text-right font-mono">
+      <% pct = drift.output_drift_pct %>
+      <span class="<%= pct.negative? ? 'text-green-600' : 'text-red-600' %>">
+        <%= pct.positive? ? "+" : "" %><%= number_with_precision(pct, precision: 1) %>%
+      </span>
+    </td>
+    <td class="py-3 px-4">
+      <% if drift.pending? %>
+        <span class="inline-flex items-center bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full">Pending</span>
+      <% elsif drift.applied? %>
+        <span class="inline-flex items-center bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Applied</span>
+      <% else %>
+        <span class="inline-flex items-center bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">Ignored</span>
+      <% end %>
+    </td>
+    <td class="py-3 px-4">
+      <% if drift.pending? %>
+        <div class="flex items-center justify-end gap-2">
+          <%= button_to "Apply", apply_admin_price_drift_path(drift), method: :patch, class: "bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium cursor-pointer" %>
+          <%= button_to "Ignore", ignore_admin_price_drift_path(drift), method: :patch, class: "bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-medium cursor-pointer" %>
+        </div>
+      <% end %>
+    </td>
+  </tr>
+<% end %>
+<% if page < total_pages %>
+  <tr data-infinite-scroll-target="sentinel" class="sentinel">
+    <td colspan="10" class="py-4 text-center text-sm text-gray-400">Loading more...</td>
+  </tr>
+<% end %>

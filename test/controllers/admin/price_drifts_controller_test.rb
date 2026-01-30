@@ -28,6 +28,15 @@ class Admin::PriceDriftsControllerTest < ActionDispatch::IntegrationTest
     assert_select "table"
   end
 
+  # --- Infinite Scroll ---
+
+  test "infinite scroll request returns rows partial" do
+    get admin_price_drifts_url, params: { page: 1 },
+      headers: auth_headers(@admin_session).merge("Turbo-Frame" => "infinite-scroll-rows")
+    assert_response :success
+    assert_select "h1", count: 0
+  end
+
   # --- Apply ---
 
   test "admin can apply a pending drift" do
