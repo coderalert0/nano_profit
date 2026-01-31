@@ -58,6 +58,9 @@ module Api
         if event.previously_new_record?
           ProcessEventJob.perform_later(event.id)
           { id: event.id, status: "created" }
+        elsif event.status == "pending"
+          ProcessEventJob.perform_later(event.id)
+          { id: event.id, status: "duplicate" }
         else
           { id: event.id, status: "duplicate" }
         end

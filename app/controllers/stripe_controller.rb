@@ -28,7 +28,7 @@ class StripeController < ApplicationController
       stripe_access_token: response.access_token
     )
 
-    Stripe::SubscriptionSyncService.new(organization).sync
+    StripeSyncJob.perform_later(organization.id)
 
     redirect_to settings_path, notice: t("controllers.stripe.connected")
   rescue Stripe::OAuth::InvalidGrantError, Stripe::StripeError => e
@@ -43,7 +43,7 @@ class StripeController < ApplicationController
       return
     end
 
-    Stripe::SubscriptionSyncService.new(organization).sync
+    StripeSyncJob.perform_later(organization.id)
     redirect_to settings_path, notice: t("controllers.stripe.sync_complete")
   end
 
