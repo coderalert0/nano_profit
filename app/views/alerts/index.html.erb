@@ -37,7 +37,7 @@
     <% end %>
 
     <div class="ml-auto">
-      <%= button_to t("alerts.index.acknowledge_all"), acknowledge_all_admin_margin_alerts_path, method: :patch, class: "btn-primary text-xs", data: { turbo_confirm: t("alerts.index.acknowledge_all_confirm") } %>
+      <%= button_to t("alerts.index.acknowledge_all"), acknowledge_all_margin_alerts_path, method: :patch, class: "btn-primary text-xs", data: { turbo_confirm: t("alerts.index.acknowledge_all_confirm") } %>
     </div>
   </div>
 </div>
@@ -57,7 +57,7 @@
       </tr>
     </thead>
     <tbody data-infinite-scroll-target="tbody">
-      <%= render "rows", alerts: @alerts, page: @page, total_pages: @total_pages %>
+      <%= render "rows", alerts: @alerts, page: @page, total_pages: @total_pages, alert_customers: @alert_customers %>
       <% if @alerts.empty? %>
         <tr>
           <td colspan="6" class="empty-state">

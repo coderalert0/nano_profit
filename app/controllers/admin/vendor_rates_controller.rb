@@ -14,8 +14,12 @@ module Admin
       scope = scope.where(ai_model_name: @selected_models) if @selected_models.any?
       scope = scope.order(vendor_name: :asc, ai_model_name: :asc)
 
-      @vendors = VendorRate.distinct.pluck(:vendor_name).sort
-      @models = VendorRate.distinct.pluck(:ai_model_name).sort
+      @vendors = Rails.cache.fetch("vendor_rates:vendor_names", expires_in: 1.hour) do
+        VendorRate.distinct.pluck(:vendor_name).sort
+      end
+      @models = Rails.cache.fetch("vendor_rates:model_names", expires_in: 1.hour) do
+        VendorRate.distinct.pluck(:ai_model_name).sort
+      end
 
       @vendor_rates = paginate(scope)
 
@@ -32,6 +36,7 @@ module Admin
       @vendor_rate = VendorRate.new(vendor_rate_params)
 
       if @vendor_rate.save
+        clear_vendor_rate_cache
         redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.created")
       else
         render :new, status: :unprocessable_entity
@@ -43,6 +48,7 @@ module Admin
 
     def update
       if @vendor_rate.update(vendor_rate_params)
+        clear_vendor_rate_cache
         redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.updated")
       else
         render :edit, status: :unprocessable_entity
@@ -51,6 +57,7 @@ module Admin
 
     def destroy
       @vendor_rate.destroy!
+      clear_vendor_rate_cache
       redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.deleted")
     end
 
@@ -58,6 +65,11 @@ module Admin
 
     def set_vendor_rate
       @vendor_rate = VendorRate.find(params[:id])
+    end
+
+    def clear_vendor_rate_cache
+      Rails.cache.delete("vendor_rates:vendor_names")
+      Rails.cache.delete("vendor_rates:model_names")
     end
 
     def vendor_rate_params

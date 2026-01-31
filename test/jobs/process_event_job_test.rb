@@ -98,7 +98,7 @@ class ProcessEventJobTest < ActiveSupport::TestCase
     EventProcessor.define_method(:call, original_call) if original_call
   end
 
-  test "RuntimeError marks event as failed" do
+  test "RateNotFoundError marks event as failed" do
     org = organizations(:acme)
     event = org.events.create!(
       unique_request_token: "req_runtime_#{SecureRandom.hex(4)}",
@@ -112,7 +112,7 @@ class ProcessEventJobTest < ActiveSupport::TestCase
       status: "customer_linked"
     )
 
-    assert_raises(RuntimeError) do
+    assert_raises(EventProcessor::RateNotFoundError) do
       ProcessEventJob.perform_now(event.id)
     end
 

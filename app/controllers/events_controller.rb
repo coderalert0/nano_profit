@@ -18,11 +18,13 @@ class EventsController < ApplicationController
       events = events.joins(:cost_entries).where(cost_entries: { vendor_name: @selected_vendors }).distinct
     end
 
-    @event_types = Current.organization.events.processed
-      .distinct.pluck(:event_type).sort
-    @customers = Current.organization.customers.order(:name)
-    @vendors = CostEntry.where(event_id: Current.organization.events.processed.select(:id))
-      .distinct.pluck(:vendor_name).sort
+    unless request.headers["Turbo-Frame"] == "infinite-scroll-rows"
+      @event_types = Current.organization.events.processed
+        .distinct.pluck(:event_type).sort
+      @customers = Current.organization.customers.order(:name)
+      @vendors = CostEntry.where(event_id: Current.organization.events.processed.select(:id))
+        .distinct.pluck(:vendor_name).sort
+    end
 
     @total_count = events.count
     @total_pages = (@total_count.to_f / PER_PAGE).ceil

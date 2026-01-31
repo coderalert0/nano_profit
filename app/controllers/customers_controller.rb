@@ -21,7 +21,7 @@ class CustomersController < ApplicationController
 
     @margin = MarginCalculator.customer_margin(@customer, @period)
 
-    customer_events = @customer.events.processed
+    customer_events = @customer.events.processed.includes(:cost_entries)
     customer_events = customer_events.where(occurred_at: @period) if @period
     @event_type_margins = customer_events
       .group(:event_type)

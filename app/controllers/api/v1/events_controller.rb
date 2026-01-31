@@ -57,12 +57,12 @@ module Api
 
         if event.previously_new_record?
           ProcessEventJob.perform_later(event.id)
-          { id: event.id, status: "created" }
+          { id: event.id, unique_request_token: event.unique_request_token, status: "created" }
         elsif event.status == "pending"
           ProcessEventJob.perform_later(event.id)
-          { id: event.id, status: "duplicate" }
+          { id: event.id, unique_request_token: event.unique_request_token, status: "duplicate" }
         else
-          { id: event.id, status: "duplicate" }
+          { id: event.id, unique_request_token: event.unique_request_token, status: "duplicate" }
         end
       rescue ActiveRecord::RecordInvalid => e
         { status: "error", errors: e.record.errors.full_messages }

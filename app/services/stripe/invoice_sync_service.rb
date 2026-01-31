@@ -84,8 +84,9 @@ module Stripe
 
       # 2. Try to link via metadata.external_id
       stripe_customer = resolve_stripe_customer(invoice)
-      external_id = stripe_customer.respond_to?(:metadata) && stripe_customer.metadata&.respond_to?(:[]) ?
-        stripe_customer.metadata["external_id"] : nil
+      external_id = if stripe_customer && stripe_customer.respond_to?(:metadata) && stripe_customer.metadata&.respond_to?(:[])
+        stripe_customer.metadata["external_id"]
+      end
 
       if external_id.present?
         by_external = @organization.customers.find_by(external_id: external_id)
@@ -97,7 +98,7 @@ module Stripe
 
       # 3. Create new customer (handle race condition)
       @organization.customers.create_or_find_by!(external_id: stripe_cust_id) do |c|
-        c.name = stripe_customer.name || stripe_customer.email
+        c.name = stripe_customer&.name || stripe_customer&.email || stripe_cust_id
         c.stripe_customer_id = stripe_cust_id
       end
     rescue ActiveRecord::RecordInvalid => e

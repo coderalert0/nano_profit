@@ -55,7 +55,7 @@ class EventProcessorTest < ActiveSupport::TestCase
       occurred_at: Time.current
     )
 
-    assert_raises(RuntimeError, /No vendor rate found/) do
+    assert_raises(EventProcessor::RateNotFoundError) do
       EventProcessor.new(event).call
     end
   end

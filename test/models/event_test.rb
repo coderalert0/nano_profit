@@ -34,7 +34,6 @@ class EventTest < ActiveSupport::TestCase
   test "scopes work correctly" do
     assert_includes Event.processed, events(:processed_event)
     assert_not_includes Event.processed, events(:pending_event)
-    assert_includes Event.pending, events(:pending_event)
   end
 
   test "validates status inclusion" do

@@ -14,11 +14,17 @@ class ProcessEventJob < ApplicationJob
     broadcast_update(event)
   rescue ActiveRecord::RecordNotFound
     # Event was deleted between enqueue and perform; nothing to do
+  rescue EventProcessor::RateNotFoundError => e
+    Rails.logger.error("Event #{event_id} failed: #{e.message}")
+    event&.update_column(:status, "failed") if event&.persisted?
+    raise
   rescue RuntimeError => e
+    Rails.logger.error("Event #{event_id} failed: #{e.message}")
     event&.update_column(:status, "failed") if event&.persisted?
     raise
   rescue => e
     # Transient error — leave status unchanged so SolidQueue can retry
+    Rails.logger.warn("Event #{event_id} transient error: #{e.class} - #{e.message}")
     raise
   end
 
@@ -43,6 +49,10 @@ class ProcessEventJob < ApplicationJob
 
       event.update!(customer: customer, status: "customer_linked")
     end
+  rescue ActiveRecord::RecordNotUnique
+    # Race condition: another job created the customer concurrently. Retry the lookup.
+    customer = event.organization.customers.find_by!(external_id: event.customer_external_id)
+    event.update!(customer: customer, status: "customer_linked")
   end
 
   def process_costs(event)

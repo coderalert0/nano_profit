@@ -34,8 +34,8 @@ class StripeController < ApplicationController
     StripeSyncJob.perform_later(organization.id)
 
     redirect_to settings_path, notice: t("controllers.stripe.connected")
-  rescue Stripe::OAuth::InvalidGrantError, Stripe::StripeError => e
-    Rails.logger.error("Stripe OAuth error: #{e.message}")
+  rescue Stripe::StripeError => e
+    Rails.logger.error("Stripe OAuth error: #{e.class} - #{e.message}")
     redirect_to settings_path, alert: t("controllers.stripe.error")
   end
 

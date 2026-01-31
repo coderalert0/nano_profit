@@ -1,5 +1,5 @@
 <% alerts.each do |alert| %>
-  <%= render partial: "alerts/alert_row", locals: { alert: alert } %>
+  <%= render partial: "alerts/alert_row", locals: { alert: alert, alert_customers: alert_customers } %>
 <% end %>
 <% if page < total_pages %>
   <tr data-infinite-scroll-target="sentinel" class="sentinel">

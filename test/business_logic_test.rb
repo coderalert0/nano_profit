@@ -33,31 +33,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
     assert_equal margin.revenue_in_cents - margin.cost_in_cents, margin.margin_in_cents
   end
 
-  # ─── Fix #4: events_date_range off-by-one ───────────────────────────
-
-  test "events_date_range includes the last day of events" do
-    org = organizations(:acme)
-    events = org.events.processed
-
-    range = MarginCalculator.send(:events_date_range, events)
-    return if range.nil? # no events in test data
-
-    latest_event = events.order(occurred_at: :desc).first
-    assert range.cover?(latest_event.occurred_at.to_date),
-      "Date range #{range} should cover last event date #{latest_event.occurred_at.to_date}"
-  end
-
-  test "events_date_range end is at least one day after earliest event" do
-    org = organizations(:acme)
-    events = org.events.processed
-    range = MarginCalculator.send(:events_date_range, events)
-    return if range.nil?
-
-    earliest = events.order(occurred_at: :asc).first.occurred_at.to_date
-    assert range.last > earliest,
-      "End date #{range.last} should be after earliest event #{earliest}"
-  end
-
   test "invoice proration for full period returns full amount" do
     customer = customers(:customer_with_subscription)
     # monthly_invoice fixture: Jan 1 - Feb 1 for 5000 cents

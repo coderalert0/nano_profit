@@ -24,13 +24,14 @@ Rails.application.routes.draw do
         patch :update_threshold
       end
     end
-    resources :margin_alerts, only: [] do
-      member do
-        patch :acknowledge
-      end
-      collection do
-        patch :acknowledge_all
-      end
+  end
+
+  resources :margin_alerts, only: [] do
+    member do
+      patch :acknowledge
+    end
+    collection do
+      patch :acknowledge_all
     end
   end
 

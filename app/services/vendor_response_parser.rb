@@ -73,10 +73,17 @@ class VendorResponseParser
   def parse_google
     model = @response[:modelVersion] || @response[:model_version] || @response[:model]
     usage = @response[:usageMetadata] || @response[:usage_metadata] || {}
+    input_raw = usage[:promptTokenCount] || usage[:prompt_token_count]
+    output_raw = usage[:candidatesTokenCount] || usage[:candidates_token_count]
+
+    if input_raw.nil? && output_raw.nil? && usage.present?
+      Rails.logger.warn("Google vendor response missing token counts: #{usage.keys}")
+    end
+
     {
       "ai_model_name" => model.to_s.presence || "unknown",
-      "input_tokens" => (usage[:promptTokenCount] || usage[:prompt_token_count]).to_i,
-      "output_tokens" => (usage[:candidatesTokenCount] || usage[:candidates_token_count]).to_i
+      "input_tokens" => input_raw.to_i,
+      "output_tokens" => output_raw.to_i
     }
   end
 end

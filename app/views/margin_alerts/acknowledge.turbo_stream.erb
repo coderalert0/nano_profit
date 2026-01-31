@@ -1,0 +1,4 @@
+<%= turbo_stream.replace dom_id(@alert) do %>
+  <% customer = @alert.customer? ? @alert.organization.customers.find_by(id: @alert.dimension_value) : nil %>
+  <%= render partial: "alerts/alert_row", locals: { alert: @alert, alert_customers: { @alert.dimension_value => customer }.compact } %>
+<% end %>

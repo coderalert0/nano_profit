@@ -52,12 +52,6 @@ class MarginCalculator
       end
   end
 
-  def self.event_type_margin(organization, event_type, period = nil)
-    events = organization.events.processed.where(event_type: event_type)
-    events = events.where(occurred_at: period) if period
-    calculate(events)
-  end
-
   def self.organization_margin(organization, period = nil)
     events = organization.events.processed
     events = events.where(occurred_at: period) if period
@@ -204,12 +198,5 @@ class MarginCalculator
     end
   end
 
-  def self.events_date_range(events_scope)
-    range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
-    return nil unless range&.first && range&.last
-    # Add 1 day to make the range inclusive of the last day's events
-    range.first.to_date..(range.last.to_date + 1.day)
-  end
-
-  private_class_method :calculate, :invoice_revenue_for_period, :events_date_range
+  private_class_method :calculate, :invoice_revenue_for_period
 end

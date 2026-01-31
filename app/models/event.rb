@@ -11,7 +11,6 @@ class Event < ApplicationRecord
   validate :occurred_at_within_bounds
 
   scope :processed, -> { where(status: "processed") }
-  scope :pending, -> { where(status: "pending") }
   scope :recent, -> { order(occurred_at: :desc) }
 
   private

@@ -1,4 +1,6 @@
 class EventProcessor
+  class RateNotFoundError < StandardError; end
+
   def initialize(event)
     @event = event
   end
@@ -25,7 +27,7 @@ class EventProcessor
       organization: @event.organization
     )
 
-    raise "No vendor rate found for vendor '#{vendor_name}', ai_model_name '#{ai_model_name}'" unless rate
+    raise RateNotFoundError, "No vendor rate found for vendor '#{vendor_name}', ai_model_name '#{ai_model_name}'" unless rate
 
     amount = (input_tokens * rate.input_rate_per_1k / 1000) +
              (output_tokens * rate.output_rate_per_1k / 1000)
