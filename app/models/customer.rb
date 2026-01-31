@@ -1,7 +1,6 @@
 class Customer < ApplicationRecord
   belongs_to :organization
   has_many :events, dependent: :destroy
-  has_many :margin_alerts, dependent: :destroy
 
   validates :external_id, presence: true, uniqueness: { scope: :organization_id }
   validates :stripe_customer_id, uniqueness: { scope: :organization_id }, allow_nil: true

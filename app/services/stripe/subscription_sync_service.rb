@@ -120,6 +120,9 @@ module Stripe
         c.name = stripe_customer.name || stripe_customer.email
         c.stripe_customer_id = stripe_customer_id
       end
+    rescue ActiveRecord::RecordInvalid => e
+      raise unless e.record.errors[:external_id]&.any?
+      @organization.customers.find_by!(external_id: stripe_customer_id)
     end
   end
 end
