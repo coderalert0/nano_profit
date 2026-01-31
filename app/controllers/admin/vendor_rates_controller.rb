@@ -5,7 +5,7 @@ module Admin
     before_action :set_vendor_rate, only: %i[edit update destroy]
 
     def index
-      scope = VendorRate.where(organization_id: [nil, Current.organization.id]).includes(:organization)
+      scope = VendorRate.where(organization_id: [ nil, Current.organization.id ]).includes(:organization)
 
       @selected_vendors = Array(params[:vendor]).reject(&:blank?)
       @selected_models = Array(params[:model]).reject(&:blank?)
@@ -14,8 +14,8 @@ module Admin
       scope = scope.where(ai_model_name: @selected_models) if @selected_models.any?
       scope = scope.order(vendor_name: :asc, ai_model_name: :asc)
 
-      @vendors = VendorRate.where(organization_id: [nil, Current.organization.id]).distinct.pluck(:vendor_name).sort
-      @models = VendorRate.where(organization_id: [nil, Current.organization.id]).distinct.pluck(:ai_model_name).sort
+      @vendors = VendorRate.where(organization_id: [ nil, Current.organization.id ]).distinct.pluck(:vendor_name).sort
+      @models = VendorRate.where(organization_id: [ nil, Current.organization.id ]).distinct.pluck(:ai_model_name).sort
 
       @vendor_rates = paginate(scope)
 
@@ -57,7 +57,7 @@ module Admin
     private
 
     def set_vendor_rate
-      @vendor_rate = VendorRate.where(organization_id: [nil, Current.organization.id]).find(params[:id])
+      @vendor_rate = VendorRate.where(organization_id: [ nil, Current.organization.id ]).find(params[:id])
     end
 
     def vendor_rate_params

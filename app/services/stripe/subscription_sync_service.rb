@@ -59,7 +59,7 @@ module Stripe
 
       case price.recurring&.interval
       when "month"
-        count = [(price.recurring.interval_count || 1).to_i, 1].max
+        count = [ (price.recurring.interval_count || 1).to_i, 1 ].max
         price.unit_amount.to_d / count
       when "year"
         price.unit_amount.to_d / 12
@@ -84,7 +84,7 @@ module Stripe
 
         # Zero out revenue for customers whose subscriptions are no longer active
         @organization.customers
-          .where.not(stripe_customer_id: [nil, ""])
+          .where.not(stripe_customer_id: [ nil, "" ])
           .where.not(stripe_customer_id: synced_stripe_ids.to_a)
           .update_all(monthly_subscription_revenue_in_cents: 0)
       end

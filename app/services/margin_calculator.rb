@@ -206,7 +206,7 @@ class MarginCalculator
   def self.events_date_range(events_scope)
     range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
     return nil unless range&.first && range&.last
-    end_date = [range.last.to_date + 1.day, range.first.to_date + 1.day].max
+    end_date = [ range.last.to_date + 1.day, range.first.to_date + 1.day ].max
     range.first.to_date..end_date
   end
 
