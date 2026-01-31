@@ -3,6 +3,7 @@ class ProcessEventJob < ApplicationJob
 
   def perform(event_id)
     event = Event.find(event_id)
+    return if event.status.in?(%w[processed failed])
 
     link_customer(event) if event.status == "pending"
     process_costs(event) if event.status == "customer_linked"

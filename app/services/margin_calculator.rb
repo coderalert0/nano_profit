@@ -19,7 +19,7 @@ class MarginCalculator
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
       subscription_revenue_in_cents: sub_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
@@ -45,7 +45,7 @@ class MarginCalculator
             revenue_in_cents: revenue,
             cost_in_cents: cost,
             margin_in_cents: margin,
-            margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
+            margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).round.to_i : 0,
             subscription_revenue_in_cents: 0,
             event_revenue_in_cents: revenue
           )
@@ -74,7 +74,7 @@ class MarginCalculator
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
       subscription_revenue_in_cents: sub_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
@@ -122,7 +122,7 @@ class MarginCalculator
             revenue_in_cents: total_revenue,
             cost_in_cents: cost,
             margin_in_cents: total_margin,
-            margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
+            margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
             subscription_revenue_in_cents: sub_revenue,
             event_revenue_in_cents: event_revenue
           )
@@ -158,9 +158,10 @@ class MarginCalculator
     events = events.where(occurred_at: period) if period
 
     CostEntry.where(event_id: events.select(:id))
-      .group(Arel.sql("metadata->>'ai_model_name'"))
+      .group(:vendor_name, Arel.sql("metadata->>'ai_model_name'"))
       .sum(:amount_in_cents)
-      .reject { |k, _| k.blank? }
+      .reject { |(vendor, model), _| vendor.blank? || model.blank? }
+      .transform_keys { |vendor, model| "#{vendor}/#{model}" }
   end
 
   def self.calculate(events)
@@ -175,7 +176,7 @@ class MarginCalculator
       revenue_in_cents: revenue,
       cost_in_cents: cost,
       margin_in_cents: margin,
-      margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
+      margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).round.to_i : 0,
       subscription_revenue_in_cents: 0,
       event_revenue_in_cents: revenue
     )
@@ -206,8 +207,8 @@ class MarginCalculator
   def self.events_date_range(events_scope)
     range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
     return nil unless range&.first && range&.last
-    end_date = [ range.last.to_date + 1.day, range.first.to_date + 1.day ].max
-    range.first.to_date..end_date
+    # Add 1 day to make the range inclusive of the last day's events
+    range.first.to_date..(range.last.to_date + 1.day)
   end
 
   private_class_method :calculate, :prorate_subscription, :events_date_range

@@ -1,51 +1,31 @@
 import type {
   EventPayload,
+  UsageData,
   WireEvent,
 } from "./types.js";
 
-/** Pending response collected via `addResponse()`. */
-export interface PendingResponse {
+/** Pending usage entry collected via `addUsage()`. */
+export interface PendingUsage {
   vendorName: string;
-  rawResponse: Record<string, unknown>;
+  usage: UsageData;
 }
 
-/**
- * Top-level keys the server-side parser reads from raw responses.
- * Keep in sync with VendorResponseParser on the server.
- * Anything not in this list is stripped before sending to reduce payload size.
- */
-const USAGE_KEYS = [
-  "model",            // OpenAI, Anthropic, Google fallback
-  "usage",            // OpenAI (prompt_tokens, completion_tokens), Anthropic (input_tokens, output_tokens)
-  "modelVersion",     // Google (camelCase)
-  "model_version",    // Google (snake_case)
-  "usageMetadata",    // Google (camelCase)
-  "usage_metadata",   // Google (snake_case)
-];
-
-/** Strip a raw AI response down to only the keys needed for cost calculation. */
-function stripToUsage(raw: Record<string, unknown>): Record<string, unknown> {
-  const stripped: Record<string, unknown> = {};
-  for (const key of USAGE_KEYS) {
-    if (key in raw) {
-      stripped[key] = raw[key];
-    }
-  }
-  return stripped;
-}
-
-/** Convert a camelCase `EventPayload` + accumulated responses to the snake_case wire format. */
+/** Convert a camelCase `EventPayload` + accumulated usage entries to the snake_case wire format. */
 export function toWireEvent(
   event: EventPayload,
-  responses: PendingResponse[],
+  usages: PendingUsage[],
   defaultEventType: string,
 ): WireEvent {
   const wire: WireEvent = {
     customer_external_id: event.customerExternalId,
     revenue_amount_in_cents: event.revenueAmountInCents,
-    vendor_responses: responses.map((r) => ({
-      vendor_name: r.vendorName,
-      raw_response: stripToUsage(r.rawResponse),
+    vendor_responses: usages.map((u) => ({
+      vendor_name: u.vendorName,
+      raw_response: {
+        ai_model_name: u.usage.model,
+        input_tokens: u.usage.inputTokens,
+        output_tokens: u.usage.outputTokens,
+      },
     })),
     unique_request_token:
       event.uniqueRequestToken ?? crypto.randomUUID(),

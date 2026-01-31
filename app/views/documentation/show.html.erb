@@ -25,30 +25,40 @@
     <p class="text-sm text-slate-500 mb-4"><%= t("documentation.show.typescript_usage_description") %></p>
 
     <div class="rounded-lg overflow-hidden border border-slate-700">
-      <div class="bg-slate-800 px-4 py-2 text-xs font-mono text-slate-400">TypeScript</div>
-      <pre class="bg-slate-900 text-emerald-400 p-4 text-xs overflow-x-auto"><code>import { NanoProfit } from "nanoprofit";
-import OpenAI from "openai";
+      <div class="bg-slate-800 px-4 py-2 flex items-center justify-between">
+        <span class="text-xs font-mono text-slate-400">TypeScript</span>
+        <span class="flex items-center gap-3 text-xs font-mono">
+          <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-amber-300"></span> <span class="text-slate-500">NanoProfit SDK</span></span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span> <span class="text-slate-500">Your code</span></span>
+        </span>
+      </div>
+      <pre class="bg-slate-900 p-4 text-xs overflow-x-auto"><code><span class="text-amber-300">import { NanoProfit } from "nanoprofit";</span>
+<span class="text-emerald-400">import OpenAI from "openai";</span>
 
-const np = new NanoProfit({
+<span class="text-amber-300">const np = new NanoProfit({
   apiKey: "<%= @organization.api_key %>",
   baseUrl: "<%= request.base_url %>/api/v1",
-});
-const openai = new OpenAI();
+});</span>
+<span class="text-emerald-400">const openai = new OpenAI();
 
 const response = await openai.chat.completions.create({
   model: "gpt-4o",
   messages: [{ role: "user", content: "Hello!" }],
-});
+});</span>
 
-np.addResponse("openai", response);
+<span class="text-amber-300">np.addUsage("openai", {
+  model: response.model,
+  inputTokens: response.usage!.prompt_tokens,
+  outputTokens: response.usage!.completion_tokens,
+});
 np.track({
   customerExternalId: "cust_123",
   revenueAmountInCents: 500,
-});
+});</span>
 
-// Events are flushed automatically in the background.
-// Before your process exits:
-await np.shutdown();</code></pre>
+<span class="text-slate-500">// Events are flushed automatically in the background.
+// Before your process exits:</span>
+<span class="text-amber-300">await np.shutdown();</span></code></pre>
     </div>
   </div>
 
@@ -58,32 +68,42 @@ await np.shutdown();</code></pre>
     <p class="text-sm text-slate-500 mb-4"><%= t("documentation.show.python_usage_description") %></p>
 
     <div class="rounded-lg overflow-hidden border border-slate-700">
-      <div class="bg-slate-800 px-4 py-2 text-xs font-mono text-slate-400">Python</div>
-      <pre class="bg-slate-900 text-emerald-400 p-4 text-xs overflow-x-auto"><code>import asyncio
-from openai import AsyncOpenAI
-from nanoprofit import NanoProfit, Event
+      <div class="bg-slate-800 px-4 py-2 flex items-center justify-between">
+        <span class="text-xs font-mono text-slate-400">Python</span>
+        <span class="flex items-center gap-3 text-xs font-mono">
+          <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-amber-300"></span> <span class="text-slate-500">NanoProfit SDK</span></span>
+          <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span> <span class="text-slate-500">Your code</span></span>
+        </span>
+      </div>
+      <pre class="bg-slate-900 p-4 text-xs overflow-x-auto"><code><span class="text-emerald-400">import asyncio</span>
+<span class="text-emerald-400">from openai import AsyncOpenAI</span>
+<span class="text-amber-300">from nanoprofit import NanoProfit, Event, Usage</span>
 
-async def main():
-    openai = AsyncOpenAI()
+<span class="text-emerald-400">async def main():</span>
+<span class="text-emerald-400">    openai = AsyncOpenAI()</span>
 
-    async with NanoProfit(
+<span class="text-amber-300">    async with NanoProfit(
         api_key="<%= @organization.api_key %>",
         base_url="<%= request.base_url %>/api/v1",
-    ) as np:
-        response = await openai.chat.completions.create(
+    ) as np:</span>
+<span class="text-emerald-400">        response = await openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": "Hello!"}],
-        )
+        )</span>
 
-        np.add_response("openai", response)
+<span class="text-amber-300">        np.add_usage("openai", Usage(
+            model=response.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+        ))
         np.track(Event(
             customer_external_id="cust_123",
             revenue_amount_in_cents=500,
-        ))
+        ))</span>
 
-    # Events are automatically flushed when exiting the context manager.
+<span class="text-slate-500">    # Events are automatically flushed when exiting the context manager.</span>
 
-asyncio.run(main())</code></pre>
+<span class="text-emerald-400">asyncio.run(main())</span></code></pre>
     </div>
   </div>
 
@@ -92,7 +112,7 @@ asyncio.run(main())</code></pre>
     <h2 class="text-lg font-semibold text-slate-900 mb-1"><%= t("documentation.show.vendor_costs") %></h2>
     <div class="flex items-start gap-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
       <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <p class="text-sm text-blue-700"><strong>Note:</strong> Just pass the vendor name and the raw AI provider response via <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addResponse()</code>. The server automatically extracts the model name and token counts, then calculates cost from your configured vendor rates. For agent sessions with multiple AI calls, call <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addResponse()</code> once per call, then <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">track()</code> once to attach them all.</p>
+      <p class="text-sm text-blue-700"><strong>Privacy first:</strong> Only the model name and token counts are sent to NanoProfit &mdash; no request or response content ever leaves your infrastructure. Pass the vendor name and usage via <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addUsage()</code>, and NanoProfit calculates cost from your configured vendor rates. For agent sessions with multiple AI calls, call <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">addUsage()</code> once per call, then <code class="bg-blue-100 px-1.5 py-0.5 rounded text-xs font-mono">track()</code> once to attach them all.</p>
     </div>
   </div>
 

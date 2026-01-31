@@ -72,10 +72,14 @@
   <!-- Revenue vs Cost Chart -->
   <div class="card p-6">
     <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("customers.show.revenue_vs_cost") %></h2>
-    <%= line_chart [
-      { name: t("shared.revenue"), data: @revenue_over_time },
-      { name: t("shared.cost"), data: @cost_over_time }
-    ], prefix: "$" %>
+    <% if @revenue_over_time.any? || @cost_over_time.any? %>
+      <%= line_chart [
+        { name: t("shared.revenue"), data: @revenue_over_time },
+        { name: t("shared.cost"), data: @cost_over_time }
+      ], prefix: "$" %>
+    <% else %>
+      <div class="empty-state"><p><%= t("shared.no_data") %></p></div>
+    <% end %>
   </div>
 
   <!-- Vendor Cost Breakdown -->

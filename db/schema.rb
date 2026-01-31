@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_31_180736) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
     t.jsonb "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["event_id", "vendor_name", "amount_in_cents"], name: "idx_cost_entries_event_vendor_amount"
     t.index ["event_id"], name: "index_cost_entries_on_event_id"
   end
 
@@ -57,6 +58,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
     t.datetime "updated_at", null: false
     t.index ["customer_id", "occurred_at"], name: "index_events_on_customer_id_and_occurred_at"
     t.index ["customer_id"], name: "index_events_on_customer_id"
+    t.index ["organization_id", "status", "occurred_at"], name: "idx_events_org_status_occurred"
     t.index ["organization_id", "status"], name: "index_events_on_organization_id_and_status"
     t.index ["organization_id"], name: "index_events_on_organization_id"
     t.index ["unique_request_token"], name: "index_events_on_unique_request_token", unique: true
@@ -126,7 +128,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
     t.string "password_digest", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "organization_id", null: false
+    t.bigint "organization_id"
     t.boolean "admin", default: false, null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["organization_id"], name: "index_users_on_organization_id"
@@ -154,6 +156,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
   add_foreign_key "margin_alerts", "organizations"
   add_foreign_key "margin_alerts", "users", column: "acknowledged_by_id"
   add_foreign_key "sessions", "users"
-  add_foreign_key "users", "organizations"
+  add_foreign_key "users", "organizations", on_delete: :nullify
   add_foreign_key "vendor_rates", "organizations"
 end

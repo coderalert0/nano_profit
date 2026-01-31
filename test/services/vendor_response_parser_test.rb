@@ -235,4 +235,51 @@ class VendorResponseParserTest < ActiveSupport::TestCase
     assert_equal 42, result["input_tokens"]
     assert_equal 7, result["output_tokens"]
   end
+
+  # ── Pre-normalized (SDK) payloads ────────────────────────────────
+
+  test "passes through pre-normalized payload from SDK" do
+    result = VendorResponseParser.call(
+      vendor_name: "openai",
+      raw_response: {
+        "ai_model_name" => "gpt-4o",
+        "input_tokens" => 150,
+        "output_tokens" => 75
+      }
+    )
+
+    assert_equal "openai", result["vendor_name"]
+    assert_equal "gpt-4o", result["ai_model_name"]
+    assert_equal 150, result["input_tokens"]
+    assert_equal 75, result["output_tokens"]
+  end
+
+  test "pre-normalized payload works with any vendor name" do
+    result = VendorResponseParser.call(
+      vendor_name: "custom_vendor",
+      raw_response: {
+        "ai_model_name" => "my-model",
+        "input_tokens" => 100,
+        "output_tokens" => 50
+      }
+    )
+
+    assert_equal "custom_vendor", result["vendor_name"]
+    assert_equal "my-model", result["ai_model_name"]
+    assert_equal 100, result["input_tokens"]
+    assert_equal 50, result["output_tokens"]
+  end
+
+  test "pre-normalized payload with missing model falls back to unknown" do
+    result = VendorResponseParser.call(
+      vendor_name: "openai",
+      raw_response: {
+        "ai_model_name" => "",
+        "input_tokens" => 100,
+        "output_tokens" => 50
+      }
+    )
+
+    assert_equal "unknown", result["ai_model_name"]
+  end
 end

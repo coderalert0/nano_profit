@@ -133,6 +133,15 @@ en:
       resolution_placeholder: "Optional: describe what was done to resolve this alert..."
       cancel: "Cancel"
       confirm: "Confirm"
+  admin:
+    not_authorized: "Not authorized."
+    vendor_rates:
+      created: "Rate created successfully."
+      updated: "Rate updated successfully."
+      deleted: "Rate deleted."
+    margin_alerts:
+      acknowledged: "Alert acknowledged."
+      all_acknowledged: "All alerts acknowledged."
   controllers:
     settings:
       updated: "Settings updated."

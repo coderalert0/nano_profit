@@ -22,7 +22,11 @@ const response = await openai.chat.completions.create({
   messages: [{ role: "user", content: "Hello!" }],
 });
 
-np.addResponse("openai", response);
+np.addUsage("openai", {
+  model: response.model,
+  inputTokens: response.usage!.prompt_tokens,
+  outputTokens: response.usage!.completion_tokens,
+});
 np.track({
   customerExternalId: "cust_123",
   revenueAmountInCents: 500,
@@ -31,6 +35,9 @@ np.track({
 // Before your process exits:
 await np.shutdown();
 ```
+
+Only the model name and token counts are sent to NanoProfit — no request
+or response content ever leaves your infrastructure.
 
 ## Configuration
 
@@ -52,31 +59,49 @@ const np = new NanoProfit({
 
 ## Tracking events
 
-Append raw AI provider responses with `addResponse()`, then call
-`track()` to flush them into an event. The server extracts model names
-and token counts automatically.
+Record usage from each AI API call with `addUsage()`, then call
+`track()` to flush them into an event.
 
 ```typescript
 // Single call
 const r1 = await openai.chat.completions.create({ model: "gpt-4o", messages });
-np.addResponse("openai", r1);
+np.addUsage("openai", {
+  model: r1.model,
+  inputTokens: r1.usage!.prompt_tokens,
+  outputTokens: r1.usage!.completion_tokens,
+});
 np.track({ customerExternalId: "cust_123", revenueAmountInCents: 500 });
 
 // Agent session with multiple AI calls
 const r2 = await openai.chat.completions.create({ model: "gpt-4o", messages });
-np.addResponse("openai", r2);
+np.addUsage("openai", {
+  model: r2.model,
+  inputTokens: r2.usage!.prompt_tokens,
+  outputTokens: r2.usage!.completion_tokens,
+});
 
 const r3 = await anthropic.messages.create({ model: "claude-3-opus-20240229", messages });
-np.addResponse("anthropic", r3);
+np.addUsage("anthropic", {
+  model: r3.model,
+  inputTokens: r3.usage.input_tokens,
+  outputTokens: r3.usage.output_tokens,
+});
 
-const r4 = await openai.chat.completions.create({ model: "gpt-4o", messages });
-np.addResponse("openai", r4);
+const r4 = await google.generateContent({ model: "gemini-1.5-pro", contents });
+np.addUsage("google", {
+  model: "gemini-1.5-pro",
+  inputTokens: r4.usageMetadata.promptTokenCount,
+  outputTokens: r4.usageMetadata.candidatesTokenCount,
+});
 
 np.track({ customerExternalId: "cust_456", revenueAmountInCents: 1200 });
 ```
 
-For Groq, Azure OpenAI, or AWS Bedrock, use the same pattern — just set
-the vendor name to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
+### Supported vendors
+
+Any vendor name works with `addUsage()` as long as you have a matching
+vendor rate configured in NanoProfit. Common names: `openai`, `anthropic`,
+`google`, `groq`, `azure`, `bedrock`, `together`, `fireworks`, `mistral`.
 
 ## Shutdown
 

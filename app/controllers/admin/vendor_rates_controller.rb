@@ -5,7 +5,7 @@ module Admin
     before_action :set_vendor_rate, only: %i[edit update destroy]
 
     def index
-      scope = VendorRate.where(organization_id: [ nil, Current.organization.id ]).includes(:organization)
+      scope = VendorRate.includes(:organization)
 
       @selected_vendors = Array(params[:vendor]).reject(&:blank?)
       @selected_models = Array(params[:model]).reject(&:blank?)
@@ -14,8 +14,8 @@ module Admin
       scope = scope.where(ai_model_name: @selected_models) if @selected_models.any?
       scope = scope.order(vendor_name: :asc, ai_model_name: :asc)
 
-      @vendors = VendorRate.where(organization_id: [ nil, Current.organization.id ]).distinct.pluck(:vendor_name).sort
-      @models = VendorRate.where(organization_id: [ nil, Current.organization.id ]).distinct.pluck(:ai_model_name).sort
+      @vendors = VendorRate.distinct.pluck(:vendor_name).sort
+      @models = VendorRate.distinct.pluck(:ai_model_name).sort
 
       @vendor_rates = paginate(scope)
 
@@ -32,7 +32,7 @@ module Admin
       @vendor_rate = VendorRate.new(vendor_rate_params)
 
       if @vendor_rate.save
-        redirect_to admin_vendor_rates_path, notice: "Rate created successfully."
+        redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.created")
       else
         render :new, status: :unprocessable_entity
       end
@@ -43,7 +43,7 @@ module Admin
 
     def update
       if @vendor_rate.update(vendor_rate_params)
-        redirect_to admin_vendor_rates_path, notice: "Rate updated successfully."
+        redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.updated")
       else
         render :edit, status: :unprocessable_entity
       end
@@ -51,13 +51,13 @@ module Admin
 
     def destroy
       @vendor_rate.destroy!
-      redirect_to admin_vendor_rates_path, notice: "Rate deleted."
+      redirect_to admin_vendor_rates_path, notice: t("admin.vendor_rates.deleted")
     end
 
     private
 
     def set_vendor_rate
-      @vendor_rate = VendorRate.where(organization_id: [ nil, Current.organization.id ]).find(params[:id])
+      @vendor_rate = VendorRate.find(params[:id])
     end
 
     def vendor_rate_params

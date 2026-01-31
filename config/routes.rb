@@ -9,6 +9,10 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :webhooks do
+    resource :stripe, only: :create, controller: "stripe"
+  end
+
   namespace :admin do
     resources :vendor_rates
     resources :price_drifts, only: [:index] do

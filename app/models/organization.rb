@@ -9,6 +9,8 @@ class Organization < ApplicationRecord
 
   validates :name, presence: true
   validates :api_key, presence: true, uniqueness: true
+  validates :margin_alert_threshold_bps, numericality: { greater_than_or_equal_to: 0 }
+  validates :margin_alert_period_days, numericality: { greater_than: 0 }
 
   before_validation :generate_api_key, on: :create
 

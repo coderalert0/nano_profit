@@ -34,6 +34,9 @@ module Stripe
       end
 
       all_subscriptions
+    rescue ::Stripe::StripeError => e
+      Rails.logger.error("Stripe subscription fetch failed: #{e.message}")
+      raise # Re-raise to prevent partial data from zeroing revenue
     end
 
     def aggregate_by_customer(subscriptions)
