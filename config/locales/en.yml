@@ -11,7 +11,7 @@ en:
     vendors: "Vendors"
     customer: "Customer"
     external_id: "External ID"
-    subscription: "Subscription"
+    invoice: "Invoice"
     regenerate: "Regenerate"
     no_data: "No data yet."
     events_count: "Events"
@@ -25,7 +25,7 @@ en:
       title: "Dashboard"
       total_revenue: "Total Revenue"
       total_cost: "Total Cost"
-      subscription_label: "Subscription: %{subscription} / Event: %{event}"
+      invoice_label: "Invoice: %{invoice} / Event: %{event}"
       revenue_vs_cost_over_time: "Revenue vs. Cost Over Time"
       cost_by_model: "Cost by AI Model (Top 10)"
       margin_by_event_type: "Margin by Event Type (Bottom 10)"
@@ -52,8 +52,7 @@ en:
       no_data: "No customer data yet."
     show:
       revenue_breakdown: "Revenue Breakdown"
-      subscription_label: "Subscription:"
-      per_month: "%{amount}/mo"
+      invoice_label: "Invoice:"
       event_based: "Event-based:"
       revenue_vs_cost: "Revenue vs. Cost"
       cost_by_vendor: "Cost by Vendor"
@@ -88,13 +87,13 @@ en:
       api_usage: "API Usage"
       api_usage_description: "Send events to <code class=\"bg-gray-100 px-1 rounded\">POST /api/v1/events</code>"
       stripe_connect: "Stripe Connect"
-      stripe_connect_description: "Connect your Stripe account to automatically sync subscription revenue from your customers."
+      stripe_connect_description: "Connect your Stripe account to automatically sync invoice revenue from your customers."
       connect_stripe: "Connect Stripe"
       stripe_connected: "Connected"
       stripe_account_id: "Stripe Account: %{id}"
-      sync_subscriptions: "Sync Subscriptions"
+      sync_invoices: "Sync Invoices"
       disconnect: "Disconnect"
-      disconnect_confirm: "Are you sure? This will stop syncing subscription revenue."
+      disconnect_confirm: "Are you sure? This will stop syncing invoice revenue."
   alerts:
     index:
       title: "Margin Alerts"
@@ -133,6 +132,15 @@ en:
       resolution_placeholder: "Optional: describe what was done to resolve this alert..."
       cancel: "Cancel"
       confirm: "Confirm"
+  admin:
+    not_authorized: "Not authorized."
+    vendor_rates:
+      created: "Rate created successfully."
+      updated: "Rate updated successfully."
+      deleted: "Rate deleted."
+    margin_alerts:
+      acknowledged: "Alert acknowledged."
+      all_acknowledged: "All alerts acknowledged."
   controllers:
     settings:
       updated: "Settings updated."
@@ -140,5 +148,5 @@ en:
     stripe:
       connected: "Stripe account connected successfully."
       disconnected: "Stripe account disconnected."
-      sync_complete: "Subscriptions synced successfully."
+      sync_complete: "Invoices synced successfully."
       error: "Failed to connect Stripe account. Please try again."

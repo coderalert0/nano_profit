@@ -1,18 +1,21 @@
 class StripeController < ApplicationController
   def connect
+    state = SecureRandom.hex(32)
+    session[:stripe_oauth_state] = state
+
     authorize_url = "https://connect.stripe.com/oauth/authorize?" + {
       response_type: "code",
       client_id: ENV.fetch("STRIPE_CLIENT_ID"),
       scope: "read_only",
       redirect_uri: stripe_callback_url,
-      state: form_authenticity_token
+      state: state
     }.to_query
 
     redirect_to authorize_url, allow_other_host: true
   end
 
   def callback
-    unless valid_authenticity_token?(session, params[:state])
+    unless ActiveSupport::SecurityUtils.secure_compare(params[:state].to_s, session.delete(:stripe_oauth_state).to_s)
       redirect_to settings_path, alert: t("controllers.stripe.error")
       return
     end

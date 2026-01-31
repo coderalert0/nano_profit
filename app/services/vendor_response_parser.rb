@@ -17,6 +17,16 @@ class VendorResponseParser
   end
 
   def call
+    # Pre-normalized payloads (from SDKs) already contain the 3 fields we need
+    if pre_normalized?
+      return {
+        "vendor_name" => @vendor_name,
+        "ai_model_name" => @response[:ai_model_name].to_s.presence || "unknown",
+        "input_tokens" => @response[:input_tokens].to_i,
+        "output_tokens" => @response[:output_tokens].to_i
+      }
+    end
+
     unless ALL_VENDORS.include?(@vendor_name)
       raise ParseError, "Unknown vendor: '#{@vendor_name}'"
     end
@@ -27,6 +37,10 @@ class VendorResponseParser
   end
 
   private
+
+  def pre_normalized?
+    @response.key?(:ai_model_name) && @response.key?(:input_tokens) && @response.key?(:output_tokens)
+  end
 
   def parse_for_vendor
     if OPENAI_COMPATIBLE.include?(@vendor_name)

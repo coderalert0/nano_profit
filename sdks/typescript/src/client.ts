@@ -1,12 +1,13 @@
 import { EventQueue } from "./queue.js";
 import { withRetry } from "./retry.js";
 import { toWireEvent } from "./serializer.js";
-import type { PendingResponse } from "./serializer.js";
+import type { PendingUsage } from "./serializer.js";
 import type {
   BatchResult,
   EventPayload,
   NanoProfitConfig,
   NanoProfitError,
+  UsageData,
   WireEvent,
 } from "./types.js";
 
@@ -35,7 +36,7 @@ export class NanoProfit {
   private flushTimer: any = null;
   private shutdownPromise: Promise<void> | null = null;
   private signalHandlers: Array<{ signal: string; handler: () => void }> = [];
-  private pendingResponses: PendingResponse[] = [];
+  private pendingUsages: PendingUsage[] = [];
 
   constructor(config: NanoProfitConfig) {
     this.apiKey = config.apiKey;
@@ -74,13 +75,15 @@ export class NanoProfit {
   }
 
   /**
-   * Append a raw AI provider response for inclusion in the next
-   * {@link track} call. Call this once per AI API call — if an agent
-   * session makes three calls, call `addResponse` three times, then
-   * call `track` once to attach them all to a single event.
+   * Record usage from a single AI API call. Call this once per AI call —
+   * if an agent session makes three calls, call `addUsage` three times,
+   * then call `track` once to attach them all to a single event.
+   *
+   * Only the model name and token counts are sent to NanoProfit — no
+   * request or response content ever leaves your infrastructure.
    */
-  addResponse(vendorName: string, rawResponse: Record<string, unknown>): void {
-    this.pendingResponses.push({ vendorName, rawResponse });
+  addUsage(vendorName: string, usage: UsageData): void {
+    this.pendingUsages.push({ vendorName, usage });
   }
 
   /**
@@ -88,14 +91,14 @@ export class NanoProfit {
    * never throw -- errors are silently swallowed so that tracking can
    * never crash the host application.
    *
-   * All responses previously added via {@link addResponse} are drained
+   * All usage entries previously added via {@link addUsage} are drained
    * and attached to the event.
    */
   track(event: EventPayload): void {
     try {
-      const responses = this.pendingResponses;
-      this.pendingResponses = [];
-      const wire = toWireEvent(event, responses, this.defaultEventType);
+      const usages = this.pendingUsages;
+      this.pendingUsages = [];
+      const wire = toWireEvent(event, usages, this.defaultEventType);
       this.queue.enqueue(wire);
     } catch {
       // Intentionally swallowed -- tracking must never throw.

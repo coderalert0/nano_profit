@@ -9,6 +9,13 @@ export interface EventPayload {
   metadata?: Record<string, unknown>;
 }
 
+/** Usage data from a single AI API call. */
+export interface UsageData {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 /** Error information surfaced via the `onError` callback. */
 export interface NanoProfitError {
   message: string;

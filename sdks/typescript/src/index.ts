@@ -5,5 +5,6 @@ export type {
   EventPayload,
   NanoProfitConfig,
   NanoProfitError,
+  UsageData,
   WireEvent,
 } from "./types.js";

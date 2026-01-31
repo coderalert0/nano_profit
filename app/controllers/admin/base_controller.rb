@@ -5,7 +5,7 @@ module Admin
     private
 
     def require_admin
-      redirect_to root_path, alert: "Not authorized." unless Current.user&.admin?
+      redirect_to root_path, alert: t("admin.not_authorized") unless Current.user&.admin?
     end
   end
 end

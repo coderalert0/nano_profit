@@ -20,27 +20,16 @@ class CustomerTest < ActiveSupport::TestCase
     assert_nothing_raised { customer.save! }
   end
 
-  test "monthly_subscription_revenue_in_cents must be non-negative" do
-    customer = customers(:customer_one)
-    customer.monthly_subscription_revenue_in_cents = -1
-    assert_not customer.valid?
-    assert_includes customer.errors[:monthly_subscription_revenue_in_cents], "must be greater than or equal to 0"
+  test "has_many stripe_invoices" do
+    customer = customers(:customer_with_subscription)
+    assert customer.stripe_invoices.count > 0
   end
 
-  test "monthly_subscription_revenue_in_cents allows zero" do
-    customer = customers(:customer_one)
-    customer.monthly_subscription_revenue_in_cents = 0
-    assert customer.valid?
-  end
+  test "destroying customer destroys its stripe_invoices" do
+    customer = customers(:customer_with_subscription)
+    invoice_ids = customer.stripe_invoice_ids
 
-  test "monthly_subscription_revenue_in_cents allows positive values" do
-    customer = customers(:customer_one)
-    customer.monthly_subscription_revenue_in_cents = 5000
-    assert customer.valid?
-  end
-
-  test "monthly_subscription_revenue_in_cents defaults to zero" do
-    customer = Customer.new(organization: organizations(:acme), external_id: "new_cust")
-    assert_equal 0, customer.monthly_subscription_revenue_in_cents
+    customer.destroy!
+    assert_equal 0, StripeInvoice.where(id: invoice_ids).count
   end
 end

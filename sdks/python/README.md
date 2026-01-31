@@ -13,7 +13,7 @@ pip install nanoprofit
 ```python
 import asyncio
 from openai import AsyncOpenAI
-from nanoprofit import NanoProfit, Event
+from nanoprofit import NanoProfit, Event, Usage
 
 async def main():
     openai = AsyncOpenAI()
@@ -24,7 +24,11 @@ async def main():
             messages=[{"role": "user", "content": "Hello!"}],
         )
 
-        np.add_response("openai", response)
+        np.add_usage("openai", Usage(
+            model=response.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+        ))
         np.track(Event(
             customer_external_id="cust_123",
             revenue_amount_in_cents=500,
@@ -35,16 +39,22 @@ async def main():
 asyncio.run(main())
 ```
 
+Only the model name and token counts are sent to NanoProfit — no request
+or response content ever leaves your infrastructure.
+
 ## Tracking events
 
-Append raw AI provider responses with `add_response()`, then call
-`track()` to flush them into an event. The server extracts model names
-and token counts automatically.
+Record usage from each AI API call with `add_usage()`, then call
+`track()` to flush them into an event.
 
 ```python
 # Single call
 r1 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
-np.add_response("openai", r1)
+np.add_usage("openai", Usage(
+    model=r1.model,
+    input_tokens=r1.usage.prompt_tokens,
+    output_tokens=r1.usage.completion_tokens,
+))
 np.track(Event(
     customer_external_id="cust_123",
     revenue_amount_in_cents=500,
@@ -52,13 +62,25 @@ np.track(Event(
 
 # Agent session with multiple AI calls
 r2 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
-np.add_response("openai", r2)
+np.add_usage("openai", Usage(
+    model=r2.model,
+    input_tokens=r2.usage.prompt_tokens,
+    output_tokens=r2.usage.completion_tokens,
+))
 
 r3 = await anthropic.messages.create(model="claude-3-opus-20240229", messages=messages)
-np.add_response("anthropic", r3)
+np.add_usage("anthropic", Usage(
+    model=r3.model,
+    input_tokens=r3.usage.input_tokens,
+    output_tokens=r3.usage.output_tokens,
+))
 
-r4 = await openai.chat.completions.create(model="gpt-4o", messages=messages)
-np.add_response("openai", r4)
+r4 = await google.generate_content(model="gemini-1.5-pro", contents=contents)
+np.add_usage("google", Usage(
+    model="gemini-1.5-pro",
+    input_tokens=r4.usage_metadata.prompt_token_count,
+    output_tokens=r4.usage_metadata.candidates_token_count,
+))
 
 np.track(Event(
     customer_external_id="cust_456",
@@ -66,8 +88,11 @@ np.track(Event(
 ))
 ```
 
-For Groq, Azure OpenAI, or AWS Bedrock, use the same pattern — just set
-the vendor name to `"groq"`, `"azure"`, or `"bedrock"` accordingly.
+### Supported vendors
+
+Any vendor name works with `add_usage()` as long as you have a matching
+vendor rate configured in NanoProfit. Common names: `openai`, `anthropic`,
+`google`, `groq`, `azure`, `bedrock`, `together`, `fireworks`, `mistral`.
 
 ## Configuration
 
@@ -92,7 +117,11 @@ your application exits to ensure all buffered events are sent:
 ```python
 np = NanoProfit(api_key="np_your_api_key")
 try:
-    np.add_response("openai", response)
+    np.add_usage("openai", Usage(
+        model="gpt-4o",
+        input_tokens=100,
+        output_tokens=50,
+    ))
     np.track(event)
     await np.flush()   # flush immediately if needed
 finally:

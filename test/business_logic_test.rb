@@ -12,7 +12,7 @@ class BusinessLogicTest < ActiveSupport::TestCase
     future_period = 1.year.from_now..2.years.from_now
     results = MarginCalculator.customer_margins(org, future_period)
 
-    # Should still include subscription-only customers, not crash
+    # Should still include invoice-only customers, not crash
     results.each do |r|
       assert_kind_of Integer, r[:margin][:revenue_in_cents].to_i
       assert_kind_of Integer, r[:margin][:cost_in_cents].to_i
@@ -39,7 +39,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
     org = organizations(:acme)
     events = org.events.processed
 
-    # Use send to access private method
     range = MarginCalculator.send(:events_date_range, events)
     return if range.nil? # no events in test data
 
@@ -59,19 +58,25 @@ class BusinessLogicTest < ActiveSupport::TestCase
       "End date #{range.last} should be after earliest event #{earliest}"
   end
 
-  test "proration calculates correctly over a full month" do
-    # A full month (Jan 2026) should return the full monthly amount
-    period = Date.new(2026, 1, 1)..Date.new(2026, 2, 1)
-    result = MarginCalculator.send(:prorate_subscription, 10000, period)
-    assert_equal 10000, result, "Full month proration should equal monthly amount"
+  test "invoice proration for full period returns full amount" do
+    customer = customers(:customer_with_subscription)
+    # monthly_invoice fixture: Jan 1 - Feb 1 for 5000 cents
+    # Query the full period
+    period = Time.new(2026, 1, 1)..Time.new(2026, 2, 1)
+    result = MarginCalculator.send(:invoice_revenue_for_period, customer.stripe_invoices, period)
+
+    # Full overlap = full amount
+    assert_equal 5000, result
   end
 
-  test "proration calculates correctly over a partial month" do
+  test "invoice proration for partial period returns correct amount" do
+    customer = customers(:customer_with_subscription)
     # Half of January (15 days out of 31)
-    period = Date.new(2026, 1, 1)..Date.new(2026, 1, 16)
-    result = MarginCalculator.send(:prorate_subscription, 31000, period)
-    # 15/31 * 31000 = 15000
-    assert_equal 15000, result
+    period = Time.new(2026, 1, 1)..Time.new(2026, 1, 16)
+    result = MarginCalculator.send(:invoice_revenue_for_period, customer.stripe_invoices, period)
+
+    expected = (5000.to_d * 15 / 31).round
+    assert_equal expected, result
   end
 
   # ─── Fix #2: MarginAlert.linked_customer ────────────────────────────
@@ -171,51 +176,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
     assert_not rate.valid?
   end
 
-  # ─── Fix #7: Stripe interval_count clamping ─────────────────────────
-
-  test "calculate_monthly_amount clamps zero interval_count to 1" do
-    service = Stripe::SubscriptionSyncService.new(organizations(:acme))
-    price = OpenStruct.new(
-      active: true,
-      unit_amount: 5000,
-      recurring: OpenStruct.new(interval: "month", interval_count: 0)
-    )
-    result = service.send(:calculate_monthly_amount, price)
-    assert_equal BigDecimal("5000"), result, "interval_count=0 should be clamped to 1"
-  end
-
-  test "calculate_monthly_amount handles nil interval_count" do
-    service = Stripe::SubscriptionSyncService.new(organizations(:acme))
-    price = OpenStruct.new(
-      active: true,
-      unit_amount: 12000,
-      recurring: OpenStruct.new(interval: "month", interval_count: nil)
-    )
-    result = service.send(:calculate_monthly_amount, price)
-    assert_equal BigDecimal("12000"), result, "nil interval_count should default to 1"
-  end
-
-  test "calculate_monthly_amount handles quarterly billing" do
-    service = Stripe::SubscriptionSyncService.new(organizations(:acme))
-    price = OpenStruct.new(
-      active: true,
-      unit_amount: 9000,
-      recurring: OpenStruct.new(interval: "month", interval_count: 3)
-    )
-    result = service.send(:calculate_monthly_amount, price)
-    assert_equal BigDecimal("3000"), result, "quarterly $90 should be $30/month"
-  end
-
-  test "calculate_monthly_amount returns 0 for inactive price" do
-    service = Stripe::SubscriptionSyncService.new(organizations(:acme))
-    price = OpenStruct.new(
-      active: false,
-      unit_amount: 5000,
-      recurring: OpenStruct.new(interval: "month", interval_count: 1)
-    )
-    assert_equal 0, service.send(:calculate_monthly_amount, price)
-  end
-
   # ─── Fix #8: EventProcessor unit_type .presence fallback ────────────
 
   test "event processor uses rate unit_type when vendor cost has empty string" do
@@ -275,11 +235,9 @@ class BusinessLogicTest < ActiveSupport::TestCase
   test "pricing sync raises on non-200 HTTP response" do
     service = Pricing::SyncService.new
 
-    # Stub fetch_via_net_http to simulate a 500
     service.define_singleton_method(:fetch_via_net_http) do
       raise "HTTP 500 from pricing source"
     end
-    # Also stub curl fallback
     service.define_singleton_method(:fetch_pricing_data) do
       raise "HTTP 500 from pricing source"
     end
@@ -302,7 +260,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
     service = Pricing::SyncService.new(pricing_data: data)
     result = service.perform
 
-    # Model should NOT be rejected (malformed date = treat as not deprecated)
     assert_equal 1, result[:created], "Model with malformed deprecation date should be created"
   end
 
@@ -351,7 +308,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
 
   test "cannot create two customers with same external_id in same org" do
     org = organizations(:acme)
-    # customer_one already has external_id "cust_001"
     dup = org.customers.new(external_id: "cust_001", name: "Duplicate")
     assert_not dup.valid?
     assert dup.errors[:external_id].any?, "Should have uniqueness error on external_id"
@@ -361,49 +317,6 @@ class BusinessLogicTest < ActiveSupport::TestCase
     org2 = Organization.create!(name: "Other Org")
     customer = org2.customers.new(external_id: "cust_001", name: "Same ext id different org")
     assert customer.valid?, "Same external_id in different org should be valid"
-  end
-
-  # ─── Fix #10: Stripe sync transaction safety ────────────────────────
-
-  test "stripe sync update_customers is atomic" do
-    org = organizations(:acme)
-    service = Stripe::SubscriptionSyncService.new(org)
-
-    # Create a customer with subscription revenue
-    existing = org.customers.create!(
-      external_id: "stripe_existing",
-      name: "Existing Customer",
-      stripe_customer_id: "cus_existing",
-      monthly_subscription_revenue_in_cents: 5000
-    )
-
-    # Simulate a partial failure: one valid update, then an error
-    bad_revenues = { "cus_good" => 3000, "cus_will_explode" => 1000 }
-
-    # Stub find_or_create_customer to fail on the second call
-    call_count = 0
-    service.define_singleton_method(:find_or_create_customer) do |stripe_id|
-      call_count += 1
-      if stripe_id == "cus_will_explode"
-        raise ActiveRecord::RecordInvalid.new(Customer.new)
-      end
-      org.customers.create!(
-        external_id: stripe_id,
-        name: "Good Customer",
-        stripe_customer_id: stripe_id,
-        monthly_subscription_revenue_in_cents: 0
-      )
-    end
-
-    assert_raises(ActiveRecord::RecordInvalid) do
-      service.send(:update_customers, bad_revenues)
-    end
-
-    # The existing customer's revenue should NOT have been zeroed out
-    # because the transaction rolled back
-    existing.reload
-    assert_equal 5000, existing.monthly_subscription_revenue_in_cents,
-      "Transaction rollback should preserve existing customer revenue"
   end
 
   # ─── End-to-end: full event processing pipeline ─────────────────────
@@ -434,16 +347,13 @@ class BusinessLogicTest < ActiveSupport::TestCase
     event.reload
     assert_equal "processed", event.status
 
-    # Customer should be created and linked
     assert_not_nil event.customer
     assert_equal "cust_e2e_new", event.customer.external_id
     assert_equal "E2E Test Customer", event.customer.name
 
-    # Cost entries should exist
     assert event.cost_entries.any?, "Should have cost entries"
     assert event.total_cost_in_cents > 0, "Should have non-zero cost"
 
-    # Margin should be revenue - cost
     assert_equal event.revenue_amount_in_cents - event.total_cost_in_cents, event.margin_in_cents
 
     # Acme org rate: input=2.5/1k, output=5.0/1k
@@ -451,24 +361,23 @@ class BusinessLogicTest < ActiveSupport::TestCase
     assert_equal BigDecimal("5.0"), event.total_cost_in_cents
     assert_equal BigDecimal("995.0"), event.margin_in_cents
 
-    # Verify this customer shows up in organization margin calculation
     org_margin = MarginCalculator.organization_margin(org)
     assert org_margin.cost_in_cents > 0
     assert org_margin.revenue_in_cents > 0
   end
 
-  # ─── End-to-end: margin calculator with subscription proration ──────
+  # ─── End-to-end: margin calculator with invoice revenue ─────────────
 
-  test "organization_margin includes subscription revenue prorated correctly" do
+  test "organization_margin includes invoice revenue" do
     org = organizations(:acme)
-    sub_customer = customers(:customer_with_subscription)
-    assert sub_customer.monthly_subscription_revenue_in_cents > 0
+    # customer_with_subscription has invoices from fixtures
+    assert org.stripe_invoices.sum(:amount_in_cents) > 0
 
     result = MarginCalculator.organization_margin(org)
     assert result.subscription_revenue_in_cents > 0,
-      "Organization margin should include subscription revenue"
+      "Organization margin should include invoice revenue"
     assert result.revenue_in_cents > result.event_revenue_in_cents,
-      "Total revenue should be greater than event-only revenue when subscriptions exist"
+      "Total revenue should be greater than event-only revenue when invoices exist"
   end
 
   # ─── Verify margin_bps calculation ──────────────────────────────────
@@ -478,7 +387,7 @@ class BusinessLogicTest < ActiveSupport::TestCase
     result = MarginCalculator.organization_margin(org)
 
     if result.revenue_in_cents > 0
-      expected_bps = ((result.margin_in_cents * 10_000) / result.revenue_in_cents).to_i
+      expected_bps = ((result.margin_in_cents * 10_000) / result.revenue_in_cents).round.to_i
       assert_equal expected_bps, result.margin_bps
     else
       assert_equal 0, result.margin_bps

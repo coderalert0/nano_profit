@@ -1,0 +1,21 @@
+monthly_invoice:
+  organization: acme
+  customer: customer_with_subscription
+  stripe_invoice_id: inv_monthly_001
+  stripe_customer_id: cus_sub_001
+  amount_in_cents: 5000
+  currency: usd
+  period_start: <%= Time.new(2026, 1, 1).utc.iso8601 %>
+  period_end: <%= Time.new(2026, 2, 1).utc.iso8601 %>
+  paid_at: <%= Time.new(2026, 1, 1).utc.iso8601 %>
+
+previous_month_invoice:
+  organization: acme
+  customer: customer_with_subscription
+  stripe_invoice_id: inv_prev_001
+  stripe_customer_id: cus_sub_001
+  amount_in_cents: 5000
+  currency: usd
+  period_start: <%= Time.new(2025, 12, 1).utc.iso8601 %>
+  period_end: <%= Time.new(2026, 1, 1).utc.iso8601 %>
+  paid_at: <%= Time.new(2025, 12, 1).utc.iso8601 %>

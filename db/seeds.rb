@@ -44,7 +44,6 @@ company_names = [
 customers = company_names.first(100).each_with_index.map do |name, i|
   Customer.find_or_create_by!(organization: org, external_id: "cust_#{i + 1}") do |c|
     c.name = name
-    c.monthly_subscription_revenue_in_cents = [ 0, 0, 5000, 10000, 25000, 50000, 100000, 250000 ].sample
   end
 end
 

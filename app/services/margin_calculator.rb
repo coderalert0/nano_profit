@@ -10,17 +10,16 @@ class MarginCalculator
     events = events.where(occurred_at: period) if period
     event_result = calculate(events)
 
-    effective_period = period || events_date_range(events)
-    sub_revenue = prorate_subscription(customer.monthly_subscription_revenue_in_cents, effective_period)
-    total_revenue = event_result.revenue_in_cents + sub_revenue
+    inv_revenue = invoice_revenue_for_period(customer.stripe_invoices, period)
+    total_revenue = event_result.revenue_in_cents + inv_revenue
     total_margin = total_revenue - event_result.cost_in_cents
 
     MarginResult.new(
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
-      subscription_revenue_in_cents: sub_revenue,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
+      subscription_revenue_in_cents: inv_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
   end
@@ -45,7 +44,7 @@ class MarginCalculator
             revenue_in_cents: revenue,
             cost_in_cents: cost,
             margin_in_cents: margin,
-            margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
+            margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).round.to_i : 0,
             subscription_revenue_in_cents: 0,
             event_revenue_in_cents: revenue
           )
@@ -64,18 +63,16 @@ class MarginCalculator
     events = events.where(occurred_at: period) if period
     event_result = calculate(events)
 
-    total_sub_revenue = organization.customers.sum(:monthly_subscription_revenue_in_cents)
-    effective_period = period || events_date_range(organization.events.processed)
-    sub_revenue = prorate_subscription(total_sub_revenue, effective_period)
-    total_revenue = event_result.revenue_in_cents + sub_revenue
+    inv_revenue = invoice_revenue_for_period(organization.stripe_invoices, period)
+    total_revenue = event_result.revenue_in_cents + inv_revenue
     total_margin = total_revenue - event_result.cost_in_cents
 
     MarginResult.new(
       revenue_in_cents: total_revenue,
       cost_in_cents: event_result.cost_in_cents,
       margin_in_cents: total_margin,
-      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
-      subscription_revenue_in_cents: sub_revenue,
+      margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
+      subscription_revenue_in_cents: inv_revenue,
       event_revenue_in_cents: event_result.revenue_in_cents
     )
   end
@@ -93,25 +90,24 @@ class MarginCalculator
     events = organization.events.processed
     events = events.where(occurred_at: period) if period
 
-    effective_period = period || events_date_range(events)
-
     seen_customer_ids = Set.new
 
     results = events
       .joins(:customer)
-      .group("customers.id", "customers.name", "customers.external_id", "customers.monthly_subscription_revenue_in_cents")
+      .group("customers.id", "customers.name", "customers.external_id")
       .pluck(
         "customers.id",
         "customers.name",
         "customers.external_id",
-        "customers.monthly_subscription_revenue_in_cents",
         Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
         Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
         Arel.sql("COALESCE(SUM(margin_in_cents), 0)")
-      ).map do |id, name, ext_id, monthly_sub, event_revenue, cost, _event_margin|
+      ).map do |id, name, ext_id, event_revenue, cost, _event_margin|
         seen_customer_ids.add(id)
-        sub_revenue = prorate_subscription(monthly_sub, effective_period)
-        total_revenue = event_revenue + sub_revenue
+        inv_revenue = invoice_revenue_for_period(
+          organization.stripe_invoices.where(customer_id: id), period
+        )
+        total_revenue = event_revenue + inv_revenue
         total_margin = total_revenue - cost
 
         {
@@ -122,33 +118,39 @@ class MarginCalculator
             revenue_in_cents: total_revenue,
             cost_in_cents: cost,
             margin_in_cents: total_margin,
-            margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).to_i : 0,
-            subscription_revenue_in_cents: sub_revenue,
+            margin_bps: total_revenue > 0 ? ((total_margin * 10_000) / total_revenue).round.to_i : 0,
+            subscription_revenue_in_cents: inv_revenue,
             event_revenue_in_cents: event_revenue
           )
         }
       end
 
-    # Append subscription-only customers (have subscription revenue but no events in result set)
-    organization.customers
-      .where.not(monthly_subscription_revenue_in_cents: 0)
-      .where.not(id: seen_customer_ids.to_a)
-      .find_each do |customer|
-        sub_revenue = prorate_subscription(customer.monthly_subscription_revenue_in_cents, effective_period)
+    # Append invoice-only customers (have invoices but no events in result set)
+    invoice_only_customer_ids = organization.stripe_invoices
+      .where.not(customer_id: nil)
+      .where.not(customer_id: seen_customer_ids.to_a)
+      .distinct.pluck(:customer_id)
+
+    if invoice_only_customer_ids.any?
+      organization.customers.where(id: invoice_only_customer_ids).find_each do |customer|
+        inv_revenue = invoice_revenue_for_period(customer.stripe_invoices, period)
+        next if inv_revenue == 0
+
         results << {
           customer_id: customer.id,
           customer_name: customer.name,
           customer_external_id: customer.external_id,
           margin: MarginResult.new(
-            revenue_in_cents: sub_revenue,
+            revenue_in_cents: inv_revenue,
             cost_in_cents: 0,
-            margin_in_cents: sub_revenue,
-            margin_bps: sub_revenue > 0 ? 10_000 : 0,
-            subscription_revenue_in_cents: sub_revenue,
+            margin_in_cents: inv_revenue,
+            margin_bps: inv_revenue > 0 ? 10_000 : 0,
+            subscription_revenue_in_cents: inv_revenue,
             event_revenue_in_cents: 0
           )
         }
       end
+    end
 
     results
   end
@@ -158,9 +160,10 @@ class MarginCalculator
     events = events.where(occurred_at: period) if period
 
     CostEntry.where(event_id: events.select(:id))
-      .group(Arel.sql("metadata->>'ai_model_name'"))
+      .group(:vendor_name, Arel.sql("metadata->>'ai_model_name'"))
       .sum(:amount_in_cents)
-      .reject { |k, _| k.blank? }
+      .reject { |(vendor, model), _| vendor.blank? || model.blank? }
+      .transform_keys { |vendor, model| "#{vendor}/#{model}" }
   end
 
   def self.calculate(events)
@@ -175,40 +178,38 @@ class MarginCalculator
       revenue_in_cents: revenue,
       cost_in_cents: cost,
       margin_in_cents: margin,
-      margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
+      margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).round.to_i : 0,
       subscription_revenue_in_cents: 0,
       event_revenue_in_cents: revenue
     )
   end
 
-  def self.prorate_subscription(monthly_cents, period)
-    return 0 if period.nil? || monthly_cents == 0
+  def self.invoice_revenue_for_period(invoices_scope, period)
+    return invoices_scope.sum(:amount_in_cents) if period.nil?
 
-    period_start = period.begin.to_date
-    period_end = period.end.to_date
+    period_start = period.begin
+    period_end = period.end
 
-    total = BigDecimal("0")
-    cursor = period_start
+    overlapping = invoices_scope.where(
+      "period_start < ? AND period_end > ?", period_end, period_start
+    )
 
-    while cursor < period_end
-      month_end = cursor.end_of_month + 1.day  # first day of next month
-      slice_end = [ month_end, period_end ].min
-      days_in_slice = (slice_end - cursor).to_i
-      days_in_month = Time.days_in_month(cursor.month, cursor.year)
-
-      total += monthly_cents.to_d * days_in_slice / days_in_month
-      cursor = slice_end
+    overlapping.sum do |inv|
+      overlap_start = [ inv.period_start, period_start ].max
+      overlap_end = [ inv.period_end, period_end ].min
+      overlap_days = (overlap_end.to_date - overlap_start.to_date).to_i
+      invoice_days = (inv.period_end.to_date - inv.period_start.to_date).to_i
+      next 0 if invoice_days <= 0
+      (inv.amount_in_cents.to_d * overlap_days / invoice_days).round
     end
-
-    total.round
   end
 
   def self.events_date_range(events_scope)
     range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
     return nil unless range&.first && range&.last
-    end_date = [ range.last.to_date + 1.day, range.first.to_date + 1.day ].max
-    range.first.to_date..end_date
+    # Add 1 day to make the range inclusive of the last day's events
+    range.first.to_date..(range.last.to_date + 1.day)
   end
 
-  private_class_method :calculate, :prorate_subscription, :events_date_range
+  private_class_method :calculate, :invoice_revenue_for_period, :events_date_range
 end

@@ -29,6 +29,9 @@ class CheckMarginAlertsJob < ApplicationJob
   end
 
   def create_alert(org, dimension, dimension_value, margin, threshold_bps)
+    # Skip zero-activity dimensions to avoid false positives
+    return if margin.revenue_in_cents.zero? && margin.cost_in_cents.zero?
+
     if margin.margin_in_cents.negative?
       create_alert_unless_duplicate(org, dimension, dimension_value, "negative_margin",
         build_message(dimension, dimension_value, margin, org))

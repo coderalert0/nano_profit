@@ -23,9 +23,6 @@
   </td>
   <td class="py-3 px-4 text-slate-700">
     <%= alert.message %>
-    <% if alert.notes.present? %>
-      <p class="text-xs text-slate-500 italic mt-1"><%= alert.notes %></p>
-    <% end %>
   </td>
   <td class="py-3 px-4 whitespace-nowrap">
     <% if alert.acknowledged? %>
@@ -35,6 +32,9 @@
       </span>
       <% if alert.acknowledged_by %>
         <span class="block text-xs text-slate-400"><%= alert.acknowledged_by.email_address %></span>
+      <% end %>
+      <% if alert.notes.present? %>
+        <span class="block text-xs text-slate-500 italic whitespace-normal"><%= alert.notes %></span>
       <% end %>
       <span class="block text-xs text-slate-400"><%= format_time(alert.acknowledged_at, millis: false) %></span>
     <% else %>

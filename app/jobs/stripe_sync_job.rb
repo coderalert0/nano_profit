@@ -5,6 +5,6 @@ class StripeSyncJob < ApplicationJob
     organization = Organization.find(organization_id)
     return unless organization.stripe_access_token.present?
 
-    Stripe::SubscriptionSyncService.new(organization).sync
+    Stripe::InvoiceSyncService.new(organization).sync
   end
 end

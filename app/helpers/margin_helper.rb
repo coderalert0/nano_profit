@@ -1,12 +1,12 @@
 module MarginHelper
   def format_cents(cents)
     return "$0.00" if cents.nil?
-    number_to_currency(cents / 100.0)
+    number_to_currency(BigDecimal(cents.to_s) / 100)
   end
 
   def format_bps(bps)
     return "0.00%" if bps.nil? || bps == 0
-    "#{(bps / 100.0).round(2)}%"
+    "#{(BigDecimal(bps.to_s) / 100).round(2).to_f}%"
   end
 
   def margin_color_class(margin_in_cents)

@@ -54,7 +54,7 @@
         <span class="text-sm text-slate-500"><%= t("settings.show.stripe_account_id", id: @organization.stripe_user_id) %></span>
       </div>
       <div class="flex items-center gap-3 mt-4">
-        <%= button_to t("settings.show.sync_subscriptions"), stripe_sync_path, method: :post, class: "btn-primary" %>
+        <%= button_to t("settings.show.sync_invoices"), stripe_sync_path, method: :post, class: "btn-primary" %>
         <%= button_to t("settings.show.disconnect"), stripe_disconnect_path, method: :delete, class: "btn-danger", data: { turbo_confirm: t("settings.show.disconnect_confirm") } %>
       </div>
     <% else %>

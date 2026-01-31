@@ -4,6 +4,7 @@ class CreateOrganizations < ActiveRecord::Migration[8.0]
       t.string :name, null: false
       t.string :api_key, null: false
       t.integer :margin_alert_threshold_bps, default: 0, null: false
+      t.integer :margin_alert_period_days, default: 7, null: false
       t.string :stripe_user_id
       t.string :stripe_access_token
 

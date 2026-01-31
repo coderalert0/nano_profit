@@ -18,11 +18,13 @@ class VendorRate < ApplicationRecord
   end
 
   def self.find_rate_for_processing(vendor_name:, ai_model_name:, organization: nil)
-    if organization
-      rate = find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization: organization)
-      return rate if rate
-    end
-
-    find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization_id: nil)
+    # Prefer active rates, fall back to inactive for events accepted before deactivation
+    find_rate(vendor_name: vendor_name, ai_model_name: ai_model_name, organization: organization) ||
+      if organization
+        find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization: organization) ||
+          find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization_id: nil)
+      else
+        find_by(vendor_name: vendor_name, ai_model_name: ai_model_name, organization_id: nil)
+      end
   end
 end

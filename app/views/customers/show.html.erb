@@ -50,11 +50,8 @@
       <div class="flex items-center gap-3">
         <div class="w-2 h-2 rounded-full bg-blue-500"></div>
         <div>
-          <span class="text-slate-500"><%= t("customers.show.subscription_label") %></span>
+          <span class="text-slate-500"><%= t("customers.show.invoice_label") %></span>
           <span class="font-medium ml-1"><%= format_cents(@margin.subscription_revenue_in_cents) %></span>
-          <% if @customer.monthly_subscription_revenue_in_cents > 0 %>
-            <span class="text-slate-400">(<%= t("customers.show.per_month", amount: format_cents(@customer.monthly_subscription_revenue_in_cents)) %>)</span>
-          <% end %>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -72,10 +69,14 @@
   <!-- Revenue vs Cost Chart -->
   <div class="card p-6">
     <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("customers.show.revenue_vs_cost") %></h2>
-    <%= line_chart [
-      { name: t("shared.revenue"), data: @revenue_over_time },
-      { name: t("shared.cost"), data: @cost_over_time }
-    ], prefix: "$" %>
+    <% if @revenue_over_time.any? || @cost_over_time.any? %>
+      <%= line_chart [
+        { name: t("shared.revenue"), data: @revenue_over_time },
+        { name: t("shared.cost"), data: @cost_over_time }
+      ], prefix: "$" %>
+    <% else %>
+      <div class="empty-state"><p><%= t("shared.no_data") %></p></div>
+    <% end %>
   </div>
 
   <!-- Vendor Cost Breakdown -->

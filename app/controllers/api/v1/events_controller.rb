@@ -93,6 +93,9 @@ module Api
         { status: "error", errors: [ e.message ] }
       end
 
+      MAX_TOKENS_PER_RESPONSE = 100_000_000
+      MAX_REVENUE_CENTS = 100_000_00 # $100,000
+
       def validate_vendor_costs_with_pairs(vendor_costs, known_pairs)
         return [] if vendor_costs.blank?
 
@@ -109,12 +112,20 @@ module Api
             errors << "Unrecognized vendor_name '#{vendor_name}' with ai_model_name '#{ai_model_name}'"
           end
 
-          if vc["input_tokens"].present? && vc["input_tokens"].to_i < 0
+          if vc["input_tokens"].present? && input_tokens < 0
             errors << "Negative input_tokens for vendor '#{vendor_name}'"
           end
 
-          if vc["output_tokens"].present? && vc["output_tokens"].to_i < 0
+          if vc["output_tokens"].present? && output_tokens < 0
             errors << "Negative output_tokens for vendor '#{vendor_name}'"
+          end
+
+          if input_tokens > MAX_TOKENS_PER_RESPONSE
+            errors << "input_tokens exceeds maximum (#{MAX_TOKENS_PER_RESPONSE}) for vendor '#{vendor_name}'"
+          end
+
+          if output_tokens > MAX_TOKENS_PER_RESPONSE
+            errors << "output_tokens exceeds maximum (#{MAX_TOKENS_PER_RESPONSE}) for vendor '#{vendor_name}'"
           end
 
           if input_tokens == 0 && output_tokens == 0

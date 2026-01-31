@@ -13,7 +13,7 @@
       </div>
       <p class="text-2xl font-bold text-slate-900" id="total-revenue"><%= format_cents(@margin.revenue_in_cents) %></p>
       <% if @margin.subscription_revenue_in_cents > 0 %>
-        <p class="text-xs text-slate-400 mt-1"><%= t("dashboard.show.subscription_label", subscription: format_cents(@margin.subscription_revenue_in_cents), event: format_cents(@margin.event_revenue_in_cents)) %></p>
+        <p class="text-xs text-slate-400 mt-1"><%= t("dashboard.show.invoice_label", invoice: format_cents(@margin.subscription_revenue_in_cents), event: format_cents(@margin.event_revenue_in_cents)) %></p>
       <% end %>
     </div>
     <div class="stat-card stat-card-red">
@@ -63,14 +63,22 @@
         <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_event_type") %></h2>
         <%= link_to t("dashboard.show.view_all"), event_types_path, class: "text-sm link" %>
       </div>
-      <%= bar_chart @event_type_margins, suffix: "%" %>
+      <% if @event_type_margins.any? %>
+        <%= bar_chart @event_type_margins, suffix: "%" %>
+      <% else %>
+        <div class="empty-state"><p><%= t("shared.no_data") %></p></div>
+      <% end %>
     </div>
     <div class="card p-6" data-controller="clickable-chart" data-clickable-chart-urls-value="<%= @customer_urls.to_json %>">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_customer") %></h2>
         <%= link_to t("dashboard.show.view_all"), customers_path, class: "text-sm link" %>
       </div>
-      <%= bar_chart @customer_margins, suffix: "%" %>
+      <% if @customer_margins.any? %>
+        <%= bar_chart @customer_margins, suffix: "%" %>
+      <% else %>
+        <div class="empty-state"><p><%= t("shared.no_data") %></p></div>
+      <% end %>
     </div>
   </div>
 </div>

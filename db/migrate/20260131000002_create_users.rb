@@ -3,7 +3,8 @@ class CreateUsers < ActiveRecord::Migration[8.0]
     create_table :users do |t|
       t.string :email_address, null: false
       t.string :password_digest, null: false
-      t.references :organization, null: false, foreign_key: true
+      t.references :organization, foreign_key: { on_delete: :nullify }
+      t.boolean :admin, default: false, null: false
 
       t.timestamps
     end
