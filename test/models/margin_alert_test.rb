@@ -50,10 +50,44 @@ class MarginAlertTest < ActiveSupport::TestCase
   test "validates alert_type inclusion" do
     alert = MarginAlert.new(
       organization: organizations(:acme),
+      dimension: "customer",
+      dimension_value: "123",
       alert_type: "invalid_type",
       message: "test"
     )
     assert_not alert.valid?
     assert_includes alert.errors[:alert_type], "is not included in the list"
+  end
+
+  test "validates dimension inclusion" do
+    alert = MarginAlert.new(
+      organization: organizations(:acme),
+      dimension: "invalid",
+      dimension_value: "123",
+      alert_type: "negative_margin",
+      message: "test"
+    )
+    assert_not alert.valid?
+    assert_includes alert.errors[:dimension], "is not included in the list"
+  end
+
+  test "validates dimension_value presence" do
+    alert = MarginAlert.new(
+      organization: organizations(:acme),
+      dimension: "customer",
+      dimension_value: nil,
+      alert_type: "negative_margin",
+      message: "test"
+    )
+    assert_not alert.valid?
+    assert_includes alert.errors[:dimension_value], "can't be blank"
+  end
+
+  test "customer? and event_type? helpers" do
+    assert margin_alerts(:active_alert).customer?
+    assert_not margin_alerts(:active_alert).event_type?
+
+    assert margin_alerts(:acknowledged_alert).event_type?
+    assert_not margin_alerts(:acknowledged_alert).customer?
   end
 end

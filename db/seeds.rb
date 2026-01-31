@@ -66,7 +66,21 @@ puts "Pricing sync: #{result.inspect}"
 
 # Events
 event_types = %w[ai_analysis ai_completion ai_embedding image_generation speech_to_text text_to_speech document_parse vector_search moderation translation]
-vendors = %w[openai anthropic aws google cohere mistral replicate huggingface pinecone deepgram]
+vendor_models = {
+  "openai" => %w[gpt-4 gpt-4o gpt-4o-mini],
+  "anthropic" => %w[claude-3.5-sonnet claude-3-opus claude-3-haiku],
+  "aws" => %w[titan-text-express titan-embed],
+  "google" => %w[gemini-pro gemini-flash],
+  "cohere" => %w[command-r command-r-plus],
+  "mistral" => %w[mistral-large mistral-small],
+  "replicate" => %w[llama-3-70b llama-3-8b],
+  "huggingface" => %w[zephyr-7b mixtral-8x7b],
+  "pinecone" => %w[pinecone-embed],
+  "deepgram" => %w[nova-2 whisper-large]
+}
+vendors = vendor_models.keys
+
+loss_event_types = %w[image_generation speech_to_text text_to_speech]
 
 event_count = 0
 customers.each do |customer|
@@ -82,13 +96,17 @@ customers.each do |customer|
     chosen_vendors = vendors.sample(num_vendors)
     total_cost = 0
     vendor_costs = chosen_vendors.map do |v|
-      cost = rand(10..(revenue * 0.9).to_i.clamp(10, 5000))
+      cost = if loss_event_types.include?(event_type)
+        rand((revenue * 0.8).to_i.clamp(10, 5000)..(revenue * 2.5).to_i.clamp(20, 10000))
+      else
+        rand(10..(revenue * 0.9).to_i.clamp(10, 5000))
+      end
       total_cost += cost
-      { vendor_name: v, amount_in_cents: cost, unit_count: rand(100..50000), unit_type: %w[tokens api_calls characters images seconds].sample }
+      { vendor_name: v, ai_model_name: vendor_models[v].sample, amount_in_cents: cost, unit_count: rand(100..50000), unit_type: %w[tokens api_calls characters images seconds].sample }
     end
 
     margin = revenue - total_cost
-    occurred = rand(90).days.ago + rand(86400).seconds
+    occurred = rand(1..90).days.ago + rand(0..82800).seconds
 
     event = Event.create!(
       organization: org,
@@ -112,7 +130,8 @@ customers.each do |customer|
         vendor_name: vc[:vendor_name],
         amount_in_cents: vc[:amount_in_cents],
         unit_count: vc[:unit_count],
-        unit_type: vc[:unit_type]
+        unit_type: vc[:unit_type],
+        metadata: { "ai_model_name" => vc[:ai_model_name] }
       )
     end
 
@@ -123,26 +142,48 @@ end
 puts "Created #{event_count} events"
 
 # Alerts
+MarginAlert.where(organization: org).delete_all
 alert_count = 0
-500.times do |i|
-  customer = customers.sample
-  alert_type = %w[negative_margin below_threshold].sample
-  event = customer.events.processed.sample
 
+# Customer-dimension alerts
+customers.sample(30).each do |customer|
+  alert_type = %w[negative_margin below_threshold].sample
   message = if alert_type == "negative_margin"
-    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} had negative margin: #{rand(-5000..-1)} cents"
+    "Negative margin on customer \"#{customer.name}\": #{rand(-5000..-100)} cents"
   else
-    margin = rand(1..200)
-    revenue = rand(500..5000)
-    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} margin below threshold: #{margin} cents on #{revenue} cents revenue"
+    bps = rand(50..900)
+    "Margin #{bps} bps on customer \"#{customer.name}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
   end
 
   MarginAlert.create!(
     organization: org,
-    customer: customer,
+    dimension: "customer",
+    dimension_value: customer.id.to_s,
     alert_type: alert_type,
     message: message,
-    acknowledged_at: [ nil, nil, nil, Time.current - rand(90).days ].sample,
+    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
+    created_at: rand(90).days.ago + rand(86400).seconds
+  )
+  alert_count += 1
+end
+
+# Event-type-dimension alerts
+event_types.sample(6).each do |et|
+  alert_type = %w[negative_margin below_threshold].sample
+  message = if alert_type == "negative_margin"
+    "Negative margin on event type \"#{et}\": #{rand(-3000..-50)} cents"
+  else
+    bps = rand(50..900)
+    "Margin #{bps} bps on event type \"#{et}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
+  end
+
+  MarginAlert.create!(
+    organization: org,
+    dimension: "event_type",
+    dimension_value: et,
+    alert_type: alert_type,
+    message: message,
+    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
     created_at: rand(90).days.ago + rand(86400).seconds
   )
   alert_count += 1

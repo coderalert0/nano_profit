@@ -22,7 +22,16 @@
         </select>
       </div>
 
-      <% if @status_filter.present? || @type_filter.present? %>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Dimension</label>
+        <select name="dimension" onchange="this.form.requestSubmit()" class="input-field w-auto">
+          <option value="">All</option>
+          <option value="event_type" <%= "selected" if @dimension_filter == "event_type" %>>Event Type</option>
+          <option value="customer" <%= "selected" if @dimension_filter == "customer" %>>Customer</option>
+        </select>
+      </div>
+
+      <% if @status_filter.present? || @type_filter.present? || @dimension_filter.present? %>
         <%= link_to "Clear filters", alerts_path, class: "btn-secondary self-end" %>
       <% end %>
     <% end %>
@@ -33,7 +42,7 @@
   </div>
 </div>
 
-<% filter_params = { status: @status_filter, type: @type_filter }.compact_blank %>
+<% filter_params = { status: @status_filter, type: @type_filter, dimension: @dimension_filter }.compact_blank %>
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= alerts_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
@@ -41,7 +50,7 @@
       <tr class="border-b border-slate-200 text-left text-slate-500">
         <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="date">Time</th>
         <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Type</th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Customer</th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Source</th>
         <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Message</th>
         <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Status</th>
         <th class="py-3 px-4"></th>

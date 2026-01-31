@@ -10,7 +10,6 @@ class ProcessEventJob < ApplicationJob
     event.reload
     return unless event.status == "processed"
 
-    check_margin_alerts(event)
     broadcast_update(event)
   rescue ActiveRecord::RecordNotFound
     # Event was deleted between enqueue and perform; nothing to do
@@ -61,40 +60,6 @@ class ProcessEventJob < ApplicationJob
         status: "processed"
       )
     end
-  end
-
-  def check_margin_alerts(event)
-    org = event.organization
-    threshold_bps = org.margin_alert_threshold_bps
-
-    margin_cents = event.margin_in_cents.to_d
-    revenue_cents = event.revenue_amount_in_cents.to_d
-
-    if margin_cents.negative?
-      create_alert_unless_duplicate(
-        org, event.customer, "negative_margin",
-        "Negative margin on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}: #{margin_cents} cents"
-      )
-    elsif threshold_bps > 0 && revenue_cents > 0
-      margin_bps = ((margin_cents * 10_000) / revenue_cents).to_i
-      if margin_bps < threshold_bps
-        create_alert_unless_duplicate(
-          org, event.customer, "below_threshold",
-          "Margin #{margin_bps} bps below threshold #{threshold_bps} bps on event #{event.event_type} for customer #{event.customer&.name || event.customer_external_id}"
-        )
-      end
-    end
-  end
-
-  def create_alert_unless_duplicate(org, customer, alert_type, message)
-    MarginAlert.create!(
-      organization: org,
-      customer: customer,
-      alert_type: alert_type,
-      message: message
-    )
-  rescue ActiveRecord::RecordNotUnique
-    # Duplicate unacknowledged alert already exists (partial unique index)
   end
 
   def broadcast_update(event)

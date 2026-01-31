@@ -1,13 +1,15 @@
 active_alert:
   organization: acme
-  customer: customer_one
+  dimension: customer
+  dimension_value: "<%= ActiveRecord::FixtureSet.identify(:customer_one) %>"
   alert_type: below_threshold
   message: "Margin 500 bps below threshold 1000 bps"
   acknowledged_at:
 
 acknowledged_alert:
   organization: acme
-  customer: customer_one
+  dimension: event_type
+  dimension_value: "ai_analysis"
   alert_type: negative_margin
   message: "Negative margin detected"
   acknowledged_at: <%= 1.day.ago.iso8601 %>

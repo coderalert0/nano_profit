@@ -48,54 +48,29 @@
     ], prefix: "$", library: { scales: { y: { beginAtZero: true } } } %>
   </div>
 
-  <!-- Vendor Cost Breakdown -->
-  <% if @vendor_costs.any? %>
+  <!-- Cost by AI Model -->
+  <% if @model_costs.any? %>
     <div class="card p-6 mb-8">
-      <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("dashboard.show.cost_by_vendor") %></h2>
-      <%= pie_chart @vendor_costs.transform_values { |v| v / 100.0 }, prefix: "$" %>
+      <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("dashboard.show.cost_by_model") %></h2>
+      <%= bar_chart @model_costs.transform_values { |v| v / 100.0 }, prefix: "$", colors: ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#84cc16"], library: { plugins: { legend: { display: false } } } %>
     </div>
   <% end %>
 
-  <!-- Live Event Feed -->
-  <div class="card p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.recent_events") %></h2>
-      <div class="flex items-center gap-4">
-        <% if @unacknowledged_alerts_count > 0 %>
-          <%= link_to alerts_path, class: "text-sm text-red-600 font-medium hover:text-red-700 transition-colors" do %>
-            <%= t("dashboard.show.unacknowledged_alerts", count: @unacknowledged_alerts_count) %>
-          <% end %>
-        <% end %>
-        <%= link_to t("dashboard.show.view_all_events"), events_path, class: "text-sm link" %>
+  <!-- Margin by Dimension Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="card p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_event_type") %></h2>
+        <%= link_to t("dashboard.show.view_all"), event_types_path, class: "text-sm link" %>
       </div>
+      <%= bar_chart @event_type_margins, suffix: "%" %>
     </div>
-
-    <div id="event-feed">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-slate-200 text-left text-slate-500">
-            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.time") %></th>
-            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.customer") %></th>
-            <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider"><%= t("shared.event_type") %></th>
-            <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.revenue") %></th>
-            <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.cost") %></th>
-            <th class="py-2.5 text-right text-xs font-medium uppercase tracking-wider"><%= t("shared.margin") %></th>
-          </tr>
-        </thead>
-        <tbody id="events-table-body">
-          <% @recent_events.each do |event| %>
-            <%= render partial: "dashboard/event_row", locals: { event: event } %>
-          <% end %>
-          <% if @recent_events.empty? %>
-            <tr id="no-events-row">
-              <td colspan="6" class="empty-state">
-                <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <%= t("dashboard.show.no_events") %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+    <div class="card p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_customer") %></h2>
+        <%= link_to t("dashboard.show.view_all"), customers_path, class: "text-sm link" %>
+      </div>
+      <%= bar_chart @customer_margins, suffix: "%" %>
     </div>
   </div>
 </div>

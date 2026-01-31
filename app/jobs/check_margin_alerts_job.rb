@@ -1,0 +1,66 @@
+class CheckMarginAlertsJob < ApplicationJob
+  queue_as :default
+
+  def perform(organization_id)
+    org = Organization.find(organization_id)
+    threshold_bps = org.margin_alert_threshold_bps
+    return if threshold_bps <= 0
+
+    period = org.margin_alert_period_days.days.ago..Time.current
+
+    check_event_type_margins(org, period, threshold_bps)
+    check_customer_margins(org, period, threshold_bps)
+  end
+
+  private
+
+  def check_event_type_margins(org, period, threshold_bps)
+    MarginCalculator.event_type_margins(org, period).each do |etm|
+      margin = etm[:margin]
+      create_alert(org, "event_type", etm[:event_type], margin, threshold_bps)
+    end
+  end
+
+  def check_customer_margins(org, period, threshold_bps)
+    MarginCalculator.customer_margins(org, period).each do |cm|
+      margin = cm[:margin]
+      create_alert(org, "customer", cm[:customer_id].to_s, margin, threshold_bps)
+    end
+  end
+
+  def create_alert(org, dimension, dimension_value, margin, threshold_bps)
+    if margin.margin_in_cents.negative?
+      create_alert_unless_duplicate(org, dimension, dimension_value, "negative_margin",
+        build_message(dimension, dimension_value, margin, org))
+    elsif margin.margin_bps < threshold_bps
+      create_alert_unless_duplicate(org, dimension, dimension_value, "below_threshold",
+        build_message(dimension, dimension_value, margin, org))
+    end
+  end
+
+  def build_message(dimension, dimension_value, margin, org)
+    label = if dimension == "event_type"
+      dimension_value
+    else
+      org.customers.find_by(id: dimension_value)&.name || dimension_value
+    end
+
+    if margin.margin_in_cents.negative?
+      "Negative margin on #{dimension.humanize.downcase} \"#{label}\": #{margin.margin_in_cents} cents"
+    else
+      "Margin #{margin.margin_bps} bps on #{dimension.humanize.downcase} \"#{label}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
+    end
+  end
+
+  def create_alert_unless_duplicate(org, dimension, dimension_value, alert_type, message)
+    MarginAlert.create!(
+      organization: org,
+      dimension: dimension,
+      dimension_value: dimension_value,
+      alert_type: alert_type,
+      message: message
+    )
+  rescue ActiveRecord::RecordNotUnique
+    # Already have an unacknowledged alert for this dimension/value/type
+  end
+end

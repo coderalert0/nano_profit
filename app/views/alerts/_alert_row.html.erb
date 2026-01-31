@@ -1,5 +1,5 @@
 <tr id="<%= dom_id(alert) %>" class="table-row">
-  <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at) %></td>
+  <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at, millis: false) %></td>
   <td class="py-3 px-4 whitespace-nowrap">
     <% if alert.alert_type == "negative_margin" %>
       <span class="badge badge-red">Negative Margin</span>
@@ -8,10 +8,17 @@
     <% end %>
   </td>
   <td class="py-3 px-4">
-    <% if alert.customer %>
-      <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "link" %>
-    <% else %>
-      <span class="text-slate-400">-</span>
+    <% if alert.event_type? %>
+      <span class="badge badge-blue text-xs">Event Type</span>
+      <div class="truncate max-w-[10rem]"><%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value), class: "link" %></div>
+    <% elsif alert.customer? %>
+      <span class="badge badge-gray text-xs">Customer</span>
+      <% customer = alert.organization.customers.find_by(id: alert.dimension_value) %>
+      <% if customer %>
+        <div class="truncate max-w-[10rem]"><%= link_to customer.name || customer.external_id, customer_path(customer), class: "link" %></div>
+      <% else %>
+        <div class="truncate max-w-[10rem] text-slate-400"><%= alert.dimension_value %></div>
+      <% end %>
     <% end %>
   </td>
   <td class="py-3 px-4 text-slate-700">

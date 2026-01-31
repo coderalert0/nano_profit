@@ -25,6 +25,34 @@ class MarginCalculator
     )
   end
 
+  def self.event_type_margins(organization, period = nil)
+    events = organization.events.processed
+    events = events.where(occurred_at: period) if period
+
+    events
+      .group(:event_type)
+      .pluck(
+        :event_type,
+        Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(margin_in_cents), 0)"),
+        Arel.sql("COUNT(*)")
+      ).map do |event_type, revenue, cost, margin, count|
+        {
+          event_type: event_type,
+          event_count: count,
+          margin: MarginResult.new(
+            revenue_in_cents: revenue,
+            cost_in_cents: cost,
+            margin_in_cents: margin,
+            margin_bps: revenue > 0 ? ((margin * 10_000) / revenue).to_i : 0,
+            subscription_revenue_in_cents: 0,
+            event_revenue_in_cents: revenue
+          )
+        }
+      end
+  end
+
   def self.event_type_margin(organization, event_type, period = nil)
     events = organization.events.processed.where(event_type: event_type)
     events = events.where(occurred_at: period) if period
@@ -123,6 +151,16 @@ class MarginCalculator
       end
 
     results
+  end
+
+  def self.model_cost_breakdown(organization, period = nil)
+    events = organization.events.processed
+    events = events.where(occurred_at: period) if period
+
+    CostEntry.where(event_id: events.select(:id))
+      .group(Arel.sql("metadata->>'ai_model_name'"))
+      .sum(:amount_in_cents)
+      .reject { |k, _| k.blank? }
   end
 
   def self.calculate(events)

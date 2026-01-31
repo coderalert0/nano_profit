@@ -14,6 +14,7 @@ en:
     subscription: "Subscription"
     regenerate: "Regenerate"
     no_data: "No data yet."
+    events_count: "Events"
     period:
       all: "All Time"
       7d: "Last 7 Days"
@@ -26,13 +27,14 @@ en:
       total_cost: "Total Cost"
       subscription_label: "Subscription: %{subscription} / Event: %{event}"
       revenue_vs_cost_over_time: "Revenue vs. Cost Over Time"
-      cost_by_vendor: "Cost by Vendor"
-      recent_events: "Recent Events"
-      unacknowledged_alerts:
-        one: "%{count} unacknowledged alert"
-        other: "%{count} unacknowledged alerts"
-      no_events: "No events yet. Send data via the API to get started."
-      view_all_events: "View all"
+      cost_by_model: "Cost by AI Model (Top 10)"
+      margin_by_event_type: "Margin by Event Type (Bottom 10)"
+      margin_by_customer: "Margin by Customer (Bottom 10)"
+      view_all: "View all"
+  event_types:
+    index:
+      title: "Event Types"
+      no_data: "No event type data yet."
   events:
     index:
       title: "Events"
@@ -75,9 +77,12 @@ en:
       api_key_description: "Use this key in the <code class=\"bg-gray-100 px-1 rounded\">Authorization: Bearer &lt;key&gt;</code> header when sending events."
       regenerate_confirm: "Are you sure? This will invalidate your current API key."
       margin_alert_threshold: "Margin Alert Threshold"
-      margin_alert_description: "Receive alerts when event margin falls below this threshold. Set in basis points (100 bps = 1%)."
+      margin_alert_description: "Receive alerts when aggregate margin falls below this threshold. Set in basis points (100 bps = 1%)."
       threshold_label: "Threshold (basis points)"
       threshold_current: "Current: %{value}"
+      margin_alert_period: "Alert Rolling Period"
+      margin_alert_period_description: "Alerts are based on aggregate margin over this rolling window."
+      period_days_label: "Period"
       api_usage: "API Usage"
       api_usage_description: "Send events to <code class=\"bg-gray-100 px-1 rounded\">POST /api/v1/events</code>"
       stripe_connect: "Stripe Connect"
