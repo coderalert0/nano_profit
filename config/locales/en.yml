@@ -60,6 +60,8 @@ en:
       no_cost_data: "No cost data yet."
       event_history: "Event History"
       no_events: "No events for this customer yet."
+      margin_by_event_type: "Margin by Event Type (Bottom 10)"
+      view_all: "View all"
   documentation:
     show:
       title: "Documentation"

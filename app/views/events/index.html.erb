@@ -1,8 +1,14 @@
-<h1 class="text-2xl font-bold text-slate-900 mb-6"><%= t("events.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-slate-900"><%= t("events.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+  <%= render "shared/period_selector", selected: @selected_period %>
+</div>
 
 <!-- Filters -->
 <div class="card p-4 mb-6">
   <%= form_with url: events_path, method: :get, class: "flex flex-wrap gap-4" do %>
+    <% if @selected_period != "all" %>
+      <input type="hidden" name="period" value="<%= @selected_period %>">
+    <% end %>
     <div>
       <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.event_type") %></label>
       <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_event_types") %>" class="input-field">
@@ -33,13 +39,13 @@
     <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
       <div class="ml-auto">
         <label class="block text-xs font-medium mb-1 invisible">.</label>
-        <%= link_to t("events.index.clear_filters"), events_path, class: "btn-secondary whitespace-nowrap" %>
+        <%= link_to t("events.index.clear_filters"), events_path(period: @selected_period == "all" ? nil : @selected_period), class: "btn-secondary whitespace-nowrap" %>
       </div>
     <% end %>
   <% end %>
 </div>
 
-<% filter_params = { event_type: @selected_event_types, customer_id: @selected_customer_ids, vendor: @selected_vendors }.compact_blank %>
+<% filter_params = { event_type: @selected_event_types, customer_id: @selected_customer_ids, vendor: @selected_vendors, period: @selected_period == "all" ? nil : @selected_period }.compact_blank %>
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= events_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">

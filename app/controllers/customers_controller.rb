@@ -3,8 +3,7 @@ class CustomersController < ApplicationController
 
   def index
     @page = [ params[:page].to_i, 1 ].max
-    @period = parse_period(params[:period])
-    @selected_period = params[:period] || "all"
+    resolve_period
     all_margins = MarginCalculator.customer_margins(Current.organization, @period)
       .sort_by { |cm| cm[:margin].margin_bps }
     @total_count = all_margins.size
@@ -18,20 +17,26 @@ class CustomersController < ApplicationController
 
   def show
     @customer = Current.organization.customers.find(params[:id])
-    @page = [ params[:page].to_i, 1 ].max
-    @period = parse_period(params[:period])
-    @selected_period = params[:period] || "all"
+    resolve_period
 
     @margin = MarginCalculator.customer_margin(@customer, @period)
 
-    events = @customer.events.processed
-    events = events.where(occurred_at: @period) if @period
-
-    @total_event_count = events.count
-    @total_event_pages = (@total_event_count.to_f / PER_PAGE).ceil
-    @events = events.recent.includes(:cost_entries)
-      .offset((@page - 1) * PER_PAGE)
-      .limit(PER_PAGE)
+    customer_events = @customer.events.processed
+    customer_events = customer_events.where(occurred_at: @period) if @period
+    @event_type_margins = customer_events
+      .group(:event_type)
+      .pluck(
+        :event_type,
+        Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(margin_in_cents), 0)")
+      )
+      .map { |et, rev, _cost, margin| [ et, rev > 0 ? ((margin * 10_000) / rev).to_i / 100.0 : 0.0 ] }
+      .sort_by { |_, bps| bps }
+      .first(10)
+      .to_h
+    @event_type_urls = @event_type_margins.keys
+      .to_h { |et| [ et, Rails.application.routes.url_helpers.events_path(event_type: [ et ], customer_id: [ @customer.id ]) ] }
 
     @vendor_costs = CostEntry
       .where(event: @customer.events.processed.then { |e| @period ? e.where(occurred_at: @period) : e })
@@ -45,20 +50,5 @@ class CustomersController < ApplicationController
       .group_by_day(:occurred_at)
       .sum(:total_cost_in_cents)
       .transform_values { |v| v / 100.0 }
-
-    if request.headers["Turbo-Frame"] == "infinite-scroll-rows"
-      render partial: "event_rows", locals: { events: @events, page: @page, total_pages: @total_event_pages }, layout: false
-    end
-  end
-
-  private
-
-  def parse_period(period_param)
-    case period_param
-    when "7d"  then 7.days.ago..Time.current
-    when "30d" then 30.days.ago..Time.current
-    when "90d" then 90.days.ago..Time.current
-    else nil
-    end
   end
 end

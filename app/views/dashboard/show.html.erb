@@ -58,14 +58,14 @@
 
   <!-- Margin by Dimension Charts -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-    <div class="card p-6">
+    <div class="card p-6" data-controller="clickable-chart" data-clickable-chart-urls-value="<%= @event_type_urls.to_json %>">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_event_type") %></h2>
         <%= link_to t("dashboard.show.view_all"), event_types_path, class: "text-sm link" %>
       </div>
       <%= bar_chart @event_type_margins, suffix: "%" %>
     </div>
-    <div class="card p-6">
+    <div class="card p-6" data-controller="clickable-chart" data-clickable-chart-urls-value="<%= @customer_urls.to_json %>">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold text-slate-900"><%= t("dashboard.show.margin_by_customer") %></h2>
         <%= link_to t("dashboard.show.view_all"), customers_path, class: "text-sm link" %>
