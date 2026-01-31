@@ -123,26 +123,48 @@ end
 puts "Created #{event_count} events"
 
 # Alerts
+MarginAlert.where(organization: org).delete_all
 alert_count = 0
-500.times do |i|
-  customer = customers.sample
-  alert_type = %w[negative_margin below_threshold].sample
-  event = customer.events.processed.sample
 
+# Customer-dimension alerts
+customers.sample(30).each do |customer|
+  alert_type = %w[negative_margin below_threshold].sample
   message = if alert_type == "negative_margin"
-    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} had negative margin: #{rand(-5000..-1)} cents"
+    "Negative margin on customer \"#{customer.name}\": #{rand(-5000..-100)} cents"
   else
-    margin = rand(1..200)
-    revenue = rand(500..5000)
-    "Event #{event&.event_type || 'unknown'} for #{customer.name || customer.external_id} margin below threshold: #{margin} cents on #{revenue} cents revenue"
+    bps = rand(50..900)
+    "Margin #{bps} bps on customer \"#{customer.name}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
   end
 
   MarginAlert.create!(
     organization: org,
-    customer: customer,
+    dimension: "customer",
+    dimension_value: customer.id.to_s,
     alert_type: alert_type,
     message: message,
-    acknowledged_at: [ nil, nil, nil, Time.current - rand(90).days ].sample,
+    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
+    created_at: rand(90).days.ago + rand(86400).seconds
+  )
+  alert_count += 1
+end
+
+# Event-type-dimension alerts
+event_types.sample(6).each do |et|
+  alert_type = %w[negative_margin below_threshold].sample
+  message = if alert_type == "negative_margin"
+    "Negative margin on event type \"#{et}\": #{rand(-3000..-50)} cents"
+  else
+    bps = rand(50..900)
+    "Margin #{bps} bps on event type \"#{et}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
+  end
+
+  MarginAlert.create!(
+    organization: org,
+    dimension: "event_type",
+    dimension_value: et,
+    alert_type: alert_type,
+    message: message,
+    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
     created_at: rand(90).days.ago + rand(86400).seconds
   )
   alert_count += 1
