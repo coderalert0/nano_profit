@@ -12,7 +12,7 @@
       <span class="badge badge-blue text-xs mr-1">Event Type</span>
       <%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value), class: "link" %>
     <% elsif alert.customer? %>
-      <span class="badge badge-purple text-xs mr-1">Customer</span>
+      <span class="badge badge-gray text-xs mr-1">Customer</span>
       <% customer = alert.organization.customers.find_by(id: alert.dimension_value) %>
       <% if customer %>
         <%= link_to customer.name || customer.external_id, customer_path(customer), class: "link" %>
