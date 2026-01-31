@@ -20,6 +20,6 @@ class SettingsController < ApplicationController
   private
 
   def organization_params
-    params.require(:organization).permit(:margin_alert_threshold_bps)
+    params.require(:organization).permit(:margin_alert_threshold_bps, :margin_alert_period_days)
   end
 end

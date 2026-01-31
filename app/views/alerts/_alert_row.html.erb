@@ -8,10 +8,17 @@
     <% end %>
   </td>
   <td class="py-3 px-4">
-    <% if alert.customer %>
-      <%= link_to alert.customer.name || alert.customer.external_id, customer_path(alert.customer), class: "link" %>
-    <% else %>
-      <span class="text-slate-400">-</span>
+    <% if alert.event_type? %>
+      <span class="badge badge-blue text-xs mr-1">Event Type</span>
+      <%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value), class: "link" %>
+    <% elsif alert.customer? %>
+      <span class="badge badge-purple text-xs mr-1">Customer</span>
+      <% customer = alert.organization.customers.find_by(id: alert.dimension_value) %>
+      <% if customer %>
+        <%= link_to customer.name || customer.external_id, customer_path(customer), class: "link" %>
+      <% else %>
+        <span class="text-slate-400"><%= alert.dimension_value %></span>
+      <% end %>
     <% end %>
   </td>
   <td class="py-3 px-4 text-slate-700">

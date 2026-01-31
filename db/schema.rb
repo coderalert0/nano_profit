@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_31_014516) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -64,7 +64,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
 
   create_table "margin_alerts", force: :cascade do |t|
     t.bigint "organization_id", null: false
-    t.bigint "customer_id"
     t.string "alert_type", null: false
     t.text "message", null: false
     t.datetime "acknowledged_at"
@@ -72,10 +71,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
     t.datetime "updated_at", null: false
     t.text "notes"
     t.bigint "acknowledged_by_id"
+    t.string "dimension", default: "customer", null: false
+    t.string "dimension_value"
     t.index ["acknowledged_by_id"], name: "index_margin_alerts_on_acknowledged_by_id"
-    t.index ["customer_id"], name: "index_margin_alerts_on_customer_id"
     t.index ["organization_id", "acknowledged_at"], name: "index_margin_alerts_on_organization_id_and_acknowledged_at"
-    t.index ["organization_id", "customer_id", "alert_type"], name: "idx_margin_alerts_unique_unacknowledged", unique: true, where: "(acknowledged_at IS NULL)"
+    t.index ["organization_id", "dimension", "dimension_value", "alert_type"], name: "idx_margin_alerts_unique_unacked_dimension", unique: true, where: "(acknowledged_at IS NULL)"
     t.index ["organization_id"], name: "index_margin_alerts_on_organization_id"
   end
 
@@ -87,6 +87,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
     t.datetime "updated_at", null: false
     t.string "stripe_user_id"
     t.string "stripe_access_token"
+    t.integer "margin_alert_period_days", default: 7, null: false
     t.index ["api_key"], name: "index_organizations_on_api_key", unique: true
   end
 
@@ -150,7 +151,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_100000) do
   add_foreign_key "customers", "organizations"
   add_foreign_key "events", "customers"
   add_foreign_key "events", "organizations"
-  add_foreign_key "margin_alerts", "customers"
   add_foreign_key "margin_alerts", "organizations"
   add_foreign_key "margin_alerts", "users", column: "acknowledged_by_id"
   add_foreign_key "sessions", "users"

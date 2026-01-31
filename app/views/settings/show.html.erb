@@ -18,13 +18,24 @@
     <p class="text-sm text-slate-500 mb-4"><%= t("settings.show.margin_alert_description") %></p>
 
     <%= form_with model: @organization, url: settings_path, method: :patch do |form| %>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1"><%= t("settings.show.threshold_label") %></label>
-        <div class="flex items-center gap-3">
-          <%= form.number_field :margin_alert_threshold_bps, min: 0, max: 10000, step: 100, class: "input-field w-48" %>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1"><%= t("settings.show.threshold_label") %></label>
+          <div class="flex items-center gap-3">
+            <%= form.number_field :margin_alert_threshold_bps, min: 0, max: 10000, step: 100, class: "input-field w-48" %>
+          </div>
+          <p class="text-xs text-slate-400 mt-1"><%= t("settings.show.threshold_current", value: format_bps(@organization.margin_alert_threshold_bps)) %></p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1"><%= t("settings.show.period_days_label") %></label>
+          <p class="text-xs text-slate-500 mb-1"><%= t("settings.show.margin_alert_period_description") %></p>
+          <%= form.select :margin_alert_period_days, [[t("shared.period.7d"), 7], [t("shared.period.30d"), 30], [t("shared.period.90d"), 90]], {}, class: "input-field w-48" %>
+        </div>
+
+        <div>
           <%= form.submit t("shared.update"), class: "btn-primary" %>
         </div>
-        <p class="text-xs text-slate-400 mt-1"><%= t("settings.show.threshold_current", value: format_bps(@organization.margin_alert_threshold_bps)) %></p>
       </div>
     <% end %>
   </div>
