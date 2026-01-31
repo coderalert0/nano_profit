@@ -27,13 +27,10 @@ en:
       total_cost: "Total Cost"
       subscription_label: "Subscription: %{subscription} / Event: %{event}"
       revenue_vs_cost_over_time: "Revenue vs. Cost Over Time"
-      cost_by_vendor: "Cost by Vendor"
-      recent_events: "Recent Events"
-      unacknowledged_alerts:
-        one: "%{count} unacknowledged alert"
-        other: "%{count} unacknowledged alerts"
-      no_events: "No events yet. Send data via the API to get started."
-      view_all_events: "View all"
+      cost_by_model: "Cost by AI Model (Top 10)"
+      margin_by_event_type: "Margin by Event Type (Bottom 10)"
+      margin_by_customer: "Margin by Customer (Bottom 10)"
+      view_all: "View all"
   event_types:
     index:
       title: "Event Types"

@@ -153,6 +153,16 @@ class MarginCalculator
     results
   end
 
+  def self.model_cost_breakdown(organization, period = nil)
+    events = organization.events.processed
+    events = events.where(occurred_at: period) if period
+
+    CostEntry.where(event_id: events.select(:id))
+      .group(Arel.sql("metadata->>'ai_model_name'"))
+      .sum(:amount_in_cents)
+      .reject { |k, _| k.blank? }
+  end
+
   def self.calculate(events)
     totals = events.pick(
       Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
