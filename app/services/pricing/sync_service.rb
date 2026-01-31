@@ -100,7 +100,9 @@ module Pricing
       http.use_ssl = true
       http.open_timeout = 10
       http.read_timeout = 30
-      http.get(uri.request_uri).body
+      response = http.get(uri.request_uri)
+      raise "HTTP #{response.code} from pricing source" unless response.is_a?(Net::HTTPSuccess)
+      response.body
     end
 
     def filter_models(data)
@@ -112,7 +114,10 @@ module Pricing
     def reject_deprecated(models)
       models.reject do |_, entry|
         deprecation = entry["deprecation_date"]
-        deprecation.present? && Date.parse(deprecation) < Date.current
+        next false if deprecation.blank?
+        Date.parse(deprecation) < Date.current
+      rescue ArgumentError
+        false
       end
     end
 

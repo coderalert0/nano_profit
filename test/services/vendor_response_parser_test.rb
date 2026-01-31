@@ -183,7 +183,7 @@ class VendorResponseParserTest < ActiveSupport::TestCase
       raw_response: {}
     )
 
-    assert_equal "", result["ai_model_name"]
+    assert_equal "unknown", result["ai_model_name"]
     assert_equal 0, result["input_tokens"]
     assert_equal 0, result["output_tokens"]
   end
@@ -194,7 +194,7 @@ class VendorResponseParserTest < ActiveSupport::TestCase
       raw_response: nil
     )
 
-    assert_equal "", result["ai_model_name"]
+    assert_equal "unknown", result["ai_model_name"]
     assert_equal 0, result["input_tokens"]
     assert_equal 0, result["output_tokens"]
   end

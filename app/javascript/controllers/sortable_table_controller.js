@@ -32,6 +32,7 @@ export default class extends Controller {
     indicator.textContent = this.ascending ? "▲" : "▼"
 
     const tbody = this.element.querySelector("tbody")
+    if (!tbody) return
     const rows = Array.from(tbody.querySelectorAll("tr")).filter(
       row => !row.querySelector("td[colspan]")
     )

@@ -1,43 +1,43 @@
-<h1 class="text-2xl font-bold text-slate-900 mb-6">Margin Alerts <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+<h1 class="text-2xl font-bold text-slate-900 mb-6"><%= t("alerts.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
 
 <!-- Filters -->
 <div class="card p-4 mb-6">
   <div class="flex flex-wrap items-end gap-4">
     <%= form_with url: alerts_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
       <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1">Status</label>
+        <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("alerts.index.status_label") %></label>
         <select name="status" onchange="this.form.requestSubmit()" class="input-field w-auto">
-          <option value="">All Statuses</option>
-          <option value="active" <%= "selected" if @status_filter == "active" %>>Active</option>
-          <option value="acknowledged" <%= "selected" if @status_filter == "acknowledged" %>>Acknowledged</option>
+          <option value=""><%= t("alerts.index.all_statuses") %></option>
+          <option value="active" <%= "selected" if @status_filter == "active" %>><%= t("alerts.index.active") %></option>
+          <option value="acknowledged" <%= "selected" if @status_filter == "acknowledged" %>><%= t("alerts.index.acknowledged") %></option>
         </select>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1">Type</label>
+        <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("alerts.index.type_label") %></label>
         <select name="type" onchange="this.form.requestSubmit()" class="input-field w-auto">
-          <option value="">All Types</option>
-          <option value="negative_margin" <%= "selected" if @type_filter == "negative_margin" %>>Negative Margin</option>
-          <option value="below_threshold" <%= "selected" if @type_filter == "below_threshold" %>>Below Threshold</option>
+          <option value=""><%= t("alerts.index.all_types") %></option>
+          <option value="negative_margin" <%= "selected" if @type_filter == "negative_margin" %>><%= t("alerts.index.negative_margin") %></option>
+          <option value="below_threshold" <%= "selected" if @type_filter == "below_threshold" %>><%= t("alerts.index.below_threshold") %></option>
         </select>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1">Dimension</label>
+        <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("alerts.index.dimension_label") %></label>
         <select name="dimension" onchange="this.form.requestSubmit()" class="input-field w-auto">
-          <option value="">All</option>
-          <option value="event_type" <%= "selected" if @dimension_filter == "event_type" %>>Event Type</option>
-          <option value="customer" <%= "selected" if @dimension_filter == "customer" %>>Customer</option>
+          <option value=""><%= t("alerts.index.all_dimensions") %></option>
+          <option value="event_type" <%= "selected" if @dimension_filter == "event_type" %>><%= t("alerts.index.event_type") %></option>
+          <option value="customer" <%= "selected" if @dimension_filter == "customer" %>><%= t("alerts.index.customer") %></option>
         </select>
       </div>
 
       <% if @status_filter.present? || @type_filter.present? || @dimension_filter.present? %>
-        <%= link_to "Clear filters", alerts_path, class: "btn-secondary self-end" %>
+        <%= link_to t("alerts.index.clear_filters"), alerts_path, class: "btn-secondary self-end" %>
       <% end %>
     <% end %>
 
     <div class="ml-auto">
-      <%= button_to "Acknowledge All", acknowledge_all_admin_margin_alerts_path, method: :patch, class: "btn-primary text-xs", data: { turbo_confirm: "Acknowledge all active alerts?" } %>
+      <%= button_to t("alerts.index.acknowledge_all"), acknowledge_all_admin_margin_alerts_path, method: :patch, class: "btn-primary text-xs", data: { turbo_confirm: t("alerts.index.acknowledge_all_confirm") } %>
     </div>
   </div>
 </div>
@@ -48,11 +48,11 @@
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-slate-50/75">
       <tr class="border-b border-slate-200 text-left text-slate-500">
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="date">Time</th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Type</th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Source</th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Message</th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort">Status</th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="date"><%= t("alerts.index.time") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("alerts.index.type") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("alerts.index.source") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("alerts.index.message") %></th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("alerts.index.status") %></th>
         <th class="py-3 px-4"></th>
       </tr>
     </thead>
@@ -62,7 +62,7 @@
         <tr>
           <td colspan="6" class="empty-state">
             <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            No alerts. Your margins are looking good!
+            <%= t("alerts.index.no_alerts") %>
           </td>
         </tr>
       <% end %>

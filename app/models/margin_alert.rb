@@ -27,6 +27,6 @@ class MarginAlert < ApplicationRecord
   end
 
   def linked_customer
-    organization.customers.find(dimension_value) if customer?
+    organization.customers.find_by(id: dimension_value) if customer?
   end
 end

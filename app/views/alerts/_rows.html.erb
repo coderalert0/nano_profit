@@ -3,6 +3,6 @@
 <% end %>
 <% if page < total_pages %>
   <tr data-infinite-scroll-target="sentinel" class="sentinel">
-    <td colspan="6" class="py-4 text-center text-sm text-gray-400">Loading more...</td>
+    <td colspan="6" class="py-4 text-center text-sm text-gray-400"><%= t("alerts.index.loading_more") %></td>
   </tr>
 <% end %>

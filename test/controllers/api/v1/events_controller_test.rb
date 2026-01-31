@@ -361,7 +361,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     post api_v1_events_url, params: payload.to_json, headers: @headers
     assert_response :unprocessable_entity
     json = JSON.parse(response.body)
-    assert json["results"][0]["errors"].any? { |e| e.include?("Missing ai_model_name") }
+    assert json["results"][0]["errors"].any? { |e| e.include?("Unrecognized vendor_name") }
   end
 
   test "rejects with multiple errors for multiple unrecognized models" do

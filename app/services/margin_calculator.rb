@@ -105,9 +105,9 @@ class MarginCalculator
         "customers.name",
         "customers.external_id",
         "customers.monthly_subscription_revenue_in_cents",
-        "SUM(revenue_amount_in_cents)",
-        "SUM(total_cost_in_cents)",
-        "SUM(margin_in_cents)"
+        Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
+        Arel.sql("COALESCE(SUM(margin_in_cents), 0)")
       ).map do |id, name, ext_id, monthly_sub, event_revenue, cost, _event_margin|
         seen_customer_ids.add(id)
         sub_revenue = prorate_subscription(monthly_sub, effective_period)
@@ -206,8 +206,8 @@ class MarginCalculator
   def self.events_date_range(events_scope)
     range = events_scope.pick(Arel.sql("MIN(occurred_at)"), Arel.sql("MAX(occurred_at)"))
     return nil unless range&.first && range&.last
-    end_date = [ range.last, range.first + 1.day ].max
-    range.first..end_date
+    end_date = [range.last.to_date + 1.day, range.first.to_date + 1.day].max
+    range.first.to_date..end_date
   end
 
   private_class_method :calculate, :prorate_subscription, :events_date_range
