@@ -59,7 +59,7 @@ module Stripe
 
       case price.recurring&.interval
       when "month"
-        count = (price.recurring.interval_count || 1).to_i
+        count = [ (price.recurring.interval_count || 1).to_i, 1 ].max
         price.unit_amount.to_d / count
       when "year"
         price.unit_amount.to_d / 12
@@ -75,19 +75,19 @@ module Stripe
     def update_customers(customer_revenues)
       synced_stripe_ids = Set.new
 
-      customer_revenues.each do |stripe_customer_id, monthly_cents|
-        customer = find_or_create_customer(stripe_customer_id)
+      ActiveRecord::Base.transaction do
+        customer_revenues.each do |stripe_customer_id, monthly_cents|
+          customer = find_or_create_customer(stripe_customer_id)
+          customer.update!(monthly_subscription_revenue_in_cents: monthly_cents)
+          synced_stripe_ids.add(stripe_customer_id)
+        end
 
-        customer.monthly_subscription_revenue_in_cents = monthly_cents
-        customer.save!
-        synced_stripe_ids.add(stripe_customer_id)
+        # Zero out revenue for customers whose subscriptions are no longer active
+        @organization.customers
+          .where.not(stripe_customer_id: [ nil, "" ])
+          .where.not(stripe_customer_id: synced_stripe_ids.to_a)
+          .update_all(monthly_subscription_revenue_in_cents: 0)
       end
-
-      # Zero out revenue for customers whose subscriptions are no longer active
-      @organization.customers
-        .where.not(stripe_customer_id: [ nil, "" ])
-        .where.not(stripe_customer_id: synced_stripe_ids.to_a)
-        .update_all(monthly_subscription_revenue_in_cents: 0)
     end
 
     def find_or_create_customer(stripe_customer_id)
@@ -115,12 +115,14 @@ module Stripe
         end
       end
 
-      # 3. Create new customer
-      @organization.customers.create!(
-        external_id: stripe_customer_id,
-        name: stripe_customer.name || stripe_customer.email,
-        stripe_customer_id: stripe_customer_id
-      )
+      # 3. Create new customer (handle race condition)
+      @organization.customers.create_or_find_by!(external_id: stripe_customer_id) do |c|
+        c.name = stripe_customer.name || stripe_customer.email
+        c.stripe_customer_id = stripe_customer_id
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      raise unless e.record.errors[:external_id]&.any?
+      @organization.customers.find_by!(external_id: stripe_customer_id)
     end
   end
 end

@@ -34,7 +34,7 @@ class EventProcessor
       vendor_name: vendor_name,
       amount_in_cents: amount,
       unit_count: BigDecimal(vc.fetch("unit_count", 0).to_s),
-      unit_type: vc["unit_type"] || rate.unit_type,
+      unit_type: vc["unit_type"].presence || rate.unit_type,
       metadata: {
         "rate_source" => "vendor_rate",
         "ai_model_name" => ai_model_name,

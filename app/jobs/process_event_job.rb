@@ -30,7 +30,7 @@ class ProcessEventJob < ApplicationJob
 
       organization = event.organization
 
-      customer = organization.customers.create_or_find_by!(
+      customer = organization.customers.find_or_create_by!(
         external_id: event.customer_external_id
       ) do |c|
         c.name = event.customer_name

@@ -3,8 +3,8 @@ class VendorRate < ApplicationRecord
 
   validates :vendor_name, presence: true
   validates :ai_model_name, presence: true
-  validates :input_rate_per_1k, presence: true
-  validates :output_rate_per_1k, presence: true
+  validates :input_rate_per_1k, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :output_rate_per_1k, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
   scope :active, -> { where(active: true) }
 

@@ -1,8 +1,7 @@
 class DashboardController < ApplicationController
   def show
     @organization = Current.organization
-    @period = parse_period(params[:period])
-    @selected_period = params[:period] || "all"
+    resolve_period
 
     @margin = MarginCalculator.organization_margin(@organization, @period)
     @model_costs = MarginCalculator.model_cost_breakdown(@organization, @period)
@@ -10,17 +9,23 @@ class DashboardController < ApplicationController
       .first(10)
       .to_h
 
-    @event_type_margins = MarginCalculator.event_type_margins(@organization, @period)
+    event_type_data = MarginCalculator.event_type_margins(@organization, @period)
       .sort_by { |et| et[:margin].margin_bps }
       .first(10)
+    @event_type_margins = event_type_data
       .map { |et| [ et[:event_type], (et[:margin].margin_bps / 100.0).round(1) ] }
       .to_h
+    @event_type_urls = event_type_data
+      .to_h { |et| [ et[:event_type], Rails.application.routes.url_helpers.events_path(event_type: [ et[:event_type] ]) ] }
 
-    @customer_margins = MarginCalculator.customer_margins(@organization, @period)
+    customer_data = MarginCalculator.customer_margins(@organization, @period)
       .sort_by { |c| c[:margin].margin_bps }
       .first(10)
+    @customer_margins = customer_data
       .map { |c| [ c[:customer_name] || c[:customer_external_id], (c[:margin].margin_bps / 100.0).round(1) ] }
       .to_h
+    @customer_urls = customer_data
+      .to_h { |c| [ c[:customer_name] || c[:customer_external_id], Rails.application.routes.url_helpers.customer_path(c[:customer_id]) ] }
 
     events = @organization.events.processed
     events = events.where(occurred_at: @period) if @period
@@ -32,16 +37,5 @@ class DashboardController < ApplicationController
       .group_by_day(:occurred_at)
       .sum(:total_cost_in_cents)
       .transform_values { |v| v / 100.0 }
-  end
-
-  private
-
-  def parse_period(period_param)
-    case period_param
-    when "7d"  then 7.days.ago..Time.current
-    when "30d" then 30.days.ago..Time.current
-    when "90d" then 90.days.ago..Time.current
-    else nil
-    end
   end
 end

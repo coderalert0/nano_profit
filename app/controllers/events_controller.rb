@@ -3,8 +3,10 @@ class EventsController < ApplicationController
 
   def index
     @page = [ params[:page].to_i, 1 ].max
+    resolve_period
 
     events = Current.organization.events.processed
+    events = events.where(occurred_at: @period) if @period
 
     @selected_event_types = Array(params[:event_type]).reject(&:blank?)
     @selected_customer_ids = Array(params[:customer_id]).reject(&:blank?)

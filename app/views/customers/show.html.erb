@@ -92,32 +92,18 @@
   </div>
 </div>
 
-<!-- Event History -->
-<% period_params = @selected_period == "all" ? {} : { period: @selected_period } %>
-
-<div class="card p-6" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= customer_path(@customer, **period_params) %>" data-infinite-scroll-page-value="1">
-  <h2 class="text-lg font-semibold text-slate-900 mb-4"><%= t("customers.show.event_history") %></h2>
-  <table class="w-full text-sm" data-controller="sortable-table">
-    <thead>
-      <tr class="border-b border-slate-200 text-left text-slate-500">
-        <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="date"><%= t("shared.time") %></th>
-        <th class="py-2.5 pr-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort"><%= t("shared.event_type") %></th>
-        <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
-        <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
-        <th class="py-2.5 pr-4 text-right text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
-        <th class="py-2.5 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort"><%= t("shared.vendors") %></th>
-      </tr>
-    </thead>
-    <tbody data-infinite-scroll-target="tbody">
-      <%= render "event_rows", events: @events, page: @page, total_pages: @total_event_pages %>
-      <% if @events.empty? %>
-        <tr>
-          <td colspan="6" class="empty-state">
-            <svg class="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <p><%= t("customers.show.no_events") %></p>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+<!-- Margin by Event Type -->
+<div class="card p-6" data-controller="clickable-chart" data-clickable-chart-urls-value="<%= @event_type_urls.to_json %>">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-semibold text-slate-900"><%= t("customers.show.margin_by_event_type") %></h2>
+    <%= link_to t("customers.show.view_all"), events_path(customer_id: [@customer.id]), class: "text-sm link" %>
+  </div>
+  <% if @event_type_margins.any? %>
+    <%= bar_chart @event_type_margins, suffix: "%" %>
+  <% else %>
+    <div class="empty-state">
+      <svg class="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <p><%= t("customers.show.no_events") %></p>
+    </div>
+  <% end %>
 </div>

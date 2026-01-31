@@ -3,7 +3,7 @@ class Organization < ApplicationRecord
   has_many :customers, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :margin_alerts, dependent: :destroy
-  has_many :vendor_rates
+  has_many :vendor_rates, dependent: :destroy
 
   encrypts :stripe_access_token
 

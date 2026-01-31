@@ -41,7 +41,7 @@ class VendorResponseParser
   def parse_openai
     usage = @response[:usage] || {}
     {
-      "ai_model_name" => @response[:model].to_s,
+      "ai_model_name" => @response[:model].to_s.presence || "unknown",
       "input_tokens" => usage[:prompt_tokens].to_i,
       "output_tokens" => usage[:completion_tokens].to_i
     }
@@ -50,7 +50,7 @@ class VendorResponseParser
   def parse_anthropic
     usage = @response[:usage] || {}
     {
-      "ai_model_name" => @response[:model].to_s,
+      "ai_model_name" => @response[:model].to_s.presence || "unknown",
       "input_tokens" => usage[:input_tokens].to_i,
       "output_tokens" => usage[:output_tokens].to_i
     }
@@ -60,7 +60,7 @@ class VendorResponseParser
     model = @response[:modelVersion] || @response[:model_version] || @response[:model]
     usage = @response[:usageMetadata] || @response[:usage_metadata] || {}
     {
-      "ai_model_name" => model.to_s,
+      "ai_model_name" => model.to_s.presence || "unknown",
       "input_tokens" => (usage[:promptTokenCount] || usage[:prompt_token_count]).to_i,
       "output_tokens" => (usage[:candidatesTokenCount] || usage[:candidates_token_count]).to_i
     }
