@@ -1,0 +1,15 @@
+<% event_type_margins.each do |etm| %>
+  <tr class="table-row">
+    <td class="py-3 px-4 font-medium"><%= etm[:event_type] %></td>
+    <td class="py-3 px-4 text-right"><%= number_with_delimiter(etm[:event_count]) %></td>
+    <td class="py-3 px-4 text-right"><%= format_cents(etm[:margin].revenue_in_cents) %></td>
+    <td class="py-3 px-4 text-right"><%= format_cents(etm[:margin].cost_in_cents) %></td>
+    <td class="py-3 px-4 text-right font-medium <%= margin_color_class(etm[:margin].margin_in_cents) %>"><%= format_cents(etm[:margin].margin_in_cents) %></td>
+    <td class="py-3 px-4 text-right font-medium <%= margin_color_class(etm[:margin].margin_in_cents) %>"><%= format_bps(etm[:margin].margin_bps) %></td>
+  </tr>
+<% end %>
+<% if page < total_pages %>
+  <tr data-infinite-scroll-target="sentinel" class="sentinel">
+    <td colspan="6" class="py-4 text-center text-sm text-slate-400">Loading more...</td>
+  </tr>
+<% end %>

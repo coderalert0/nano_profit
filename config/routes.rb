@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   resource :dashboard, only: :show, controller: "dashboard"
   resources :customers, only: %i[ index show ]
   resources :events, only: :index
+  resources :event_types, only: :index
   resources :alerts, only: %i[ index ]
   resource :settings, only: %i[ show update ] do
     post :regenerate_api_key, on: :member

@@ -14,6 +14,7 @@ en:
     subscription: "Subscription"
     regenerate: "Regenerate"
     no_data: "No data yet."
+    events_count: "Events"
     period:
       all: "All Time"
       7d: "Last 7 Days"
@@ -33,6 +34,10 @@ en:
         other: "%{count} unacknowledged alerts"
       no_events: "No events yet. Send data via the API to get started."
       view_all_events: "View all"
+  event_types:
+    index:
+      title: "Event Types"
+      no_data: "No event type data yet."
   events:
     index:
       title: "Events"

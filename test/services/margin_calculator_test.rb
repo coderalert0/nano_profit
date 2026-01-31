@@ -89,6 +89,20 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     assert_equal 300, sub_customer_margin[:margin].cost_in_cents
   end
 
+  test "event_type_margins returns grouped results" do
+    org = organizations(:acme)
+    margins = MarginCalculator.event_type_margins(org)
+
+    assert_equal 1, margins.length
+    ai_analysis = margins.find { |etm| etm[:event_type] == "ai_analysis" }
+    assert_not_nil ai_analysis
+    assert_equal 2, ai_analysis[:event_count]
+    assert_equal 1000, ai_analysis[:margin].revenue_in_cents
+    assert_equal 800, ai_analysis[:margin].cost_in_cents
+    assert_equal 200, ai_analysis[:margin].margin_in_cents
+    assert_equal 0, ai_analysis[:margin].subscription_revenue_in_cents
+  end
+
   test "no floating point in margin results" do
     org = organizations(:acme)
     result = MarginCalculator.organization_margin(org)
