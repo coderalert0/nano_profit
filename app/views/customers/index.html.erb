@@ -10,12 +10,12 @@
     <thead class="bg-slate-50/75">
       <tr class="border-b border-slate-200 text-left text-slate-500">
         <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.customer") %></th>
-        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.external_id") %></th>
-        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.subscription") %></th>
-        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
+        <th class="hidden md:table-cell py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort"><%= t("shared.external_id") %></th>
+        <th class="hidden md:table-cell py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.subscription") %></th>
+        <th class="hidden md:table-cell py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.revenue") %></th>
         <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.cost") %></th>
         <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin") %></th>
-        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin_percent") %></th>
+        <th class="hidden md:table-cell py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable sticky top-0 bg-white z-10" data-action="click->sortable-table#sort" data-sort-type="number"><%= t("shared.margin_percent") %></th>
       </tr>
     </thead>
     <tbody data-infinite-scroll-target="tbody">

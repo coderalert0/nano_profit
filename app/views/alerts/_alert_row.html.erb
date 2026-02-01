@@ -1,13 +1,13 @@
 <tr id="<%= dom_id(alert) %>" class="table-row">
   <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap" data-sort-value="<%= alert.created_at.to_i %>"><%= format_time(alert.created_at, millis: false) %></td>
-  <td class="py-3 px-4 whitespace-nowrap">
+  <td class="hidden md:table-cell py-3 px-4 whitespace-nowrap">
     <% if alert.alert_type == "negative_margin" %>
       <span class="badge badge-red"><%= t("alerts.alert_row.negative_margin") %></span>
     <% else %>
       <span class="badge badge-yellow"><%= t("alerts.alert_row.below_threshold") %></span>
     <% end %>
   </td>
-  <td class="py-3 px-4">
+  <td class="hidden md:table-cell py-3 px-4">
     <% if alert.event_type? %>
       <span class="badge badge-blue text-xs"><%= t("alerts.alert_row.event_type") %></span>
       <div class="truncate max-w-[10rem]"><%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value), class: "link" %></div>
@@ -44,7 +44,7 @@
       </span>
     <% end %>
   </td>
-  <td class="py-3 px-4">
+  <td class="hidden md:table-cell py-3 px-4">
     <% unless alert.acknowledged? %>
       <div data-controller="dialog">
         <button type="button" data-action="dialog#open" class="btn-secondary text-xs px-3 py-1">

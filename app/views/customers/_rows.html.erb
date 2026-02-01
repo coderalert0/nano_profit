@@ -3,12 +3,12 @@
     <td class="py-3 px-4 font-medium">
       <%= link_to cm[:customer_name] || cm[:customer_external_id], customer_path(cm[:customer_id]), class: "link" %>
     </td>
-    <td class="py-3 px-4 text-slate-500"><%= cm[:customer_external_id] %></td>
-    <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].subscription_revenue_in_cents) %></td>
-    <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].revenue_in_cents) %></td>
+    <td class="hidden md:table-cell py-3 px-4 text-slate-500"><%= cm[:customer_external_id] %></td>
+    <td class="hidden md:table-cell py-3 px-4 text-right"><%= format_cents(cm[:margin].subscription_revenue_in_cents) %></td>
+    <td class="hidden md:table-cell py-3 px-4 text-right"><%= format_cents(cm[:margin].revenue_in_cents) %></td>
     <td class="py-3 px-4 text-right"><%= format_cents(cm[:margin].cost_in_cents) %></td>
     <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_cents(cm[:margin].margin_in_cents) %></td>
-    <td class="py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_bps(cm[:margin].margin_bps) %></td>
+    <td class="hidden md:table-cell py-3 px-4 text-right font-medium <%= margin_color_class(cm[:margin].margin_in_cents) %>"><%= format_bps(cm[:margin].margin_bps) %></td>
   </tr>
 <% end %>
 <% if page < total_pages %>
