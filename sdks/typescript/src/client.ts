@@ -5,13 +5,13 @@ import type { PendingUsage } from "./serializer.js";
 import type {
   BatchResult,
   EventPayload,
-  NanoProfitConfig,
-  NanoProfitError,
+  MarginDashConfig,
+  MarginDashError,
   UsageData,
   WireEvent,
 } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://app.nanoprofit.dev/api/v1";
+const DEFAULT_BASE_URL = "https://margindash.com/api/v1";
 const DEFAULT_FLUSH_INTERVAL_MS = 5_000;
 const DEFAULT_MAX_QUEUE_SIZE = 1_000;
 const DEFAULT_BATCH_SIZE = 25;
@@ -19,18 +19,18 @@ const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_EVENT_TYPE = "ai_request";
 
 /**
- * NanoProfit client.
+ * MarginDash client.
  *
- * Queues events in memory and flushes them to the NanoProfit API in
+ * Queues events in memory and flushes them to the MarginDash API in
  * batches on a timer. Call {@link shutdown} when your process is about
  * to exit so that remaining events are delivered.
  */
-export class NanoProfit {
+export class MarginDash {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly maxRetries: number;
   private readonly defaultEventType: string;
-  private readonly onError?: (error: NanoProfitError) => void;
+  private readonly onError?: (error: MarginDashError) => void;
   private readonly queue: EventQueue;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private flushTimer: any = null;
@@ -38,7 +38,7 @@ export class NanoProfit {
   private signalHandlers: Array<{ signal: string; handler: () => void }> = [];
   private pendingUsages: PendingUsage[] = [];
 
-  constructor(config: NanoProfitConfig) {
+  constructor(config: MarginDashConfig) {
     this.apiKey = config.apiKey;
     this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
     this.maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
@@ -79,7 +79,7 @@ export class NanoProfit {
    * if an agent session makes three calls, call `addUsage` three times,
    * then call `track` once to attach them all to a single event.
    *
-   * Only the model name and token counts are sent to NanoProfit — no
+   * Only the model name and token counts are sent to MarginDash — no
    * request or response content ever leaves your infrastructure.
    */
   addUsage(vendorName: string, usage: UsageData): void {
@@ -206,7 +206,7 @@ export class NanoProfit {
   }
 
   /** Call the onError callback if configured, swallowing any errors from the callback. */
-  private reportError(error: NanoProfitError): void {
+  private reportError(error: MarginDashError): void {
     if (!this.onError) return;
     try {
       this.onError(error);

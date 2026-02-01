@@ -5,20 +5,20 @@ from typing import Any, Callable
 
 import httpx
 
-from nanoprofit.queue import EventQueue
-from nanoprofit.retry import with_retry
-from nanoprofit.serializer import event_to_dict
-from nanoprofit.types import Event, NanoProfitError
+from margindash.queue import EventQueue
+from margindash.retry import with_retry
+from margindash.serializer import event_to_dict
+from margindash.types import Event, MarginDashError
 
-logger = logging.getLogger("nanoprofit")
+logger = logging.getLogger("margindash")
 
 
-class NanoProfit:
-    """Async client for the NanoProfit event-tracking API.
+class MarginDash:
+    """Async client for the MarginDash event-tracking API.
 
     Usage::
 
-        async with NanoProfit(api_key="np_...") as np:
+        async with MarginDash(api_key="np_...") as np:
             np.add_response("openai", response)
             np.track(Event(
                 customer_external_id="cust_123",
@@ -29,7 +29,7 @@ class NanoProfit:
     Parameters
     ----------
     api_key:
-        Your NanoProfit API key.
+        Your MarginDash API key.
     base_url:
         API base URL.  Defaults to the production endpoint.
     flush_interval:
@@ -51,13 +51,13 @@ class NanoProfit:
         self,
         *,
         api_key: str,
-        base_url: str = "https://app.nanoprofit.dev/api/v1",
+        base_url: str = "https://margindash.com/api/v1",
         flush_interval: float = 5.0,
         max_queue_size: int = 1000,
         batch_size: int = 25,
         max_retries: int = 3,
         default_event_type: str = "ai_request",
-        on_error: Callable[[NanoProfitError], None] | None = None,
+        on_error: Callable[[MarginDashError], None] | None = None,
     ) -> None:
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
@@ -71,7 +71,7 @@ class NanoProfit:
             headers={
                 "Authorization": f"Bearer {self._api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "nanoprofit-python/0.1.0",
+                "User-Agent": "margindash-python/0.1.0",
             },
             timeout=httpx.Timeout(30.0),
         )
@@ -87,7 +87,7 @@ class NanoProfit:
     # Context manager
     # ------------------------------------------------------------------
 
-    async def __aenter__(self) -> NanoProfit:
+    async def __aenter__(self) -> MarginDash:
         self._queue.start()
         return self
 
@@ -128,7 +128,7 @@ class NanoProfit:
             payload = event_to_dict(event, responses, self._default_event_type)
             self._queue.enqueue(payload)
         except Exception:
-            logger.exception("nanoprofit: failed to enqueue event")
+            logger.exception("margindash: failed to enqueue event")
 
     async def flush(self) -> None:
         """Immediately flush all buffered events."""
@@ -163,7 +163,7 @@ class NanoProfit:
                 body = response.json()
                 failed = [r for r in body.get("results", []) if r.get("status") == "error"]
                 if failed:
-                    self._report_error(NanoProfitError(
+                    self._report_error(MarginDashError(
                         message=f"Batch partially failed: {len(failed)} of {len(body['results'])} events had errors",
                         events=events,
                     ))
@@ -178,24 +178,24 @@ class NanoProfit:
                         error_message = body["error"]
                 except Exception:
                     pass
-                self._report_error(NanoProfitError(
+                self._report_error(MarginDashError(
                     message=error_message,
                     events=events,
                 ))
 
         except Exception as exc:
-            self._report_error(NanoProfitError(
+            self._report_error(MarginDashError(
                 message="Batch request failed after retries",
                 cause=exc,
                 events=events,
             ))
 
-    def _report_error(self, error: NanoProfitError) -> None:
+    def _report_error(self, error: MarginDashError) -> None:
         """Log a warning and call the on_error callback if configured."""
-        logger.warning("nanoprofit: %s", error.message)
+        logger.warning("margindash: %s", error.message)
         if self._on_error is None:
             return
         try:
             self._on_error(error)
         except Exception:
-            logger.exception("nanoprofit: on_error callback raised")
+            logger.exception("margindash: on_error callback raised")

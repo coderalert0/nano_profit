@@ -1,20 +1,20 @@
-# nanoprofit
+# margindash
 
-Track AI usage and revenue with [NanoProfit](https://nanoprofit.dev).
+Track AI usage and revenue with [MarginDash](https://margindash.dev).
 
 ## Install
 
 ```bash
-npm install nanoprofit
+npm install margindash
 ```
 
 ## Quick start
 
 ```typescript
-import { NanoProfit } from "nanoprofit";
+import { MarginDash } from "margindash";
 import OpenAI from "openai";
 
-const np = new NanoProfit({ apiKey: process.env.NANOPROFIT_API_KEY! });
+const np = new MarginDash({ apiKey: process.env.MARGIN_DASH_API_KEY! });
 const openai = new OpenAI();
 
 const response = await openai.chat.completions.create({
@@ -36,15 +36,15 @@ np.track({
 await np.shutdown();
 ```
 
-Only the model name and token counts are sent to NanoProfit — no request
+Only the model name and token counts are sent to MarginDash — no request
 or response content ever leaves your infrastructure.
 
 ## Configuration
 
 ```typescript
-const np = new NanoProfit({
+const np = new MarginDash({
   apiKey: "np_...",               // required
-  baseUrl: "https://...",         // default: https://app.nanoprofit.dev/api/v1
+  baseUrl: "https://...",         // default: https://margindash.com/api/v1
   flushIntervalMs: 5000,          // default: 5000
   maxQueueSize: 1000,             // default: 1000
   batchSize: 25,                  // default: 25
@@ -100,7 +100,7 @@ np.track({ customerExternalId: "cust_456", revenueAmountInCents: 1200 });
 ### Supported vendors
 
 Any vendor name works with `addUsage()` as long as you have a matching
-vendor rate configured in NanoProfit. Common names: `openai`, `anthropic`,
+vendor rate configured in MarginDash. Common names: `openai`, `anthropic`,
 `google`, `groq`, `azure`, `bedrock`, `together`, `fireworks`, `mistral`.
 
 ## Shutdown

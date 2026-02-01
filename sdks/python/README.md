@@ -1,11 +1,11 @@
-# NanoProfit Python SDK
+# MarginDash Python SDK
 
-Track AI usage and revenue with the NanoProfit platform.
+Track AI usage and revenue with the MarginDash platform.
 
 ## Installation
 
 ```bash
-pip install nanoprofit
+pip install margindash
 ```
 
 ## Quick Start
@@ -13,12 +13,12 @@ pip install nanoprofit
 ```python
 import asyncio
 from openai import AsyncOpenAI
-from nanoprofit import NanoProfit, Event, Usage
+from margindash import MarginDash, Event, Usage
 
 async def main():
     openai = AsyncOpenAI()
 
-    async with NanoProfit(api_key="np_your_api_key") as np:
+    async with MarginDash(api_key="np_your_api_key") as np:
         response = await openai.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": "Hello!"}],
@@ -39,7 +39,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Only the model name and token counts are sent to NanoProfit — no request
+Only the model name and token counts are sent to MarginDash — no request
 or response content ever leaves your infrastructure.
 
 ## Tracking events
@@ -91,15 +91,15 @@ np.track(Event(
 ### Supported vendors
 
 Any vendor name works with `add_usage()` as long as you have a matching
-vendor rate configured in NanoProfit. Common names: `openai`, `anthropic`,
+vendor rate configured in MarginDash. Common names: `openai`, `anthropic`,
 `google`, `groq`, `azure`, `bedrock`, `together`, `fireworks`, `mistral`.
 
 ## Configuration
 
 ```python
-NanoProfit(
+MarginDash(
     api_key="np_...",               # required
-    base_url="https://...",         # default: https://app.nanoprofit.dev/api/v1
+    base_url="https://...",         # default: https://margindash.com/api/v1
     flush_interval=5.0,             # default: 5.0 seconds
     max_queue_size=1000,            # default: 1000
     batch_size=25,                  # default: 25
@@ -115,7 +115,7 @@ If you are not using the async context manager, call `shutdown()` before
 your application exits to ensure all buffered events are sent:
 
 ```python
-np = NanoProfit(api_key="np_your_api_key")
+np = MarginDash(api_key="np_your_api_key")
 try:
     np.add_usage("openai", Usage(
         model="gpt-4o",

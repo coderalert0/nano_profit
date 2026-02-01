@@ -1,7 +1,7 @@
 {
-  "name": "nanoprofit",
+  "name": "margindash",
   "version": "0.1.0",
-  "description": "NanoProfit SDK for tracking AI usage and revenue",
+  "description": "MarginDash SDK for tracking AI usage and revenue",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -28,7 +28,7 @@
     "llm",
     "margin",
     "tracking",
-    "nanoprofit"
+    "margindash"
   ],
   "license": "MIT",
   "devDependencies": {

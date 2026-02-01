@@ -16,7 +16,7 @@ class Event:
 
 
 @dataclass
-class NanoProfitError:
+class MarginDashError:
     message: str
     cause: Exception | None = None
     events: list | None = None

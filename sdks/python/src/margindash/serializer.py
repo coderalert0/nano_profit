@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from nanoprofit.types import Event
+from margindash.types import Event
 
 
 def _serialize_raw_response(raw: Any) -> Any:

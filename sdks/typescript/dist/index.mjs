@@ -73,13 +73,17 @@ async function withRetry(fn, options) {
 }
 
 // src/serializer.ts
-function toWireEvent(event, responses, defaultEventType) {
+function toWireEvent(event, usages, defaultEventType) {
   const wire = {
     customer_external_id: event.customerExternalId,
     revenue_amount_in_cents: event.revenueAmountInCents,
-    vendor_responses: responses.map((r) => ({
-      vendor_name: r.vendorName,
-      raw_response: r.rawResponse
+    vendor_responses: usages.map((u) => ({
+      vendor_name: u.vendorName,
+      raw_response: {
+        ai_model_name: u.usage.model,
+        input_tokens: u.usage.inputTokens,
+        output_tokens: u.usage.outputTokens
+      }
     })),
     unique_request_token: event.uniqueRequestToken ?? crypto.randomUUID(),
     event_type: event.eventType ?? defaultEventType,
@@ -95,13 +99,13 @@ function toWireEvent(event, responses, defaultEventType) {
 }
 
 // src/client.ts
-var DEFAULT_BASE_URL = "https://app.nanoprofit.dev/api/v1";
+var DEFAULT_BASE_URL = "https://margindash.com/api/v1";
 var DEFAULT_FLUSH_INTERVAL_MS = 5e3;
 var DEFAULT_MAX_QUEUE_SIZE = 1e3;
 var DEFAULT_BATCH_SIZE2 = 25;
 var DEFAULT_MAX_RETRIES = 3;
 var DEFAULT_EVENT_TYPE = "ai_request";
-var NanoProfit = class {
+var MarginDash = class {
   apiKey;
   baseUrl;
   maxRetries;
@@ -112,7 +116,7 @@ var NanoProfit = class {
   flushTimer = null;
   shutdownPromise = null;
   signalHandlers = [];
-  pendingResponses = [];
+  pendingUsages = [];
   constructor(config) {
     this.apiKey = config.apiKey;
     this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
@@ -143,27 +147,29 @@ var NanoProfit = class {
     }
   }
   /**
-   * Append a raw AI provider response for inclusion in the next
-   * {@link track} call. Call this once per AI API call — if an agent
-   * session makes three calls, call `addResponse` three times, then
-   * call `track` once to attach them all to a single event.
+   * Record usage from a single AI API call. Call this once per AI call —
+   * if an agent session makes three calls, call `addUsage` three times,
+   * then call `track` once to attach them all to a single event.
+   *
+   * Only the model name and token counts are sent to MarginDash — no
+   * request or response content ever leaves your infrastructure.
    */
-  addResponse(vendorName, rawResponse) {
-    this.pendingResponses.push({ vendorName, rawResponse });
+  addUsage(vendorName, usage) {
+    this.pendingUsages.push({ vendorName, usage });
   }
   /**
    * Enqueue an event for delivery. This method is synchronous and will
    * never throw -- errors are silently swallowed so that tracking can
    * never crash the host application.
    *
-   * All responses previously added via {@link addResponse} are drained
+   * All usage entries previously added via {@link addUsage} are drained
    * and attached to the event.
    */
   track(event) {
     try {
-      const responses = this.pendingResponses;
-      this.pendingResponses = [];
-      const wire = toWireEvent(event, responses, this.defaultEventType);
+      const usages = this.pendingUsages;
+      this.pendingUsages = [];
+      const wire = toWireEvent(event, usages, this.defaultEventType);
       this.queue.enqueue(wire);
     } catch {
     }
@@ -260,5 +266,5 @@ var NanoProfit = class {
   }
 };
 export {
-  NanoProfit
+  MarginDash
 };

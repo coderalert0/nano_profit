@@ -1,4 +1,4 @@
-/** Payload passed to `NanoProfit.track()`. */
+/** Payload passed to `MarginDash.track()`. */
 interface EventPayload {
     customerExternalId: string;
     revenueAmountInCents: number;
@@ -8,8 +8,14 @@ interface EventPayload {
     occurredAt?: string;
     metadata?: Record<string, unknown>;
 }
+/** Usage data from a single AI API call. */
+interface UsageData {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+}
 /** Error information surfaced via the `onError` callback. */
-interface NanoProfitError {
+interface MarginDashError {
     message: string;
     cause?: unknown;
     events?: WireEvent[];
@@ -21,7 +27,7 @@ interface BatchResult {
     errors?: string[];
 }
 /** SDK configuration options. */
-interface NanoProfitConfig {
+interface MarginDashConfig {
     apiKey: string;
     baseUrl?: string;
     flushIntervalMs?: number;
@@ -29,7 +35,7 @@ interface NanoProfitConfig {
     batchSize?: number;
     maxRetries?: number;
     defaultEventType?: string;
-    onError?: (error: NanoProfitError) => void;
+    onError?: (error: MarginDashError) => void;
     handleSignals?: boolean;
 }
 /** Internal wire format for events (snake_case). */
@@ -48,13 +54,13 @@ interface WireEvent {
 }
 
 /**
- * NanoProfit client.
+ * MarginDash client.
  *
- * Queues events in memory and flushes them to the NanoProfit API in
+ * Queues events in memory and flushes them to the MarginDash API in
  * batches on a timer. Call {@link shutdown} when your process is about
  * to exit so that remaining events are delivered.
  */
-declare class NanoProfit {
+declare class MarginDash {
     private readonly apiKey;
     private readonly baseUrl;
     private readonly maxRetries;
@@ -64,21 +70,23 @@ declare class NanoProfit {
     private flushTimer;
     private shutdownPromise;
     private signalHandlers;
-    private pendingResponses;
-    constructor(config: NanoProfitConfig);
+    private pendingUsages;
+    constructor(config: MarginDashConfig);
     /**
-     * Append a raw AI provider response for inclusion in the next
-     * {@link track} call. Call this once per AI API call — if an agent
-     * session makes three calls, call `addResponse` three times, then
-     * call `track` once to attach them all to a single event.
+     * Record usage from a single AI API call. Call this once per AI call —
+     * if an agent session makes three calls, call `addUsage` three times,
+     * then call `track` once to attach them all to a single event.
+     *
+     * Only the model name and token counts are sent to MarginDash — no
+     * request or response content ever leaves your infrastructure.
      */
-    addResponse(vendorName: string, rawResponse: Record<string, unknown>): void;
+    addUsage(vendorName: string, usage: UsageData): void;
     /**
      * Enqueue an event for delivery. This method is synchronous and will
      * never throw -- errors are silently swallowed so that tracking can
      * never crash the host application.
      *
-     * All responses previously added via {@link addResponse} are drained
+     * All usage entries previously added via {@link addUsage} are drained
      * and attached to the event.
      */
     track(event: EventPayload): void;
@@ -100,4 +108,4 @@ declare class NanoProfit {
     private reportError;
 }
 
-export { type BatchResult, type EventPayload, NanoProfit, type NanoProfitConfig, type NanoProfitError, type WireEvent };
+export { type BatchResult, type EventPayload, MarginDash, type MarginDashConfig, type MarginDashError, type UsageData, type WireEvent };

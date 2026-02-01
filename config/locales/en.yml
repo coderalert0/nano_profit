@@ -66,11 +66,11 @@ en:
     show:
       title: "Documentation"
       sdk_setup: "Installation"
-      sdk_setup_description: "Install the NanoProfit SDK for your language."
+      sdk_setup_description: "Install the MarginDash SDK for your language."
       typescript_usage: "TypeScript"
-      typescript_usage_description: "Track events using the NanoProfit TypeScript SDK."
+      typescript_usage_description: "Track events using the MarginDash TypeScript SDK."
       python_usage: "Python"
-      python_usage_description: "Track events using the NanoProfit Python SDK."
+      python_usage_description: "Track events using the MarginDash Python SDK."
       vendor_costs: "Vendor Cost Calculation"
   settings:
     show:

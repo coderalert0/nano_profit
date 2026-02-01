@@ -1,10 +1,10 @@
-export { NanoProfit } from "./client.js";
+export { MarginDash } from "./client.js";
 
 export type {
   BatchResult,
   EventPayload,
-  NanoProfitConfig,
-  NanoProfitError,
+  MarginDashConfig,
+  MarginDashError,
   UsageData,
   WireEvent,
 } from "./types.js";

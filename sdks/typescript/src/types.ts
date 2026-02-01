@@ -1,4 +1,4 @@
-/** Payload passed to `NanoProfit.track()`. */
+/** Payload passed to `MarginDash.track()`. */
 export interface EventPayload {
   customerExternalId: string;
   revenueAmountInCents: number;
@@ -17,7 +17,7 @@ export interface UsageData {
 }
 
 /** Error information surfaced via the `onError` callback. */
-export interface NanoProfitError {
+export interface MarginDashError {
   message: string;
   cause?: unknown;
   events?: WireEvent[];
@@ -31,7 +31,7 @@ export interface BatchResult {
 }
 
 /** SDK configuration options. */
-export interface NanoProfitConfig {
+export interface MarginDashConfig {
   apiKey: string;
   baseUrl?: string;
   flushIntervalMs?: number;
@@ -39,7 +39,7 @@ export interface NanoProfitConfig {
   batchSize?: number;
   maxRetries?: number;
   defaultEventType?: string;
-  onError?: (error: NanoProfitError) => void;
+  onError?: (error: MarginDashError) => void;
   handleSignals?: boolean;
 }
 

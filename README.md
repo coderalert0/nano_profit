@@ -1,4 +1,4 @@
-# NanoProfit
+# MarginDash
 
 Real-time SaaS unit economics platform. Track AI vendor costs against customer revenue to monitor per-customer and per-feature margins.
 
@@ -68,8 +68,8 @@ Response includes `unique_request_token` for client-side idempotency.
 
 ## SDKs
 
-- **TypeScript:** `npm install nanoprofit` — see `sdks/typescript/README.md`
-- **Python:** `pip install nanoprofit` — see `sdks/python/README.md`
+- **TypeScript:** `npm install margindash` — see `sdks/typescript/README.md`
+- **Python:** `pip install margindash` — see `sdks/python/README.md`
 
 SDKs send only model name and token counts — no request/response content.
 

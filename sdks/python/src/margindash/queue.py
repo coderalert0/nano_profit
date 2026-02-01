@@ -5,7 +5,7 @@ import logging
 from collections import deque
 from typing import Any, Awaitable, Callable
 
-logger = logging.getLogger("nanoprofit.queue")
+logger = logging.getLogger("margindash.queue")
 
 
 class EventQueue:
@@ -15,7 +15,7 @@ class EventQueue:
     ----------
     send_fn:
         An async callable that receives a list of event dicts and sends them
-        to the NanoProfit API.
+        to the MarginDash API.
     flush_interval:
         Seconds between automatic flushes.  Defaults to ``5.0``.
     max_size:
@@ -50,7 +50,7 @@ class EventQueue:
         try:
             self._buffer.append(event)
         except Exception:
-            logger.exception("nanoprofit: failed to enqueue event")
+            logger.exception("margindash: failed to enqueue event")
 
     def drain(self) -> list[list[dict[str, Any]]]:
         """Remove all buffered events and return them split into batches of
@@ -102,7 +102,7 @@ class EventQueue:
         try:
             await self._send_fn(batch)
         except Exception:
-            logger.exception("nanoprofit: failed to send batch of %d events", len(batch))
+            logger.exception("margindash: failed to send batch of %d events", len(batch))
 
     async def shutdown(self) -> None:
         """Cancel the flush loop and perform a final flush."""

@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t nano_profit .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name nano_profit nano_profit
+# docker build -t margin_dash .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name margin_dash margin_dash
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
