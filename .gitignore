@@ -11,6 +11,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore node modules.
+node_modules/
+
 # Ignore all environment files except the example.
 /.env*
 !/.env.example
