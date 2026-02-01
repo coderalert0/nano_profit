@@ -14,7 +14,7 @@ class AlertsController < ApplicationController
     alerts = alerts.where(dimension: @dimension_filter) if @dimension_filter.present?
     @total_count = alerts.count
     @total_pages = (@total_count.to_f / PER_PAGE).ceil
-    @alerts = alerts.includes(:organization, :acknowledged_by).offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
+    @alerts = alerts.includes(:acknowledged_by).offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
 
     # Batch-load customers referenced by customer alerts to avoid N+1
     customer_alerts = @alerts.select(&:customer?)

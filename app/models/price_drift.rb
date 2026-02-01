@@ -21,6 +21,8 @@ class PriceDrift < ApplicationRecord
   end
 
   def apply!
+    raise "Cannot apply non-pending drift" unless pending?
+
     transaction do
       rate = VendorRate.lock.find_by!(
         vendor_name: vendor_name,
@@ -43,6 +45,8 @@ class PriceDrift < ApplicationRecord
   end
 
   def ignore!
+    raise "Cannot ignore non-pending drift" unless pending?
+
     ignored!
   end
 end

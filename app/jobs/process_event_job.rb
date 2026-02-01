@@ -14,16 +14,11 @@ class ProcessEventJob < ApplicationJob
     broadcast_update(event)
   rescue ActiveRecord::RecordNotFound
     # Event was deleted between enqueue and perform; nothing to do
-  rescue EventProcessor::RateNotFoundError => e
-    Rails.logger.error("Event #{event_id} failed: #{e.message}")
-    event&.update_column(:status, "failed") if event&.persisted?
-    raise
-  rescue RuntimeError => e
-    Rails.logger.error("Event #{event_id} failed: #{e.message}")
+  rescue EventProcessor::RateNotFoundError, ArgumentError, TypeError => e
+    Rails.logger.error("Event #{event_id} failed (permanent): #{e.class} - #{e.message}")
     event&.update_column(:status, "failed") if event&.persisted?
     raise
   rescue => e
-    # Transient error — leave status unchanged so SolidQueue can retry
     Rails.logger.warn("Event #{event_id} transient error: #{e.class} - #{e.message}")
     raise
   end

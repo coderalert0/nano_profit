@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_31_000012) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_31_000015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,10 +58,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_000012) do
     t.datetime "updated_at", null: false
     t.index ["customer_id", "occurred_at"], name: "index_events_on_customer_id_and_occurred_at"
     t.index ["customer_id"], name: "index_events_on_customer_id"
+    t.index ["organization_id", "event_type"], name: "idx_events_org_event_type"
     t.index ["organization_id", "status", "occurred_at"], name: "idx_events_org_status_occurred"
     t.index ["organization_id", "status"], name: "index_events_on_organization_id_and_status"
+    t.index ["organization_id", "unique_request_token"], name: "idx_events_org_unique_request_token", unique: true
     t.index ["organization_id"], name: "index_events_on_organization_id"
-    t.index ["unique_request_token"], name: "index_events_on_unique_request_token", unique: true
   end
 
   create_table "margin_alerts", force: :cascade do |t|
@@ -91,6 +92,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_000012) do
     t.string "stripe_access_token"
     t.integer "margin_alert_period_days", default: 7, null: false
     t.index ["api_key"], name: "index_organizations_on_api_key", unique: true
+    t.index ["stripe_user_id"], name: "idx_organizations_stripe_user_id", unique: true, where: "(stripe_user_id IS NOT NULL)"
   end
 
   create_table "platform_settings", force: :cascade do |t|
@@ -150,7 +152,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_31_000012) do
     t.datetime "updated_at", null: false
     t.bigint "organization_id"
     t.boolean "admin", default: false, null: false
+    t.datetime "email_verified_at"
+    t.string "email_verification_token"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true, where: "(email_verification_token IS NOT NULL)"
     t.index ["organization_id"], name: "index_users_on_organization_id"
   end
 

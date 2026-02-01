@@ -4,10 +4,14 @@
   <!-- API Key Section -->
   <div class="card p-6">
     <h2 class="text-lg font-semibold text-slate-900 mb-1"><%= t("settings.show.api_key") %></h2>
-    <p class="text-sm text-slate-500 mb-4"><%= t("settings.show.api_key_description").html_safe %></p>
+    <p class="text-sm text-slate-500 mb-4"><%= t("settings.show.api_key_description") %></p>
 
-    <div class="flex items-center gap-4">
-      <code class="bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg text-sm font-mono flex-1 break-all text-slate-700"><%= @organization.api_key %></code>
+    <div class="flex items-center gap-4" data-controller="reveal">
+      <code class="bg-slate-100 border border-slate-200 px-4 py-2 rounded-lg text-sm font-mono flex-1 break-all text-slate-700">
+        <span data-reveal-target="masked"><%= @organization.api_key.first(8) %><%= "•" * 24 %></span>
+        <span data-reveal-target="content" class="hidden"><%= @organization.api_key %></span>
+      </code>
+      <button type="button" data-action="reveal#toggle" data-reveal-target="button" class="btn-secondary text-sm">Show</button>
       <%= button_to t("shared.regenerate"), regenerate_api_key_settings_path, method: :post, class: "btn-danger", data: { turbo_confirm: t("settings.show.regenerate_confirm") } %>
     </div>
   </div>

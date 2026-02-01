@@ -36,7 +36,7 @@
 <span class="text-emerald-400">import OpenAI from "openai";</span>
 
 <span class="text-amber-300">const np = new NanoProfit({
-  apiKey: "<%= @organization.api_key %>",
+  apiKey: "<%= @organization.api_key.first(8) %>••••••••••••",
   baseUrl: "<%= request.base_url %>/api/v1",
 });</span>
 <span class="text-emerald-400">const openai = new OpenAI();
@@ -83,7 +83,7 @@ np.track({
 <span class="text-emerald-400">    openai = AsyncOpenAI()</span>
 
 <span class="text-amber-300">    async with NanoProfit(
-        api_key="<%= @organization.api_key %>",
+        api_key="<%= @organization.api_key.first(8) %>••••••••••••",
         base_url="<%= request.base_url %>/api/v1",
     ) as np:</span>
 <span class="text-emerald-400">        response = await openai.chat.completions.create(

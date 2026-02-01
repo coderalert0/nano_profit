@@ -21,7 +21,7 @@ class CustomersController < ApplicationController
 
     @margin = MarginCalculator.customer_margin(@customer, @period)
 
-    customer_events = @customer.events.processed.includes(:cost_entries)
+    customer_events = @customer.events.processed
     customer_events = customer_events.where(occurred_at: @period) if @period
     @event_type_margins = customer_events
       .group(:event_type)
@@ -31,7 +31,7 @@ class CustomersController < ApplicationController
         Arel.sql("COALESCE(SUM(total_cost_in_cents), 0)"),
         Arel.sql("COALESCE(SUM(margin_in_cents), 0)")
       )
-      .map { |et, rev, _cost, margin| [ et, rev > 0 ? ((margin * 10_000) / rev).to_i / 100.0 : 0.0 ] }
+      .map { |et, rev, _cost, margin| [ et, rev > 0 ? ((margin * 10_000) / rev).round.to_i / 100.0 : 0.0 ] }
       .sort_by { |_, bps| bps }
       .first(10)
       .to_h

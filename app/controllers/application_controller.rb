@@ -11,7 +11,12 @@ class ApplicationController < ActionController::Base
     return if Current.organization.present?
     return if self.class.module_parent == Admin || is_a?(Admin::BaseController)
 
-    redirect_to admin_vendor_rates_path
+    if Current.user.admin?
+      redirect_to admin_vendor_rates_path
+    else
+      terminate_session
+      redirect_to new_session_path, alert: "Your organization is no longer available. Please contact support."
+    end
   end
 
   VALID_PERIODS = %w[7d 30d 90d].freeze

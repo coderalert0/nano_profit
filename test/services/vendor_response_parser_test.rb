@@ -48,43 +48,22 @@ class VendorResponseParserTest < ActiveSupport::TestCase
     assert_equal 60, result["output_tokens"]
   end
 
-  test "parses Together response (OpenAI-compatible)" do
-    result = VendorResponseParser.call(
-      vendor_name: "together",
-      raw_response: {
-        "model" => "mistralai/Mixtral-8x7B",
-        "usage" => { "prompt_tokens" => 300, "completion_tokens" => 120 }
-      }
-    )
-
-    assert_equal "together", result["vendor_name"]
-    assert_equal "mistralai/Mixtral-8x7B", result["ai_model_name"]
+  test "rejects unsupported vendor together" do
+    assert_raises(VendorResponseParser::ParseError) do
+      VendorResponseParser.call(vendor_name: "together", raw_response: { "model" => "test" })
+    end
   end
 
-  test "parses Fireworks response (OpenAI-compatible)" do
-    result = VendorResponseParser.call(
-      vendor_name: "fireworks",
-      raw_response: {
-        "model" => "accounts/fireworks/models/llama-v3p1-70b",
-        "usage" => { "prompt_tokens" => 250, "completion_tokens" => 100 }
-      }
-    )
-
-    assert_equal "fireworks", result["vendor_name"]
-    assert_equal 250, result["input_tokens"]
+  test "rejects unsupported vendor fireworks" do
+    assert_raises(VendorResponseParser::ParseError) do
+      VendorResponseParser.call(vendor_name: "fireworks", raw_response: { "model" => "test" })
+    end
   end
 
-  test "parses Mistral response (OpenAI-compatible)" do
-    result = VendorResponseParser.call(
-      vendor_name: "mistral",
-      raw_response: {
-        "model" => "mistral-large-latest",
-        "usage" => { "prompt_tokens" => 180, "completion_tokens" => 70 }
-      }
-    )
-
-    assert_equal "mistral", result["vendor_name"]
-    assert_equal "mistral-large-latest", result["ai_model_name"]
+  test "rejects unsupported vendor mistral" do
+    assert_raises(VendorResponseParser::ParseError) do
+      VendorResponseParser.call(vendor_name: "mistral", raw_response: { "model" => "test" })
+    end
   end
 
   # ── Anthropic-compatible ───────────────────────────────────────────
@@ -121,34 +100,40 @@ class VendorResponseParserTest < ActiveSupport::TestCase
 
   # ── Google-compatible ──────────────────────────────────────────────
 
-  test "parses Google response with camelCase keys" do
+  test "parses Gemini response with camelCase keys" do
     result = VendorResponseParser.call(
-      vendor_name: "google",
+      vendor_name: "gemini",
       raw_response: {
         "modelVersion" => "gemini-1.5-pro",
         "usageMetadata" => { "promptTokenCount" => 300, "candidatesTokenCount" => 100 }
       }
     )
 
-    assert_equal "google", result["vendor_name"]
+    assert_equal "gemini", result["vendor_name"]
     assert_equal "gemini-1.5-pro", result["ai_model_name"]
     assert_equal 300, result["input_tokens"]
     assert_equal 100, result["output_tokens"]
   end
 
-  test "parses Google response with snake_case keys" do
+  test "parses Gemini response with snake_case keys" do
     result = VendorResponseParser.call(
-      vendor_name: "google",
+      vendor_name: "gemini",
       raw_response: {
         "model_version" => "gemini-1.5-flash",
         "usage_metadata" => { "prompt_token_count" => 250, "candidates_token_count" => 80 }
       }
     )
 
-    assert_equal "google", result["vendor_name"]
+    assert_equal "gemini", result["vendor_name"]
     assert_equal "gemini-1.5-flash", result["ai_model_name"]
     assert_equal 250, result["input_tokens"]
     assert_equal 80, result["output_tokens"]
+  end
+
+  test "rejects unsupported vendor google" do
+    assert_raises(VendorResponseParser::ParseError) do
+      VendorResponseParser.call(vendor_name: "google", raw_response: { "model" => "test" })
+    end
   end
 
   test "parses Gemini alias (Google-compatible)" do

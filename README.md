@@ -55,7 +55,7 @@ curl -X POST http://localhost:3000/api/v1/events \
       "vendor_responses": [{
         "vendor_name": "openai",
         "raw_response": {
-          "ai_model_name": "gpt-4o",
+          "ai_model_name": "gpt-4",
           "input_tokens": 150,
           "output_tokens": 50
         }

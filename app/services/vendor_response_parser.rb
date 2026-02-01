@@ -1,9 +1,9 @@
 class VendorResponseParser
   class ParseError < StandardError; end
 
-  OPENAI_COMPATIBLE = %w[openai groq azure together fireworks mistral].freeze
+  OPENAI_COMPATIBLE = %w[openai groq azure].freeze
   ANTHROPIC_COMPATIBLE = %w[anthropic bedrock].freeze
-  GOOGLE_COMPATIBLE = %w[google gemini].freeze
+  GOOGLE_COMPATIBLE = %w[gemini].freeze
 
   ALL_VENDORS = (OPENAI_COMPATIBLE + ANTHROPIC_COMPATIBLE + GOOGLE_COMPATIBLE).freeze
 

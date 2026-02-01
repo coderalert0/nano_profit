@@ -86,7 +86,7 @@ module Api
         raw.map do |vr|
           VendorResponseParser.call(
             vendor_name: vr[:vendor_name].to_s,
-            raw_response: vr[:raw_response]&.to_unsafe_h
+            raw_response: sanitize_raw_response(vr[:raw_response])
           )
         end
       rescue VendorResponseParser::ParseError => e
@@ -133,6 +133,11 @@ module Api
           end
         end
         errors
+      end
+
+      def sanitize_raw_response(raw)
+        return {} if raw.blank?
+        raw.is_a?(ActionController::Parameters) ? raw.permit!.to_h : raw.to_h
       end
 
       def permit_event_fields(event_data)

@@ -20,6 +20,10 @@ module Pricing
       counts = { created: 0, unchanged: 0, drifts_detected: 0, skipped: 0, deactivated: 0 }
       seen_pairs = Set.new
 
+      # Pre-load all global rates to avoid N individual queries
+      existing_rates = VendorRate.where(organization_id: nil)
+        .index_by { |r| [r.vendor_name, r.ai_model_name] }
+
       models.each do |key, entry|
         vendor, model = parse_key(key, entry)
         input_rate = normalize_rate(entry, :input)
@@ -32,11 +36,7 @@ module Pricing
 
         seen_pairs.add([ vendor, model ])
 
-        existing = VendorRate.find_by(
-          vendor_name: vendor,
-          ai_model_name: model,
-          organization_id: nil
-        )
+        existing = existing_rates[[vendor, model]]
 
         if existing.nil?
           VendorRate.create!(
@@ -74,10 +74,15 @@ module Pricing
       end
 
       # Deactivate global rates no longer present in upstream data
-      VendorRate.where(organization_id: nil, active: true).find_each do |rate|
-        unless seen_pairs.include?([ rate.vendor_name, rate.ai_model_name ])
-          rate.update!(active: false)
-          counts[:deactivated] += 1
+      ActiveRecord::Base.transaction do
+        stale_ids = []
+        VendorRate.where(organization_id: nil, active: true).find_each do |rate|
+          unless seen_pairs.include?([ rate.vendor_name, rate.ai_model_name ])
+            stale_ids << rate.id
+          end
+        end
+        if stale_ids.any?
+          counts[:deactivated] = VendorRate.where(id: stale_ids).update_all(active: false)
         end
       end
 

@@ -47,7 +47,7 @@ class StripeController < ApplicationController
     end
 
     StripeSyncJob.perform_later(organization.id)
-    redirect_to settings_path, notice: t("controllers.stripe.sync_complete")
+    redirect_to settings_path, notice: t("controllers.stripe.sync_started")
   end
 
   def disconnect

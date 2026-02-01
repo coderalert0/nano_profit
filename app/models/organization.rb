@@ -1,5 +1,5 @@
 class Organization < ApplicationRecord
-  has_many :users, dependent: :destroy
+  has_many :users, dependent: :nullify
   has_many :customers, dependent: :destroy
   has_many :events, dependent: :destroy
   has_many :margin_alerts, dependent: :destroy

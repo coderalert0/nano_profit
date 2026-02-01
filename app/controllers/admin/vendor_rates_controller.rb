@@ -75,7 +75,7 @@ module Admin
     def vendor_rate_params
       params.require(:vendor_rate).permit(
         :vendor_name, :ai_model_name, :input_rate_per_1k, :output_rate_per_1k,
-        :unit_type, :active
+        :unit_type, :active, :organization_id
       )
     end
   end

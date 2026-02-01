@@ -7,3 +7,4 @@ customer_with_subscription:
   organization: acme
   external_id: cust_sub_001
   name: Subscription Customer
+  stripe_customer_id: cus_sub_001

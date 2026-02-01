@@ -56,11 +56,11 @@ class Admin::VendorRatesScopingTest < ActionDispatch::IntegrationTest
     assert_not VendorRate.exists?(@rival_rate.id)
   end
 
-  test "cannot inject organization_id via params" do
+  test "admin can create org-specific rate via organization_id param" do
     post admin_vendor_rates_url, params: {
       vendor_rate: {
-        vendor_name: "sneaky",
-        ai_model_name: "injection_test",
+        vendor_name: "org_specific",
+        ai_model_name: "org_rate_test",
         input_rate_per_1k: 1.0,
         output_rate_per_1k: 1.0,
         unit_type: "tokens",
@@ -69,11 +69,27 @@ class Admin::VendorRatesScopingTest < ActionDispatch::IntegrationTest
       }
     }, headers: auth_headers(@admin_session)
 
-    created = VendorRate.find_by(ai_model_name: "injection_test")
-    if created
-      assert_not_equal @rival.id, created.organization_id,
-        "Should not be able to set organization_id to rival org via params"
-    end
+    created = VendorRate.find_by(ai_model_name: "org_rate_test")
+    assert_not_nil created
+    assert_equal @rival.id, created.organization_id,
+      "Admin should be able to set organization_id for org-specific rates"
+  end
+
+  test "admin can create global rate without organization_id" do
+    post admin_vendor_rates_url, params: {
+      vendor_rate: {
+        vendor_name: "global_test",
+        ai_model_name: "global_rate_test",
+        input_rate_per_1k: 1.0,
+        output_rate_per_1k: 1.0,
+        unit_type: "tokens",
+        active: true
+      }
+    }, headers: auth_headers(@admin_session)
+
+    created = VendorRate.find_by(ai_model_name: "global_rate_test")
+    assert_not_nil created
+    assert_nil created.organization_id, "Rate without organization_id should be global"
   end
 
   private

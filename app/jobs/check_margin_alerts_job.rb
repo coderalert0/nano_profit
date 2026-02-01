@@ -24,29 +24,27 @@ class CheckMarginAlertsJob < ApplicationJob
   def check_customer_margins(org, period, threshold_bps)
     MarginCalculator.customer_margins(org, period).each do |cm|
       margin = cm[:margin]
-      create_alert(org, "customer", cm[:customer_id].to_s, margin, threshold_bps)
+      label = cm[:customer_name] || cm[:customer_external_id] || cm[:customer_id].to_s
+      create_alert(org, "customer", cm[:customer_id].to_s, margin, threshold_bps, label: label)
     end
   end
 
-  def create_alert(org, dimension, dimension_value, margin, threshold_bps)
+  def create_alert(org, dimension, dimension_value, margin, threshold_bps, label: nil)
     # Skip zero-activity dimensions to avoid false positives
     return if margin.revenue_in_cents.zero? && margin.cost_in_cents.zero?
 
+    display_label = label || dimension_value
+
     if margin.margin_in_cents.negative?
       create_alert_unless_duplicate(org, dimension, dimension_value, "negative_margin",
-        build_message(dimension, dimension_value, margin, org))
+        build_message(dimension, display_label, margin, org))
     elsif margin.margin_bps < threshold_bps
       create_alert_unless_duplicate(org, dimension, dimension_value, "below_threshold",
-        build_message(dimension, dimension_value, margin, org))
+        build_message(dimension, display_label, margin, org))
     end
   end
 
-  def build_message(dimension, dimension_value, margin, org)
-    label = if dimension == "event_type"
-      dimension_value
-    else
-      org.customers.find_by(id: dimension_value)&.name || dimension_value
-    end
+  def build_message(dimension, label, margin, org)
 
     if margin.margin_in_cents.negative?
       "Negative margin on #{dimension.humanize.downcase} \"#{label}\": #{margin.margin_in_cents} cents"

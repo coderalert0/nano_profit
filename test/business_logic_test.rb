@@ -266,8 +266,8 @@ class BusinessLogicTest < ActiveSupport::TestCase
     assert_equal "unknown", result["ai_model_name"]
   end
 
-  test "parser returns 'unknown' for google with nil model" do
-    result = VendorResponseParser.call(vendor_name: "google", raw_response: {})
+  test "parser returns 'unknown' for gemini with nil model" do
+    result = VendorResponseParser.call(vendor_name: "gemini", raw_response: {})
     assert_equal "unknown", result["ai_model_name"]
   end
 

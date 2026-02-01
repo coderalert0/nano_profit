@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
   resource :registration, only: %i[ new create ]
+  get "verify_email", to: "email_verifications#show", as: :verify_email
 
   namespace :api do
     namespace :v1 do
