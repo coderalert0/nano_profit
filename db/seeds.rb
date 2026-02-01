@@ -75,7 +75,9 @@ vendor_models = {
 }
 vendors = vendor_models.keys
 
-loss_event_types = %w[image_generation speech_to_text text_to_speech]
+thin_margin_types = %w[image_generation speech_to_text]  # ~5-15% margin
+negative_margin_types = %w[text_to_speech]                # negative margin
+# Everything else: healthy 40-70% margin
 
 event_count = 0
 customers.each do |customer|
@@ -85,16 +87,28 @@ customers.each do |customer|
     next if Event.exists?(unique_request_token: token)
 
     event_type = event_types.sample
-    revenue = rand(50..5000)
+    revenue = rand(200..8000)
 
-    num_vendors = rand(1..3)
+    num_vendors = rand(1..2)
     chosen_vendors = vendors.sample(num_vendors)
+
+    # Decide target cost ratio based on event type
+    cost_ratio = if negative_margin_types.include?(event_type)
+      rand(1.1..1.6)   # 110-160% of revenue (loss)
+    elsif thin_margin_types.include?(event_type)
+      rand(0.85..0.95)  # 85-95% of revenue (thin margin)
+    else
+      rand(0.25..0.55)  # 25-55% of revenue (healthy margin)
+    end
+
+    target_total = (revenue * cost_ratio).to_i.clamp(10, 15000)
     total_cost = 0
-    vendor_costs = chosen_vendors.map do |v|
-      cost = if loss_event_types.include?(event_type)
-        rand((revenue * 0.8).to_i.clamp(10, 5000)..(revenue * 2.5).to_i.clamp(20, 10000))
+    vendor_costs = chosen_vendors.each_with_index.map do |v, i|
+      # Split cost across vendors, last vendor gets remainder
+      cost = if i == chosen_vendors.size - 1
+        [target_total - total_cost, 10].max
       else
-        rand(10..(revenue * 0.9).to_i.clamp(10, 5000))
+        (target_total.to_f / chosen_vendors.size * rand(0.7..1.3)).to_i.clamp(10, target_total)
       end
       total_cost += cost
       { vendor_name: v, ai_model_name: vendor_models[v].sample, amount_in_cents: cost, unit_count: rand(100..50000), unit_type: %w[tokens api_calls characters images seconds].sample }
@@ -140,13 +154,13 @@ puts "Created #{event_count} events"
 MarginAlert.where(organization: org).delete_all
 alert_count = 0
 
-# Customer-dimension alerts
-customers.sample(30).each do |customer|
-  alert_type = %w[negative_margin below_threshold].sample
+# Customer-dimension alerts (fewer — only problematic customers)
+customers.sample(8).each do |customer|
+  alert_type = %w[below_threshold below_threshold negative_margin].sample
   message = if alert_type == "negative_margin"
-    "Negative margin on customer \"#{customer.name}\": #{rand(-5000..-100)} cents"
+    "Negative margin on customer \"#{customer.name}\": #{rand(-800..-50)} cents"
   else
-    bps = rand(50..900)
+    bps = rand(200..900)
     "Margin #{bps} bps on customer \"#{customer.name}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
   end
 
@@ -156,19 +170,19 @@ customers.sample(30).each do |customer|
     dimension_value: customer.id.to_s,
     alert_type: alert_type,
     message: message,
-    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
+    acknowledged_at: [nil, nil, Time.current - rand(90).days].sample,
     created_at: rand(90).days.ago + rand(86400).seconds
   )
   alert_count += 1
 end
 
-# Event-type-dimension alerts
-event_types.sample(6).each do |et|
-  alert_type = %w[negative_margin below_threshold].sample
+# Event-type-dimension alerts (only the problematic types)
+%w[text_to_speech speech_to_text image_generation].each do |et|
+  alert_type = et == "text_to_speech" ? "negative_margin" : "below_threshold"
   message = if alert_type == "negative_margin"
-    "Negative margin on event type \"#{et}\": #{rand(-3000..-50)} cents"
+    "Negative margin on event type \"#{et}\": #{rand(-500..-50)} cents"
   else
-    bps = rand(50..900)
+    bps = rand(200..800)
     "Margin #{bps} bps on event type \"#{et}\" (threshold: #{org.margin_alert_threshold_bps} bps)"
   end
 
@@ -178,8 +192,8 @@ event_types.sample(6).each do |et|
     dimension_value: et,
     alert_type: alert_type,
     message: message,
-    acknowledged_at: [nil, nil, nil, Time.current - rand(90).days].sample,
-    created_at: rand(90).days.ago + rand(86400).seconds
+    acknowledged_at: [nil, Time.current - rand(30).days].sample,
+    created_at: rand(60).days.ago + rand(86400).seconds
   )
   alert_count += 1
 end

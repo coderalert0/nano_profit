@@ -15,19 +15,27 @@
 <%# ===== HERO ===== %>
 <section class="pt-32 pb-20 sm:pt-40 sm:pb-28">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <p class="inline-block text-sm font-medium text-blue-400 border border-blue-400/20 bg-blue-400/5 rounded-full px-4 py-1 mb-6">Margin intelligence for AI-powered SaaS</p>
+    <p class="inline-block text-sm font-medium text-blue-400 border border-blue-400/20 bg-blue-400/5 rounded-full px-4 py-1 mb-6">Built for AI-first SaaS teams</p>
     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-      Know your margins<br class="hidden sm:block">
-      <span class="text-blue-400">before they erode.</span>
+      See your per-customer margin<br class="hidden sm:block">
+      <span class="text-blue-400">in under five minutes.</span>
     </h1>
     <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto">
-      Track the true cost of every AI API call with a lightweight SDK, pull in revenue from Stripe, and get per-customer P&L and per-feature cost breakdowns &mdash; with alerts when margins slip.
+      Add a lightweight SDK, connect Stripe, and get per-customer P&L and per-feature cost breakdowns across every AI provider &mdash; with alerts when margins slip.
     </p>
-    <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-      <%= link_to "Start Free", new_registration_path, class: "w-full sm:w-auto text-center text-base font-semibold bg-blue-500 hover:bg-blue-400 text-white px-8 py-3 rounded-lg transition-colors" %>
-      <%= link_to "Sign In", new_session_path, class: "w-full sm:w-auto text-center text-base font-semibold text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-8 py-3 rounded-lg transition-colors" %>
+    <div class="mt-10">
+      <%= link_to "Get Started Free", new_registration_path, class: "inline-block text-base font-semibold bg-blue-500 hover:bg-blue-400 text-white px-8 py-3 rounded-lg transition-colors" %>
     </div>
     <p class="mt-4 text-sm text-slate-500">No credit card required</p>
+  </div>
+</section>
+
+<%# ===== HERO SCREENSHOT ===== %>
+<section class="pb-20 sm:pb-28 -mt-4">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="rounded-xl overflow-hidden border border-slate-700/50 shadow-2xl shadow-blue-500/10">
+      <img src="/images/dashboard-screenshot.png" alt="MarginDash dashboard showing revenue, cost, and margin analytics" class="w-full" loading="lazy">
+    </div>
   </div>
 </section>
 
@@ -35,13 +43,13 @@
 <section class="border-y border-slate-800 bg-slate-900/50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <p class="text-center text-sm text-slate-500 uppercase tracking-wider mb-6">Tracks costs across</p>
-    <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-slate-400">
-      <span class="text-lg font-semibold">OpenAI</span>
-      <span class="text-lg font-semibold">Anthropic</span>
-      <span class="text-lg font-semibold">Google</span>
-      <span class="text-lg font-semibold">AWS Bedrock</span>
-      <span class="text-lg font-semibold">Azure</span>
-      <span class="text-lg font-semibold">Groq</span>
+    <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">OpenAI</span>
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">Anthropic</span>
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">Google Gemini</span>
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">AWS Bedrock</span>
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">Azure</span>
+      <span class="text-lg font-semibold text-slate-400 tracking-tight">Groq</span>
     </div>
   </div>
 </section>
@@ -112,13 +120,13 @@ md.<span class="text-blue-400">addUsage</span>(<span class="text-emerald-400">"o
   </div>
 </section>
 
-<%# ===== FEATURES GRID ===== %>
+<%# ===== FEATURES GRID (4 cards) ===== %>
 <section class="py-20 sm:py-28 bg-slate-800/30">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Everything you need to protect your margins</h2>
     <p class="text-center text-slate-400 max-w-2xl mx-auto mb-16">One dashboard to track costs, revenue, and profitability across every AI model and customer.</p>
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
       <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
         <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
           <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
@@ -136,30 +144,6 @@ md.<span class="text-blue-400">addUsage</span>(<span class="text-emerald-400">"o
       </div>
 
       <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-4">
-          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-        </div>
-        <h3 class="text-lg font-semibold mb-2">Per-feature costs</h3>
-        <p class="text-slate-400 text-sm leading-relaxed">Tag every API call with a feature or event type and see which product features are most expensive to run.</p>
-      </div>
-
-      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
-        <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
-        </div>
-        <h3 class="text-lg font-semibold mb-2">AI model cost breakdown</h3>
-        <p class="text-slate-400 text-sm leading-relaxed">See exactly what each model costs you &mdash; input tokens, output tokens, and total spend &mdash; across every provider.</p>
-      </div>
-
-      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
-        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
-          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-        </div>
-        <h3 class="text-lg font-semibold mb-2">Stripe revenue sync</h3>
-        <p class="text-slate-400 text-sm leading-relaxed">Connect Stripe to automatically pull in invoice and subscription revenue per customer. Or send revenue via the API &mdash; your choice.</p>
-      </div>
-
-      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
         <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center mb-4">
           <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         </div>
@@ -168,11 +152,11 @@ md.<span class="text-blue-400">addUsage</span>(<span class="text-emerald-400">"o
       </div>
 
       <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
-        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
-          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
         </div>
-        <h3 class="text-lg font-semibold mb-2">Privacy-first</h3>
-        <p class="text-slate-400 text-sm leading-relaxed">Only model names and token counts are sent to MarginDash. No prompts, no completions, no request content ever leaves your infrastructure.</p>
+        <h3 class="text-lg font-semibold mb-2">Stripe revenue sync</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Connect Stripe to automatically pull in invoice and subscription revenue per customer. Or send revenue via the API.</p>
       </div>
     </div>
   </div>
