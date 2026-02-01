@@ -6,7 +6,15 @@ module Pricing
   class SyncService
     SOURCE_URL = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
     SUPPORTED_PROVIDERS = %w[openai anthropic gemini groq azure bedrock].freeze
-    CHARS_PER_TOKEN = 4
+    CHARS_PER_TOKEN = {
+      "gemini" => 4,
+      "openai" => 4,
+      "anthropic" => 4,
+      "groq" => 4,
+      "azure" => 4,
+      "bedrock" => 4
+    }.freeze
+    DEFAULT_CHARS_PER_TOKEN = 4
 
     def initialize(pricing_data: nil)
       @pricing_data = pricing_data
@@ -151,7 +159,9 @@ module Pricing
       if entry[token_key].present?
         entry[token_key].to_d * 100_000  # dollars/token → cents/1K tokens
       elsif entry[char_key].present?
-        entry[char_key].to_d * CHARS_PER_TOKEN * 100_000  # dollars/char → cents/1K tokens
+        provider = match_provider(entry["litellm_provider"])
+        cpt = CHARS_PER_TOKEN.fetch(provider, DEFAULT_CHARS_PER_TOKEN)
+        entry[char_key].to_d * cpt * 100_000  # dollars/char → cents/1K tokens
       end
     end
 

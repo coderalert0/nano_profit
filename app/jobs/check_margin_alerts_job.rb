@@ -54,13 +54,14 @@ class CheckMarginAlertsJob < ApplicationJob
   end
 
   def create_alert_unless_duplicate(org, dimension, dimension_value, alert_type, message)
-    MarginAlert.create!(
+    alert = MarginAlert.create!(
       organization: org,
       dimension: dimension,
       dimension_value: dimension_value,
       alert_type: alert_type,
       message: message
     )
+    AlertMailer.margin_alert(alert).deliver_later
   rescue ActiveRecord::RecordNotUnique
     # Already have an unacknowledged alert for this dimension/value/type
   end

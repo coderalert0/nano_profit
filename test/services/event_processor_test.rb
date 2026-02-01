@@ -37,7 +37,7 @@ class EventProcessorTest < ActiveSupport::TestCase
     assert_equal "5.0", entry.metadata["output_rate_per_1k"]
   end
 
-  test "raises when no rate found for vendor and ai_model_name" do
+  test "creates zero-cost entry when no rate found for vendor and ai_model_name" do
     event = @org.events.create!(
       unique_request_token: "req_no_rate_#{SecureRandom.hex(4)}",
       customer_external_id: "cust_001",
@@ -55,9 +55,12 @@ class EventProcessorTest < ActiveSupport::TestCase
       occurred_at: Time.current
     )
 
-    assert_raises(EventProcessor::RateNotFoundError) do
-      EventProcessor.new(event).call
-    end
+    entries = EventProcessor.new(event).call
+
+    assert_equal 1, entries.size
+    assert_equal 0, entries.first.amount_in_cents
+    assert_equal "missing_rate", entries.first.metadata["rate_source"]
+    assert_equal "unknown_model", entries.first.ai_model_name
   end
 
   test "processes multiple vendor cost entries" do

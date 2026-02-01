@@ -40,7 +40,20 @@ class EventProcessor
 
     rate = find_cached_rate(vendor_name, ai_model_name.to_s)
 
-    raise RateNotFoundError, "No vendor rate found for vendor '#{vendor_name}', ai_model_name '#{ai_model_name}'" unless rate
+    unless rate
+      Rails.logger.warn("No vendor rate found for vendor '#{vendor_name}', ai_model_name '#{ai_model_name}' — creating zero-cost entry")
+      return @event.cost_entries.create!(
+        vendor_name: vendor_name,
+        amount_in_cents: 0,
+        unit_count: BigDecimal(vc.fetch("unit_count", 0).to_s),
+        unit_type: vc["unit_type"].presence || "tokens",
+        ai_model_name: ai_model_name,
+        metadata: {
+          "rate_source" => "missing_rate",
+          "ai_model_name" => ai_model_name
+        }
+      )
+    end
 
     amount = (input_tokens * rate.input_rate_per_1k / 1000) +
              (output_tokens * rate.output_rate_per_1k / 1000)
@@ -50,6 +63,7 @@ class EventProcessor
       amount_in_cents: amount,
       unit_count: BigDecimal(vc.fetch("unit_count", 0).to_s),
       unit_type: vc["unit_type"].presence || rate.unit_type,
+      ai_model_name: ai_model_name,
       metadata: {
         "rate_source" => "vendor_rate",
         "ai_model_name" => ai_model_name,

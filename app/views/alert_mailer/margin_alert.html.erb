@@ -1,0 +1,9 @@
+<h1>MarginDash Margin Alert</h1>
+
+<p>A margin alert has been triggered for your organization <strong><%= @organization.name %></strong>.</p>
+
+<p><strong>Alert type:</strong> <%= @alert.alert_type.humanize %></p>
+<p><strong>Dimension:</strong> <%= @alert.dimension.humanize %> — <%= @alert.dimension_value %></p>
+<p><strong>Details:</strong> <%= @alert.message %></p>
+
+<p>Log in to MarginDash to review and acknowledge this alert.</p>

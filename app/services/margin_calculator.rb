@@ -149,17 +149,6 @@ class MarginCalculator
     results
   end
 
-  def self.model_cost_breakdown(organization, period = nil)
-    events = organization.events.processed
-    events = events.where(occurred_at: period) if period
-
-    CostEntry.where(event_id: events.select(:id))
-      .group(:vendor_name, Arel.sql("metadata->>'ai_model_name'"))
-      .sum(:amount_in_cents)
-      .reject { |(vendor, model), _| vendor.blank? || model.blank? }
-      .transform_keys { |vendor, model| "#{vendor}/#{model}" }
-  end
-
   def self.calculate(events)
     totals = events.pick(
       Arel.sql("COALESCE(SUM(revenue_amount_in_cents), 0)"),
@@ -193,9 +182,34 @@ class MarginCalculator
       overlap_end = [ inv.period_end, period_end ].min
       overlap_days = (overlap_end.to_date - overlap_start.to_date).to_i
       invoice_days = (inv.period_end.to_date - inv.period_start.to_date).to_i
-      next 0 if invoice_days <= 0
+      next inv.amount_in_cents if invoice_days <= 0
       (inv.amount_in_cents.to_d * overlap_days / invoice_days).round
     end
+  end
+
+  def self.customer_margins_paginated(organization, period = nil, page: 1, per_page: 20)
+    all = customer_margins(organization, period)
+    total_count = all.size
+    results = all.slice((page - 1) * per_page, per_page) || []
+    { results: results, total_count: total_count }
+  end
+
+  def self.event_type_margins_paginated(organization, period = nil, page: 1, per_page: 20)
+    all = event_type_margins(organization, period)
+    total_count = all.size
+    results = all.slice((page - 1) * per_page, per_page) || []
+    { results: results, total_count: total_count }
+  end
+
+  def self.model_cost_breakdown(organization, period = nil)
+    events = organization.events.processed
+    events = events.where(occurred_at: period) if period
+
+    CostEntry.where(event_id: events.select(:id))
+      .group(:vendor_name, :ai_model_name)
+      .sum(:amount_in_cents)
+      .reject { |(vendor, model), _| vendor.blank? || model.blank? }
+      .transform_keys { |vendor, model| "#{vendor}/#{model}" }
   end
 
   private_class_method :calculate, :invoice_revenue_for_period

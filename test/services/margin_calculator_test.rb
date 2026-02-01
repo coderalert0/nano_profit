@@ -165,6 +165,31 @@ class MarginCalculatorTest < ActiveSupport::TestCase
     assert_equal 0, sub_customer[:margin].cost_in_cents
   end
 
+  test "same-day invoice returns full amount" do
+    customer = customers(:customer_with_subscription)
+    org = customer.organization
+
+    # Create a same-day invoice (period_start == period_end on same date)
+    same_day = org.stripe_invoices.create!(
+      stripe_invoice_id: "inv_same_day",
+      stripe_customer_id: "cus_sub_001",
+      customer: customer,
+      amount_in_cents: 3000,
+      period_start: Time.new(2026, 1, 15),
+      period_end: Time.new(2026, 1, 15),
+      paid_at: Time.new(2026, 1, 15)
+    )
+
+    period = Time.new(2026, 1, 14)..Time.new(2026, 1, 16)
+    result = MarginCalculator.customer_margin(customer, period)
+
+    # Same-day invoice should return full amount, not 0
+    assert result.subscription_revenue_in_cents >= 3000,
+      "Same-day invoice should contribute its full amount (#{same_day.amount_in_cents}), got #{result.subscription_revenue_in_cents}"
+  ensure
+    same_day&.destroy
+  end
+
   test "invoice proration arithmetic - no floating point" do
     customer = customers(:customer_with_subscription)
 

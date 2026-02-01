@@ -65,13 +65,26 @@ module Stripe
         stripe_customer_id: stripe_customer_id_from(invoice),
         amount_in_cents: invoice.amount_paid,
         currency: invoice.currency || "usd",
-        period_start: Time.at(invoice.period_start).utc,
-        period_end: Time.at(invoice.period_end).utc,
-        paid_at: Time.at(invoice.status_transitions&.paid_at || invoice.created).utc,
+        period_start: Time.at(invoice.period_start).in_time_zone,
+        period_end: Time.at(invoice.period_end).in_time_zone,
+        paid_at: Time.at(invoice.status_transitions&.paid_at || invoice.created).in_time_zone,
         hosted_invoice_url: invoice.hosted_invoice_url
       )
 
       record.save!
+      record
+    rescue ActiveRecord::RecordNotUnique
+      record = @organization.stripe_invoices.find_by!(stripe_invoice_id: invoice.id)
+      record.update!(
+        customer: customer,
+        stripe_customer_id: stripe_customer_id_from(invoice),
+        amount_in_cents: invoice.amount_paid,
+        currency: invoice.currency || "usd",
+        period_start: Time.at(invoice.period_start).in_time_zone,
+        period_end: Time.at(invoice.period_end).in_time_zone,
+        paid_at: Time.at(invoice.status_transitions&.paid_at || invoice.created).in_time_zone,
+        hosted_invoice_url: invoice.hosted_invoice_url
+      )
       record
     end
 

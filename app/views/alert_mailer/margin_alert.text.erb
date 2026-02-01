@@ -1,0 +1,9 @@
+MarginDash Margin Alert
+
+A margin alert has been triggered for your organization "<%= @organization.name %>".
+
+Alert type: <%= @alert.alert_type.humanize %>
+Dimension: <%= @alert.dimension.humanize %> — <%= @alert.dimension_value %>
+Details: <%= @alert.message %>
+
+Log in to MarginDash to review and acknowledge this alert.

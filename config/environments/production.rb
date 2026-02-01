@@ -87,4 +87,10 @@ Rails.application.configure do
 
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Security headers
+  config.action_dispatch.default_headers.merge!(
+    "Referrer-Policy" => "strict-origin-when-cross-origin",
+    "Permissions-Policy" => "camera=(), microphone=(), geolocation=()"
+  )
 end

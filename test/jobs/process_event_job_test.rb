@@ -98,7 +98,7 @@ class ProcessEventJobTest < ActiveSupport::TestCase
     EventProcessor.define_method(:call, original_call) if original_call
   end
 
-  test "RateNotFoundError marks event as failed" do
+  test "missing rate creates zero-cost entry and processes event" do
     org = organizations(:acme)
     event = org.events.create!(
       unique_request_token: "req_runtime_#{SecureRandom.hex(4)}",
@@ -112,10 +112,12 @@ class ProcessEventJobTest < ActiveSupport::TestCase
       status: "customer_linked"
     )
 
-    assert_raises(EventProcessor::RateNotFoundError) do
-      ProcessEventJob.perform_now(event.id)
-    end
+    ProcessEventJob.perform_now(event.id)
 
-    assert_equal "failed", event.reload.status
+    event.reload
+    assert_equal "processed", event.status
+    assert_equal 0, event.total_cost_in_cents
+    assert_equal 1, event.cost_entries.count
+    assert_equal "missing_rate", event.cost_entries.first.metadata["rate_source"]
   end
 end
