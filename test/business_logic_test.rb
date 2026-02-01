@@ -12,6 +12,9 @@ class BusinessLogicTest < ActiveSupport::TestCase
     future_period = 1.year.from_now..2.years.from_now
     results = MarginCalculator.customer_margins(org, future_period)
 
+    # Should return an array (possibly empty) without crashing
+    assert_kind_of Array, results
+
     # Should still include invoice-only customers, not crash
     results.each do |r|
       assert_kind_of Integer, r[:margin][:revenue_in_cents].to_i
