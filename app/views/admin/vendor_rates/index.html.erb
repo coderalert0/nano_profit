@@ -1,30 +1,30 @@
 <%= render "admin/nav" %>
 
 <div class="flex items-center justify-between mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Vendor Rates <span class="text-gray-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
+  <h1 class="text-2xl font-bold text-slate-900">Vendor Rates <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
   <%= link_to "New Rate", new_admin_vendor_rate_path, class: "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium" %>
 </div>
 
 <div class="card p-4 mb-6">
   <%= form_with url: admin_vendor_rates_path, method: :get, class: "flex flex-wrap items-end gap-4" do %>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Vendor</label>
-      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="All vendors" class="border border-gray-300 rounded px-3 py-2 text-sm">
+      <label class="block text-xs font-medium text-slate-500 mb-1">Vendor</label>
+      <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="All vendors" class="border border-slate-300 rounded px-3 py-2 text-sm">
         <% @vendors.each do |v| %>
           <option value="<%= v %>" <%= "selected" if @selected_vendors.include?(v) %>><%= v %></option>
         <% end %>
       </select>
     </div>
     <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Model</label>
-      <select name="model[]" multiple data-controller="searchable-select" data-placeholder="All models" class="border border-gray-300 rounded px-3 py-2 text-sm">
+      <label class="block text-xs font-medium text-slate-500 mb-1">Model</label>
+      <select name="model[]" multiple data-controller="searchable-select" data-placeholder="All models" class="border border-slate-300 rounded px-3 py-2 text-sm">
         <% @models.each do |m| %>
           <option value="<%= m %>" <%= "selected" if @selected_models.include?(m) %>><%= m %></option>
         <% end %>
       </select>
     </div>
     <% if @selected_vendors.any? || @selected_models.any? %>
-      <%= link_to "Clear filters", admin_vendor_rates_path, class: "self-end inline-block border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50" %>
+      <%= link_to "Clear filters", admin_vendor_rates_path, class: "self-end inline-block border border-slate-300 rounded px-3 py-2 text-sm text-slate-600 hover:bg-slate-50" %>
     <% end %>
   <% end %>
 </div>
@@ -33,23 +33,23 @@
 
 <div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= admin_vendor_rates_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
-    <thead class="bg-gray-50">
-      <tr class="border-b text-left">
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Vendor</th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Model</th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Input / 1K</th>
-        <th class="py-3 px-4 text-right th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Output / 1K</th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Unit</th>
-        <th class="py-3 px-4 text-gray-500">Scope</th>
-        <th class="py-3 px-4 th-sortable" data-action="click->sortable-table#sort">Status</th>
-        <th class="py-3 px-4"></th>
+    <thead class="bg-slate-50/75">
+      <tr class="border-b border-slate-200 text-left text-slate-500">
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort">Vendor</th>
+        <th class="py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort">Model</th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Input / 1K</th>
+        <th class="py-3 px-4 text-right text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort" data-sort-type="number">Output / 1K</th>
+        <th class="hidden md:table-cell py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort">Unit</th>
+        <th class="hidden md:table-cell py-3 px-4 text-xs font-medium uppercase tracking-wider">Scope</th>
+        <th class="hidden md:table-cell py-3 px-4 text-xs font-medium uppercase tracking-wider th-sortable" data-action="click->sortable-table#sort">Status</th>
+        <th class="hidden md:table-cell py-3 px-4"></th>
       </tr>
     </thead>
     <tbody data-infinite-scroll-target="tbody">
       <%= render "rows", vendor_rates: @vendor_rates, page: @page, total_pages: @total_pages %>
       <% if @vendor_rates.empty? %>
         <tr>
-          <td colspan="8" class="py-8 text-center text-gray-400">No vendor rates found.</td>
+          <td colspan="8" class="py-8 text-center text-slate-400">No vendor rates found.</td>
         </tr>
       <% end %>
     </tbody>
