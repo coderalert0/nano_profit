@@ -7,6 +7,10 @@
 # Ignore IDE and tooling files.
 /.idea
 /.kamal
+.DS_Store
+
+# Ignore Python cache.
+__pycache__/
 
 # Ignore bundler config.
 /.bundle
