@@ -1,0 +1,240 @@
+<%# ===== NAV BAR ===== %>
+<nav class="fixed top-0 inset-x-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-2.5 h-2.5 rounded-full bg-blue-400"></div>
+      <span class="text-white font-bold text-xl tracking-tight">MarginDash</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <%= link_to "Sign In", new_session_path, class: "text-sm text-slate-300 hover:text-white transition-colors px-4 py-2" %>
+      <%= link_to "Get Started", new_registration_path, class: "text-sm font-semibold bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg transition-colors" %>
+    </div>
+  </div>
+</nav>
+
+<%# ===== HERO ===== %>
+<section class="pt-32 pb-20 sm:pt-40 sm:pb-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p class="inline-block text-sm font-medium text-blue-400 border border-blue-400/20 bg-blue-400/5 rounded-full px-4 py-1 mb-6">Margin intelligence for AI-powered SaaS</p>
+    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+      Know your margins<br class="hidden sm:block">
+      <span class="text-blue-400">before they erode.</span>
+    </h1>
+    <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto">
+      Track the true cost of every AI API call with a lightweight SDK, pull in revenue from Stripe, and get per-customer P&L and per-feature cost breakdowns &mdash; with alerts when margins slip.
+    </p>
+    <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <%= link_to "Start Free", new_registration_path, class: "w-full sm:w-auto text-center text-base font-semibold bg-blue-500 hover:bg-blue-400 text-white px-8 py-3 rounded-lg transition-colors" %>
+      <%= link_to "Sign In", new_session_path, class: "w-full sm:w-auto text-center text-base font-semibold text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 px-8 py-3 rounded-lg transition-colors" %>
+    </div>
+    <p class="mt-4 text-sm text-slate-500">No credit card required</p>
+  </div>
+</section>
+
+<%# ===== TRUST BAR ===== %>
+<section class="border-y border-slate-800 bg-slate-900/50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <p class="text-center text-sm text-slate-500 uppercase tracking-wider mb-6">Tracks costs across</p>
+    <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-slate-400">
+      <span class="text-lg font-semibold">OpenAI</span>
+      <span class="text-lg font-semibold">Anthropic</span>
+      <span class="text-lg font-semibold">Google</span>
+      <span class="text-lg font-semibold">AWS Bedrock</span>
+      <span class="text-lg font-semibold">Azure</span>
+      <span class="text-lg font-semibold">Groq</span>
+    </div>
+  </div>
+</section>
+
+<%# ===== CODE SNIPPET ===== %>
+<section class="py-20 sm:py-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Add cost tracking in five lines</h2>
+      <p class="text-center text-slate-400 mb-10">Install the SDK, log AI usage after each call, and MarginDash calculates costs from vendor rates automatically. Connect Stripe separately to pull in revenue.</p>
+
+      <div class="bg-slate-800 rounded-2xl border border-slate-700/50 overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-3 bg-slate-800 border-b border-slate-700/50">
+          <span class="text-xs font-mono text-slate-500">npm install margindash</span>
+        </div>
+        <pre class="p-6 text-sm leading-relaxed overflow-x-auto"><code class="text-slate-300"><span class="text-purple-400">import</span> { MarginDash } <span class="text-purple-400">from</span> <span class="text-emerald-400">"margindash"</span>;
+
+<span class="text-purple-400">const</span> md = <span class="text-purple-400">new</span> <span class="text-blue-400">MarginDash</span>({ <span class="text-slate-400">apiKey:</span> <span class="text-emerald-400">"md_live_..."</span> });
+
+<span class="text-slate-500">// After each AI call, log the usage</span>
+md.<span class="text-blue-400">addUsage</span>(<span class="text-emerald-400">"openai"</span>, {
+  <span class="text-slate-400">model:</span> <span class="text-emerald-400">"gpt-4o"</span>,
+  <span class="text-slate-400">inputTokens:</span> <span class="text-amber-400">1200</span>,
+  <span class="text-slate-400">outputTokens:</span> <span class="text-amber-400">340</span>,
+});
+
+<span class="text-purple-400">await</span> md.<span class="text-blue-400">track</span>({
+  <span class="text-slate-400">customerExternalId:</span> <span class="text-emerald-400">"cust_123"</span>,
+  <span class="text-slate-400">eventType:</span> <span class="text-emerald-400">"summarize"</span>,
+});</code></pre>
+      </div>
+      <p class="text-center text-sm text-slate-500 mt-4">Also available as <span class="font-mono">pip install margindash</span> for Python</p>
+    </div>
+  </div>
+</section>
+
+<%# ===== PAIN → SOLUTION ===== %>
+<section class="py-20 sm:py-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">AI margins are invisible &mdash; until they aren't</h2>
+    <p class="text-center text-slate-400 max-w-2xl mx-auto mb-16">Most teams discover margin problems after they've already lost money. MarginDash gives you visibility from day one.</p>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Hidden cost spikes</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">A model upgrade or prompt change can quietly double your costs. You won't see it in your cloud bill for weeks.</p>
+      </div>
+
+      <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Unprofitable customers</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Some customers cost more to serve than they pay. Without per-customer P&L, you're guessing who's profitable.</p>
+      </div>
+
+      <div class="bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">No real-time signal</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">By the time you reconcile invoices manually, the damage is done. You need margin data as events flow in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ===== FEATURES GRID ===== %>
+<section class="py-20 sm:py-28 bg-slate-800/30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Everything you need to protect your margins</h2>
+    <p class="text-center text-slate-400 max-w-2xl mx-auto mb-16">One dashboard to track costs, revenue, and profitability across every AI model and customer.</p>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Margin dashboard</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Revenue, cost, and gross margin in one view &mdash; updated as events flow in. Filter by time period to spot trends.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Per-customer P&L</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Break down profitability by customer. Find out who's driving revenue and who's quietly eating your margins.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Per-feature costs</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Tag every API call with a feature or event type and see which product features are most expensive to run.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">AI model cost breakdown</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">See exactly what each model costs you &mdash; input tokens, output tokens, and total spend &mdash; across every provider.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Stripe revenue sync</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Connect Stripe to automatically pull in invoice and subscription revenue per customer. Or send revenue via the API &mdash; your choice.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Margin alerts</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Set a margin threshold and get notified the moment profitability drops. Catch problems before they compound.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-8 border border-slate-700/50">
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Privacy-first</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Only model names and token counts are sent to MarginDash. No prompts, no completions, no request content ever leaves your infrastructure.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ===== HOW IT WORKS ===== %>
+<section class="py-20 sm:py-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4">Three steps to margin clarity</h2>
+    <p class="text-center text-slate-400 max-w-2xl mx-auto mb-16">Sign up, get your API key, and start seeing data within your first deploy.</p>
+
+    <div class="grid md:grid-cols-3 gap-12">
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center mx-auto mb-6">
+          <span class="text-blue-400 font-bold text-lg">1</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Install the SDK</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Run <span class="font-mono text-slate-300">npm install margindash</span> or <span class="font-mono text-slate-300">pip install margindash</span>. Grab your API key from the settings page.</p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center mx-auto mb-6">
+          <span class="text-blue-400 font-bold text-lg">2</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Log AI usage</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Add a few lines after each AI API call to report the model and token counts. MarginDash calculates costs from vendor rates automatically.</p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-12 h-12 rounded-full bg-blue-500/10 border-2 border-blue-500/30 flex items-center justify-center mx-auto mb-6">
+          <span class="text-blue-400 font-bold text-lg">3</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Connect revenue</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Link Stripe to pull in invoice revenue automatically, or send revenue per event via the API. Your dashboard lights up with margins, P&L, and alerts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ===== FINAL CTA ===== %>
+<section class="py-20 sm:py-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl px-8 py-16 sm:px-16 text-center">
+      <h2 class="text-3xl sm:text-4xl font-bold mb-4">Stop guessing. Start measuring.</h2>
+      <p class="text-blue-100 text-lg max-w-xl mx-auto mb-8">Create an account, install the SDK, and see your first margin data after one deploy.</p>
+      <%= link_to "Get Started Free", new_registration_path, class: "inline-block text-base font-semibold bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg transition-colors" %>
+      <p class="mt-4 text-sm text-blue-200">No credit card required</p>
+    </div>
+  </div>
+</section>
+
+<%# ===== FOOTER ===== %>
+<footer class="border-t border-slate-800 py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+    <div class="flex items-center gap-2">
+      <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+      <span class="font-semibold text-slate-400">MarginDash</span>
+    </div>
+    <div class="flex items-center gap-6">
+      <%= link_to "Sign In", new_session_path, class: "hover:text-slate-300 transition-colors" %>
+      <%= link_to "Get Started", new_registration_path, class: "hover:text-slate-300 transition-colors" %>
+    </div>
+    <p>&copy; <%= Date.current.year %> MarginDash</p>
+  </div>
+</footer>

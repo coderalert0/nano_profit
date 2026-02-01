@@ -36,7 +36,7 @@ Rails.application.routes.draw do
     end
   end
 
-  root "dashboard#show"
+  root "pages#home"
 
   resource :dashboard, only: :show, controller: "dashboard"
   resources :customers, only: %i[ index show ]

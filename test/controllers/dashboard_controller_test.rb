@@ -6,7 +6,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "show renders margin-by-dimension charts" do
-    get root_url, headers: auth_headers
+    get dashboard_url, headers: auth_headers
     assert_response :success
 
     assert_select "h2", text: "Margin by Event Type (Bottom 10)"
@@ -14,7 +14,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "show does not render recent events table" do
-    get root_url, headers: auth_headers
+    get dashboard_url, headers: auth_headers
     assert_response :success
 
     assert_select "#events-table-body", count: 0
@@ -22,7 +22,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "show with period param renders successfully" do
-    get root_url, params: { period: "30d" }, headers: auth_headers
+    get dashboard_url, params: { period: "30d" }, headers: auth_headers
     assert_response :success
   end
 
