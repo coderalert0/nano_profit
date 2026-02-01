@@ -3,7 +3,7 @@ Rails.application.config.active_record.encryption.deterministic_key = ENV.fetch(
 Rails.application.config.active_record.encryption.key_derivation_salt = ENV.fetch("ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT", "test-key-derivation-salt-dev0000")
 Rails.application.config.active_record.encryption.support_unencrypted_data = true
 
-if Rails.env.production?
+if Rails.env.production? && !ENV["SECRET_KEY_BASE_DUMMY"]
   %w[ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT].each do |key|
     if ENV[key].blank? || ENV[key].include?("dev-only") || ENV[key].include?("dev0000")
       raise "FATAL: #{key} must be set to a secure value in production"
