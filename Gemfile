@@ -64,6 +64,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+  gem "letter_opener"
 end
 
 group :test do
@@ -73,3 +74,5 @@ group :test do
 end
 
 gem "rack-attack", "~> 6.8"
+
+gem "postmark-rails"
