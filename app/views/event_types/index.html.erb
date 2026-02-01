@@ -3,9 +3,29 @@
   <%= render "shared/period_selector", selected: @selected_period %>
 </div>
 
-<% period_params = @selected_period == "all" ? {} : { period: @selected_period } %>
+<div class="card p-4 mb-6">
+  <div class="flex flex-wrap items-end gap-3">
+    <%= form_with url: event_types_path, method: :get, class: "flex flex-wrap items-center gap-3 w-full" do %>
+      <% if @selected_period != "all" %>
+        <input type="hidden" name="period" value="<%= @selected_period %>">
+      <% end %>
+      <div class="w-full md:min-w-[25%] md:w-auto">
+        <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("event_types.index.search_placeholder") %>" class="input-field">
+          <% @all_event_type_names.each do |et| %>
+            <option value="<%= et %>" <%= "selected" if @selected_event_types.include?(et) %>><%= et %></option>
+          <% end %>
+        </select>
+      </div>
+      <% if @selected_event_types.any? %>
+        <%= link_to t("event_types.index.clear_filters"), event_types_path(period: @selected_period == "all" ? nil : @selected_period), class: "btn-secondary whitespace-nowrap" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
 
-<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= event_types_path(**period_params) %>" data-infinite-scroll-page-value="1">
+<% filter_params = { period: @selected_period == "all" ? nil : @selected_period, event_type: @selected_event_types }.compact_blank %>
+
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= event_types_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-slate-50/75">
       <tr class="border-b border-slate-200 text-left text-slate-500">

@@ -3,9 +3,23 @@
   <%= render "shared/period_selector", selected: @selected_period %>
 </div>
 
-<% period_params = @selected_period == "all" ? {} : { period: @selected_period } %>
+<div class="card p-4 mb-6">
+  <%= form_with url: customers_path, method: :get, class: "flex items-center gap-3 w-full" do %>
+    <% if @selected_period != "all" %>
+      <input type="hidden" name="period" value="<%= @selected_period %>">
+    <% end %>
+    <div class="w-full md:w-1/4 md:flex-none">
+      <input type="text" name="search" value="<%= @search %>" placeholder="<%= t("customers.index.search_placeholder") %>" class="input-field">
+    </div>
+    <% if @search.present? %>
+      <%= link_to t("customers.index.clear_filters"), customers_path(period: @selected_period == "all" ? nil : @selected_period), class: "btn-secondary whitespace-nowrap" %>
+    <% end %>
+  <% end %>
+</div>
 
-<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= customers_path(**period_params) %>" data-infinite-scroll-page-value="1">
+<% filter_params = { period: @selected_period == "all" ? nil : @selected_period, search: @search }.compact_blank %>
+
+<div class="card overflow-hidden" data-controller="infinite-scroll" data-infinite-scroll-url-value="<%= customers_path(**filter_params) %>" data-infinite-scroll-page-value="1">
   <table class="w-full text-sm" data-controller="sortable-table">
     <thead class="bg-slate-50/75">
       <tr class="border-b border-slate-200 text-left text-slate-500">

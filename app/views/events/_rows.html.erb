@@ -3,7 +3,7 @@
     <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap" data-sort-value="<%= event.occurred_at&.to_i %>"><%= format_time(event.occurred_at) %></td>
     <td class="py-3 px-4">
       <% if event.customer %>
-        <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer), class: "link" %>
+        <%= link_to event.customer.name || event.customer_external_id, customer_path(event.customer, ref: "events"), class: "link" %>
       <% else %>
         <span class="text-slate-500"><%= event.customer_external_id %></span>
       <% end %>

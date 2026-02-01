@@ -3,9 +3,17 @@ class CustomersController < ApplicationController
 
   def index
     @page = [ params[:page].to_i, 1 ].max
+    @search = params[:search]
     resolve_period
     all_sorted = MarginCalculator.customer_margins(Current.organization, @period)
       .sort_by { |cm| cm[:margin].margin_bps }
+    if @search.present?
+      query = @search.downcase
+      all_sorted = all_sorted.select { |cm|
+        cm[:customer_name]&.downcase&.include?(query) ||
+        cm[:customer_external_id]&.downcase&.include?(query)
+      }
+    end
     @total_count = all_sorted.size
     @total_pages = (@total_count.to_f / PER_PAGE).ceil
     @customer_margins = all_sorted.slice((@page - 1) * PER_PAGE, PER_PAGE) || []

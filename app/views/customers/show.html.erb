@@ -1,7 +1,12 @@
+<% back_config = case params[:ref]
+    when "alerts" then { path: alerts_path, label: "Margin Alerts" }
+    when "events" then { path: events_path, label: "Events" }
+    else { path: customers_path, label: "All Customers" }
+  end %>
 <div class="mb-4">
-  <%= link_to customers_path, class: "inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors" do %>
+  <%= link_to back_config[:path], class: "inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors" do %>
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-    <%= t("shared.back_to") %>
+    <%= back_config[:label] %>
   <% end %>
 </div>
 
@@ -97,7 +102,7 @@
 <div class="card p-6" data-controller="clickable-chart" data-clickable-chart-urls-value="<%= @event_type_urls.to_json %>">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-lg font-semibold text-slate-900"><%= t("customers.show.margin_by_event_type") %></h2>
-    <%= link_to t("customers.show.view_all"), events_path(customer_id: [@customer.id]), class: "text-sm link" %>
+    <%= link_to t("customers.show.view_all"), events_path(customer_id: [@customer.id], ref: "customer"), class: "text-sm link" %>
   </div>
   <% if @event_type_margins.any? %>
     <%= bar_chart @event_type_margins, suffix: "%" %>

@@ -99,6 +99,7 @@
 
 /* ── Tom Select overrides ── */
 .ts-wrapper {
+  width: 100%;
   min-width: 160px;
   border: none !important;
   box-shadow: none !important;

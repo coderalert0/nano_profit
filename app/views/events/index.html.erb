@@ -1,3 +1,17 @@
+<% back_config = case params[:ref]
+    when "event_types" then { path: event_types_path, label: "All Event Types" }
+    when "alerts" then { path: alerts_path, label: "Margin Alerts" }
+    when "customer" then { path: @selected_customer_ids.one? ? customer_path(@selected_customer_ids.first) : customers_path, label: @selected_customer_ids.one? ? "Customer" : "All Customers" }
+  end %>
+<% if back_config %>
+  <div class="mb-4">
+    <%= link_to back_config[:path], class: "inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors" do %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <%= back_config[:label] %>
+    <% end %>
+  </div>
+<% end %>
+
 <div class="flex justify-between items-center mb-6">
   <h1 class="text-2xl font-bold text-slate-900"><%= t("events.index.title") %> <span class="text-slate-400 font-normal text-lg">(<%= @total_count %>)</span></h1>
   <%= render "shared/period_selector", selected: @selected_period %>
@@ -10,7 +24,6 @@
       <input type="hidden" name="period" value="<%= @selected_period %>">
     <% end %>
     <div>
-      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.event_type") %></label>
       <select name="event_type[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_event_types") %>" class="input-field">
         <% @event_types.each do |et| %>
           <option value="<%= et %>" <%= "selected" if @selected_event_types.include?(et) %>><%= et %></option>
@@ -19,7 +32,6 @@
     </div>
 
     <div>
-      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.customer") %></label>
       <select name="customer_id[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_customers") %>" class="input-field">
         <% @customers.each do |c| %>
           <option value="<%= c.id %>" <%= "selected" if @selected_customer_ids.include?(c.id.to_s) %>><%= c.name || c.external_id %></option>
@@ -28,7 +40,6 @@
     </div>
 
     <div>
-      <label class="block text-xs font-medium text-slate-500 mb-1"><%= t("shared.vendors") %></label>
       <select name="vendor[]" multiple data-controller="searchable-select" data-placeholder="<%= t("events.index.all_vendors") %>" class="input-field">
         <% @vendors.each do |v| %>
           <option value="<%= v %>" <%= "selected" if @selected_vendors.include?(v) %>><%= v %></option>
@@ -38,7 +49,6 @@
 
     <% if @selected_event_types.any? || @selected_customer_ids.any? || @selected_vendors.any? %>
       <div class="ml-auto">
-        <label class="block text-xs font-medium mb-1 invisible">.</label>
         <%= link_to t("events.index.clear_filters"), events_path(period: @selected_period == "all" ? nil : @selected_period), class: "btn-secondary whitespace-nowrap" %>
       </div>
     <% end %>

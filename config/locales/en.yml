@@ -36,6 +36,8 @@ en:
     index:
       title: "Event Types"
       no_data: "No event type data yet."
+      search_placeholder: "Filter event types..."
+      clear_filters: "Clear filters"
   events:
     index:
       title: "Events"
@@ -51,6 +53,8 @@ en:
     index:
       title: "Customers"
       no_data: "No customer data yet."
+      search_placeholder: "Search by name or external ID..."
+      clear_filters: "Clear filters"
     show:
       revenue_breakdown: "Revenue Breakdown"
       invoice_label: "Invoice:"

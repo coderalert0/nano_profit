@@ -68,14 +68,10 @@ event_types = %w[ai_analysis ai_completion ai_embedding image_generation speech_
 vendor_models = {
   "openai" => %w[gpt-4 gpt-4o gpt-4o-mini],
   "anthropic" => %w[claude-3.5-sonnet claude-3-opus claude-3-haiku],
-  "aws" => %w[titan-text-express titan-embed],
-  "google" => %w[gemini-pro gemini-flash],
-  "cohere" => %w[command-r command-r-plus],
-  "mistral" => %w[mistral-large mistral-small],
-  "replicate" => %w[llama-3-70b llama-3-8b],
-  "huggingface" => %w[zephyr-7b mixtral-8x7b],
-  "pinecone" => %w[pinecone-embed],
-  "deepgram" => %w[nova-2 whisper-large]
+  "gemini" => %w[gemini-pro gemini-1.5-pro gemini-1.5-flash],
+  "groq" => %w[llama-3-70b llama-3-8b mixtral-8x7b],
+  "azure" => %w[gpt-4o gpt-4 gpt-35-turbo],
+  "bedrock" => %w[claude-3-sonnet claude-3-haiku titan-text-express]
 }
 vendors = vendor_models.keys
 
@@ -118,7 +114,7 @@ customers.each do |customer|
       total_cost_in_cents: total_cost,
       margin_in_cents: margin,
       vendor_costs_raw: vendor_costs,
-      metadata: { model: %w[gpt-4 gpt-4o claude-3.5 claude-opus gemini-pro mistral-large command-r llama-3].sample },
+      metadata: { model: %w[gpt-4 gpt-4o gpt-4o-mini claude-3.5-sonnet claude-3-opus gemini-pro gemini-1.5-flash llama-3-70b].sample },
       occurred_at: occurred,
       status: "processed"
     )

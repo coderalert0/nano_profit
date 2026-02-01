@@ -10,12 +10,12 @@
   <td class="hidden md:table-cell py-3 px-4">
     <% if alert.event_type? %>
       <span class="badge badge-blue text-xs"><%= t("alerts.alert_row.event_type") %></span>
-      <div class="truncate max-w-[10rem]"><%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value), class: "link" %></div>
+      <div class="truncate max-w-[10rem]"><%= link_to alert.dimension_value, events_path(event_type: alert.dimension_value, ref: "alerts"), class: "link" %></div>
     <% elsif alert.customer? %>
       <span class="badge badge-gray text-xs"><%= t("alerts.alert_row.customer") %></span>
       <% customer = alert_customers[alert.dimension_value] %>
       <% if customer %>
-        <div class="truncate max-w-[10rem]"><%= link_to customer.name || customer.external_id, customer_path(customer), class: "link" %></div>
+        <div class="truncate max-w-[10rem]"><%= link_to customer.name || customer.external_id, customer_path(customer, ref: "alerts"), class: "link" %></div>
       <% else %>
         <div class="truncate max-w-[10rem] text-slate-400"><%= alert.dimension_value %></div>
       <% end %>
