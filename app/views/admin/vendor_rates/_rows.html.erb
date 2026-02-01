@@ -1,7 +1,7 @@
 <% vendor_rates.each do |rate| %>
   <tr class="table-row">
-    <td class="py-3 px-4 font-medium text-slate-900"><%= rate.vendor_name %></td>
-    <td class="py-3 px-4 font-mono text-blue-600"><%= rate.ai_model_name %></td>
+    <td class="hidden md:table-cell py-3 px-4 font-medium text-slate-900"><%= rate.vendor_name %></td>
+    <td class="py-3 px-4 font-mono text-blue-600 max-w-[10rem] truncate"><%= rate.ai_model_name %></td>
     <td class="py-3 px-4 text-right font-mono text-slate-700"><%= number_with_precision(rate.input_rate_per_1k, precision: 6) %></td>
     <td class="py-3 px-4 text-right font-mono text-slate-700"><%= number_with_precision(rate.output_rate_per_1k, precision: 6) %></td>
     <td class="hidden md:table-cell py-3 px-4 text-slate-500"><%= rate.unit_type %></td>
